@@ -1,5 +1,6 @@
 dependencies = ['segmentation_models_pytorch']
 
+import torch
 from segmentation_models_pytorch import Unet, Linknet, FPN, PSPNet
 
 
