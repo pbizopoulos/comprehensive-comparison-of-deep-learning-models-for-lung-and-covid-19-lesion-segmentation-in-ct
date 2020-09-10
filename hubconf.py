@@ -3,7 +3,7 @@ dependencies = ['segmentation_models_pytorch']
 from segmentation_models_pytorch import Unet, Linknet, FPN, PSPNet
 
 
-def segmentation_model(pretrained=True, experiment_name='lung-segmentation', architecture='Unet', encoder='resnet18', encoder_weights='imagenet'):
+def segmentation_model(pretrained=True, experiment_name='lung-segmentation', architecture_name='Unet', encoder='resnet18', encoder_weights='imagenet'):
     """
     segmentation model
     pretrained (bool): load pretrained weights into the model
