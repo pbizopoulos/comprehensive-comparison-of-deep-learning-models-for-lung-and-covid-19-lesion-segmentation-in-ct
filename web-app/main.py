@@ -27,7 +27,6 @@ def preprocess(image):
 
 
 def predict(image, experiment_name, architecture_name, encoder, encoder_weights):
-    model_path = f'../results/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
     if architecture_name == 'Unet':
         architecture = Unet
     if architecture_name == 'Linknet':
@@ -37,7 +36,8 @@ def predict(image, experiment_name, architecture_name, encoder, encoder_weights)
     if architecture_name == 'PSPNet':
         architecture = PSPNet
     model = architecture(encoder, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to('cpu')
-    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    checkpoint = f'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/releases/download/v1/{experiment_name}-{architecture_name}-{encoder}-{endocer_weights}.pt'
+    model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint, progress=False, map_location='cpu'))
     model.eval()
     image = preprocess(image)
     prediction = model(image)
