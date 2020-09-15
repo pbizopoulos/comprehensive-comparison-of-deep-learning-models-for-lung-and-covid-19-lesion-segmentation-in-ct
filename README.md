@@ -1,5 +1,5 @@
 [![citation](http://img.shields.io/badge/Citation-0091FF.svg)](https://scholar.google.com/scholar?q=)
-[![arXiv](http://img.shields.io/badge/cs.??-arXiv%3A9999.99999-B31B1B.svg)](https://arxiv.org/abs/9999.99999)
+[![arXiv](http://img.shields.io/badge/cs.??-arXiv%3A2009.06412-B31B1B.svg)](https://arxiv.org/abs/2009.06412)
 
 # Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT
 This repository contains the code that generates the results of the paper **Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT**.
