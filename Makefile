@@ -36,7 +36,7 @@ ms.pdf: ms.tex ms.bib results/.completed # Generate pdf.
 		ghcr.io/pbizopoulos/texlive-full \
 		latexmk -usepretex="\pdfinfoomitdate=1\pdfsuppressptexinfo=-1\pdftrailerid{}" -gg -pdf -cd /home/latex/ms.tex
 
-results/.completed: Dockerfile $(shell find . -maxdepth 1 -name '*.py')
+results/.completed: Dockerfile requirements.txt $(shell find . -maxdepth 1 -name '*.py')
 	rm -rf results/* results/.completed
 
 	docker image build --tag comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct .
