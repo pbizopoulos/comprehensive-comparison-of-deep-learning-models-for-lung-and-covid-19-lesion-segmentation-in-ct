@@ -1,5 +1,5 @@
 gdown==3.12.2
-matplotlib==3.3.1
+matplotlib==3.3.2
 nibabel==3.1.1
 requests==2.24.0
 scikit-image==0.17.2
