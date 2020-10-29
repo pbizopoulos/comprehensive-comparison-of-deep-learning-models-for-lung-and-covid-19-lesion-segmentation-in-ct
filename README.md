@@ -15,3 +15,9 @@ This repository contains the code that generates the results of the paper **Comp
 2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
 3. `sudo systemctl start docker`
 4. `make test`
+
+## Instructions for evaluating the trained models
+1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
+2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/web-app`
+3. `make`
+4. visit http://0.0.0.0:7860/ in your browser

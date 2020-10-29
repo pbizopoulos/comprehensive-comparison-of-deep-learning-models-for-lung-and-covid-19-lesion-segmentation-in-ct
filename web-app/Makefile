@@ -1,25 +1,18 @@
 .POSIX:
 
 DOCKER_WORKDIR = /usr/src/app
-NAME_CURRENT_DIR = $(notdir $(shell pwd))
-
-all: .venv main.py
-	. $</bin/activate; python3 main.py
-
-.venv: requirements.txt
-	rm -rf $@/
-	python3 -m venv $@/
-	. $@/bin/activate; pip install -U pip wheel; pip install -Ur $<
-
-clean:
-	rm -rf __pycache__/ .venv/
+MAKEFILE_DIR=$(dir $(realpath Makefile))
 
 docker:
-	docker build -t $(NAME_CURRENT_DIR) .
+	docker build -t comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct-web-app .
 	docker run --rm \
 		--user $(shell id -u):$(shell id -g) \
-		-w $(DOCKER_WORKDIR) \
-		-v $(PWD):$(DOCKER_WORKDIR) \
+		--env HOME=$(DOCKER_WORKDIR)/.cache \
+		--env TORCH_HOME=$(DOCKER_WORKDIR)/.cache \
+		--workdir $(DOCKER_WORKDIR) \
+		--volume $(MAKEFILE_DIR):$(DOCKER_WORKDIR) \
 		-p 7860:7860 \
-		$(NAME_CURRENT_DIR) \
-		python3 main.py
+		comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct-web-app
+
+clean:
+	rm -rf __pycache__/

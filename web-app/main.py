@@ -64,9 +64,9 @@ if __name__ == '__main__':
                 gradio.outputs.Image(plot=True),
                 ],
             title='COVID-19 lung/lesion segmentation',
-            description='DISCLAIMER: THIS TOOL IS FOR RESEARCH USE ONLY AND IT IS NOT INTENDED TO BE USED FOR MEDICAL PURPOSES. Supplementary User Interface for the paper "Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Infection Segmentation in CT"',
+            description='DISCLAIMER: THIS TOOL IS FOR RESEARCH USE ONLY AND IT IS NOT INTENDED TO BE USED FOR MEDICAL PURPOSES. Supplementary User Interface for the paper "Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT scans"',
             examples=[
-                ['covid-19-pneumonia-4.jpg', 'lung-segmentation', 'PSPNet', 'vgg11', 'imagenet'],
+                ['covid-19-pneumonia-4.jpg', 'lung-segmentation', 'PSPNet', 'mobilenet_v2', 'imagenet'],
                 ['covid-19-pneumonia-45.jpg', 'lesion-segmentation-a', 'PSPNet', 'vgg11', 'imagenet'],
                 ],
             server_name='0.0.0.0'
