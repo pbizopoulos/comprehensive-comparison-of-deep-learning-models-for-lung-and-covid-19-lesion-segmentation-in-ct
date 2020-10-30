@@ -26,7 +26,11 @@
 ARGS= 
 DEBUG_ARGS=--interactive --tty
 MAKEFILE_DIR=$(dir $(realpath Makefile))
-DOCKER_GPU_ARGS=--gpus all
+ifeq (, $(shell which nvidia-smi))
+	DOCKER_GPU_ARGS=
+else
+	DOCKER_GPU_ARGS=--gpus all
+endif
 
 ms.pdf: ms.tex ms.bib results/.completed # Generate pdf.
 	docker container run \
