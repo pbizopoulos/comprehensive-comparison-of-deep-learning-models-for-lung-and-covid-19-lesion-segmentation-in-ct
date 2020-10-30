@@ -54,8 +54,8 @@ results/.completed: Dockerfile requirements.txt $(shell find . -maxdepth 1 -name
 	touch results/.completed
 
 test: # Test whether the paper has a reproducible build.
-	make clean && make ARGS=$(ARGS) DEBUG_ARGS= DOCKER_GPU_ARGS="$(DOCKER_GPU_ARGS)" && mv ms.pdf tmp.pdf
-	make clean && make ARGS=$(ARGS) DEBUG_ARGS= DOCKER_GPU_ARGS="$(DOCKER_GPU_ARGS)"
+	make clean && make ARGS=$(ARGS) DEBUG_ARGS= && mv ms.pdf tmp.pdf
+	make clean && make ARGS=$(ARGS) DEBUG_ARGS=
 	@diff ms.pdf tmp.pdf && echo 'ms.pdf has a reproducible build.' || echo 'ms.pdf has not a reproducible build.'
 	@rm tmp.pdf
 
