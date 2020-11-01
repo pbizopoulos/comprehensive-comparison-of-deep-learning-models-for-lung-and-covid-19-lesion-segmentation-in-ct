@@ -19,7 +19,6 @@ ms.pdf: ms.tex ms.bib results/.completed
 
 results/.completed: Dockerfile requirements.txt $(shell find . -maxdepth 1 -name '*.py')
 	rm -rf results/* results/.completed
-
 	docker image build --tag comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct .
 	docker container run \
 		$(DEBUG_ARGS) \
