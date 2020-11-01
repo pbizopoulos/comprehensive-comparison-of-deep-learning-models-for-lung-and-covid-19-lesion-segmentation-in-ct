@@ -5,19 +5,23 @@
 This repository contains the code that generates the results of the paper **Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT**.
 
 ## Requirements
-- UNIX tools (awk, cut, grep)
+- UNIX utilities (diff, echo, mv, rm, touch)
 - docker
 - make
 - nvidia-container-toolkit [required only when using CUDA]
 
-## Instructions
+## Instructions [more info on this template](https://github.com/pbizopoulos/cookiecutter-reproducible-builds-for-computational-research-papers)
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
 2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
 3. `sudo systemctl start docker`
-4. `make help`
+4. `make [OPTION] [ARGS=--full]`
+    * `make`       # Generate pdf.
+    * `make test`  # Test whether the paper has a reproducible build.
+    * `make clean` # Remove cache, results directories and tex auxiliary files.
 
 ## Instructions for evaluating the trained models
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
 2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/web-app`
-3. `make`
-4. visit http://0.0.0.0:7860/ in your browser
+3. `sudo systemctl start docker`
+4. `make`
+5. visit http://0.0.0.0:7860/ in your browser
