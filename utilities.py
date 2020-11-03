@@ -128,8 +128,8 @@ def save_3d(volume, is_full, experiment_name, architecture, encoder_weights, res
     else:
         step_size = 10
     volume = volume > 0.5
-    volume[0, 0, 0] = 0
-    volume[0, 0, 1] = 1
+    volume[0, 0, 0:10] = 0
+    volume[0, 0, 10:20] = 1
     verts, faces, _, _ = marching_cubes(volume, 0.5, step_size=step_size)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
