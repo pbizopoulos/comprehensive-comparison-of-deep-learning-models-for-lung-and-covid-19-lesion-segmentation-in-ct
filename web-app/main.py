@@ -2,17 +2,9 @@ import gradio
 import torch
 
 from matplotlib import pyplot as plt
+from segmentation_models_pytorch import Unet, Linknet, FPN, PSPNet
 from torchvision.transforms import functional as tf
 
-from segmentation_models_pytorch import Unet, Linknet, FPN, PSPNet
-
-
-experiment_list = ['Lung segmentation', 'Lesion segmentation A']
-experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
-architecture_list = [Unet, Linknet, FPN, PSPNet]
-architecture_name_list = [architecture.__name__ for architecture in architecture_list]
-encoder_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
-encoder_weights_list = ['None', 'imagenet']
 
 def preprocess(image):
     if image.shape[0] in [1, 3]:
@@ -24,7 +16,6 @@ def preprocess(image):
     image = tf.to_tensor(image)
     image = tf.normalize(image, image.mean(), image.std())
     return image.unsqueeze(0)
-
 
 def predict(image, experiment_name, architecture_name, encoder, encoder_weights):
     if architecture_name == 'Unet':
@@ -51,6 +42,12 @@ def predict(image, experiment_name, architecture_name, encoder, encoder_weights)
 
 
 if __name__ == '__main__':
+    experiment_list = ['Lung segmentation', 'Lesion segmentation A']
+    experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
+    architecture_list = [Unet, Linknet, FPN, PSPNet]
+    architecture_name_list = [architecture.__name__ for architecture in architecture_list]
+    encoder_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
+    encoder_weights_list = ['None', 'imagenet']
     gradio.reset_all()
     gradio.Interface(predict, 
             [
