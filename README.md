@@ -4,7 +4,7 @@
 [![test-reproducible-build](https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/workflows/test-reproducible-build/badge.svg)](https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/actions?query=workflow%3Atest-reproducible-build)
 
 # Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT
-This repository contains the code that generates the results of the paper **Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT**.
+This repository contains the code that generates the paper **Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT**.
 
 ## Requirements
 - UNIX utilities (cmp, cp, echo, rm, touch)
@@ -19,7 +19,7 @@ This repository contains the code that generates the results of the paper **Comp
 4. make options
     * `make`             # Generate pdf.
     * `make ARGS=--full` # Generate full pdf.
-    * `make clean`       # Remove cache, results directories and tex auxiliary files.
+    * `make clean`       # Remove build and cache directories.
 
 ## Instructions for evaluating the trained models
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
