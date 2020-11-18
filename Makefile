@@ -1,12 +1,13 @@
 .POSIX:
 
 ARGS= 
-DEBUG_ARGS=--interactive --tty
 PAPER_TITLE=comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
 
-ifeq (, $(shell which nvidia-smi))
-	GPU_ARGS=
-else
+ifeq (1, $(shell [ -t 0 ] && echo 1))
+	DEBUG_ARGS=--interactive --tty
+endif
+
+ifneq (, $(shell which nvidia-smi))
 	GPU_ARGS=--gpus all
 endif
 
