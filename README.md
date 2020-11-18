@@ -21,17 +21,12 @@ This repository contains the code that generates the paper **Comprehensive Compa
     * `make ARGS=--full` # Generate full pdf.
     * `make clean`       # Remove build and cache directories.
 
-## Instructions for evaluating the trained models using [Gradio](https://github.com/gradio-app/gradio)
+## Instructions for evaluating trained models using [Gradio](https://github.com/gradio-app/gradio)
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
 2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/demos`
 3. `sudo systemctl start docker`
 4. `make`
 5. visit http://0.0.0.0:7860/ in your browser
 
-## Instructions for evaluating the trained models using [Jupyter](https://jupyter.org/)
+## Instructions for evaluating trained models using [Jupyter](https://jupyter.org/)
 1. visit https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/master/demos/main.ipynb
-
-or
-
-1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
-2. `jupyter-notebook comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/demos/main.ipynb`
