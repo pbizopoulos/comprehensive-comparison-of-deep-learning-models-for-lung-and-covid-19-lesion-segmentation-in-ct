@@ -72,7 +72,7 @@ if __name__ == '__main__':
                     num_parameters_array[index_architecture, index_encoder] = get_num_parameters(model)
                     optimizer = optim.Adam(model.parameters())
                     validation_loss_best = float('inf')
-                    model_path = f'{args.results_dir}/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
+                    model_path = f'{args.tmp_dir}/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
                     for index_epoch, epoch in enumerate(range(num_epochs)):
                         train_loss_sum = 0
                         model.train()
