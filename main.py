@@ -17,8 +17,8 @@ from utilities import save_weights, save_hist, save_loss, save_scatter, save_arc
 if __name__ == '__main__':
     # DO NOT EDIT BLOCK - Required by the Makefile
     parser = argparse.ArgumentParser()
-    parser.add_argument('cache_dir')
     parser.add_argument('results_dir')
+    parser.add_argument('tmp_dir')
     parser.add_argument('--full', default=False, action='store_true')
     args = parser.parse_args()
     # END OF DO NOT EDIT BLOCK
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     experiment_list = ['Lung segmentation', 'Lesion segmentation A', 'Lesion segmentation B']
     experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
     encoder_weights_list = [None, 'imagenet']
-    train_dataset = MedicalSegmentation1(args.cache_dir, index_train_range, use_transforms=True)
+    train_dataset = MedicalSegmentation1(args.tmp_dir, index_train_range, use_transforms=True)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    validation_dataset = MedicalSegmentation1(args.cache_dir, index_validation_range, use_transforms=False)
+    validation_dataset = MedicalSegmentation1(args.tmp_dir, index_validation_range, use_transforms=False)
     validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size)
     metric_list = ['Sens', 'Spec', 'Dice']
     metrics_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list), len(metric_list)))
@@ -145,7 +145,7 @@ if __name__ == '__main__':
                     model.eval()
                     num_slices_test = 0
                     for index_test_volume in index_test_volume_range:
-                        test_dataset = MedicalSegmentation2(args.cache_dir, index_test_volume, use_transforms=False)
+                        test_dataset = MedicalSegmentation2(args.tmp_dir, index_test_volume, use_transforms=False)
                         test_dataloader = DataLoader(test_dataset)
                         num_slices_test += len(test_dataloader)
                         with torch.no_grad():
