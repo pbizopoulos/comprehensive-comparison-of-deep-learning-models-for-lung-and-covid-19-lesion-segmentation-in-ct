@@ -19,7 +19,7 @@ This repository contains the code that generates **Comprehensive Comparison of D
 4. make options
     * `make`             # Generate pdf.
     * `make ARGS=--full` # Generate full pdf.
-    * `make clean`       # Remove results and tmp directories.
+    * `make clean`       # Remove tmp directory.
 
 ## Instructions for evaluating trained models using [Gradio](https://github.com/gradio-app/gradio)
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
