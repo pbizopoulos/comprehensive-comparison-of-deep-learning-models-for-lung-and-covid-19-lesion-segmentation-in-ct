@@ -17,8 +17,6 @@ from utilities import save_weights, save_hist, save_loss, save_scatter, save_arc
 if __name__ == '__main__':
     # DO NOT EDIT BLOCK - Required by the Makefile
     parser = argparse.ArgumentParser()
-    parser.add_argument('results_dir')
-    parser.add_argument('tmp_dir')
     parser.add_argument('--full', default=False, action='store_true')
     args = parser.parse_args()
     # END OF DO NOT EDIT BLOCK
@@ -49,9 +47,9 @@ if __name__ == '__main__':
     experiment_list = ['Lung segmentation', 'Lesion segmentation A', 'Lesion segmentation B']
     experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
     encoder_weights_list = [None, 'imagenet']
-    train_dataset = MedicalSegmentation1(args.tmp_dir, index_train_range, use_transforms=True)
+    train_dataset = MedicalSegmentation1(index_train_range, use_transforms=True)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    validation_dataset = MedicalSegmentation1(args.tmp_dir, index_validation_range, use_transforms=False)
+    validation_dataset = MedicalSegmentation1(index_validation_range, use_transforms=False)
     validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size)
     metric_list = ['Sens', 'Spec', 'Dice']
     metrics_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list), len(metric_list)))
@@ -72,7 +70,7 @@ if __name__ == '__main__':
                     num_parameters_array[index_architecture, index_encoder] = get_num_parameters(model)
                     optimizer = optim.Adam(model.parameters())
                     validation_loss_best = float('inf')
-                    model_path = f'{args.tmp_dir}/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
+                    model_path = f'tmp/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
                     for index_epoch, epoch in enumerate(range(num_epochs)):
                         train_loss_sum = 0
                         model.train()
@@ -96,14 +94,14 @@ if __name__ == '__main__':
                                     predictions = model(images)
                                 train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cpu_time for item in prof.function_events])
                             if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]) and (index_epoch == num_epochs - 1):
-                                save_image(images[0, 0], experiment_name, args.results_dir)
-                                save_masked_image(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train', args.results_dir)
-                                save_masked_image(images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train', args.results_dir)
+                                save_image(images[0, 0], experiment_name)
+                                save_masked_image(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
+                                save_masked_image(images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train')
                             if (architecture_name == architecture_name_list[0]) and (encoder == 'resnet18'):
                                 if (index_epoch == 0):
-                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-before', args.results_dir)
+                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-before')
                                 elif (index_epoch == num_epochs - 1):
-                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-after', args.results_dir)
+                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-after')
                             loss = dice_loss(predictions, masks)
                             loss.backward()
                             optimizer.step()
@@ -145,7 +143,7 @@ if __name__ == '__main__':
                     model.eval()
                     num_slices_test = 0
                     for index_test_volume in index_test_volume_range:
-                        test_dataset = MedicalSegmentation2(args.tmp_dir, index_test_volume, use_transforms=False)
+                        test_dataset = MedicalSegmentation2(index_test_volume, use_transforms=False)
                         test_dataloader = DataLoader(test_dataset)
                         num_slices_test += len(test_dataloader)
                         with torch.no_grad():
@@ -178,7 +176,7 @@ if __name__ == '__main__':
                                     images *= lung_masks
                                     masks = lesion_masks
                                 predictions = model(images.unsqueeze(0).to(device))
-                                save_masked_image(images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder, args.results_dir)
+                                save_masked_image(images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder)
                             if (index_test_volume == 0) and (encoder == 'resnet18') and (encoder_weights == None):
                                 volume_mask = np.zeros((512, 512, len(test_dataset)))
                                 volume_prediction = np.zeros((512, 512, len(test_dataset)))
@@ -195,26 +193,26 @@ if __name__ == '__main__':
                                     volume_prediction[:, :, index_slice_volume] = predictions[0].float().cpu()
                                 volume_mask = volume_mask[:, :, ::-1]
                                 if architecture_name == 'Unet':
-                                    save_3d(volume_mask, args.full, experiment_name, 'mask', '', args.results_dir)
+                                    save_3d(volume_mask, args.full, experiment_name, 'mask', '')
                                 volume_prediction = volume_prediction[:, :, ::-1]
-                                save_3d(volume_prediction, args.full, experiment_name, architecture_name, encoder_weights, args.results_dir)
+                                save_3d(volume_prediction, args.full, experiment_name, architecture_name, encoder_weights)
 
     for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
-        save_hist(hist_images, hist_masks, hist_range, experiment_name, args.results_dir)
+        save_hist(hist_images, hist_masks, hist_range, experiment_name)
 
     for experiment_name, train_loss, validation_loss in zip(experiment_name_list, train_loss_array, validation_loss_array):
-        save_loss(train_loss, 'Train', experiment_name, architecture_name_list, [0, 1], args.results_dir)
-        save_loss(validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1], args.results_dir)
-    save_loss(train_loss_array[2] - train_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4], args.results_dir)
-    save_loss(validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4], args.results_dir)
+        save_loss(train_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
+        save_loss(validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
+    save_loss(train_loss_array[2] - train_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
+    save_loss(validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
 
     metrics_array = 100*metrics_array/num_slices_test
     num_parameters_array = num_parameters_array/10**6
     for experiment, experiment_name, metrics_ in zip(experiment_list, experiment_name_list, metrics_array):
-        save_architecture_box(metrics_[..., -1], architecture_name_list, experiment_name, args.results_dir)
-        save_scatter(num_parameters_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100], args.results_dir)
-    save_scatter(num_parameters_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15], args.results_dir)
-    save_initialization_box(metrics_array[..., -1], encoder_weights_list, args.results_dir)
+        save_architecture_box(metrics_[..., -1], architecture_name_list, experiment_name)
+        save_scatter(num_parameters_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100])
+    save_scatter(num_parameters_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15])
+    save_initialization_box(metrics_array[..., -1], encoder_weights_list)
 
     encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
     encoder_weights_std = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).std(0).round(2)
@@ -258,7 +256,7 @@ if __name__ == '__main__':
     index_min_per_column_list = df.idxmin(0)
     formatters = [lambda x,max_per_column=max_per_column: fr'\bf{{{x:.2f}}}' if (x == max_per_column) else f'{x:.2f}' for max_per_column in max_per_column_list]
     formatters[-3:] = [lambda x,min_per_column=min_per_column: fr'\bf{{{x:.2f}}}' if (x == min_per_column) else f'{x:.2f}' for min_per_column in min_per_column_list[-3:]]
-    df.to_latex(f'{args.results_dir}/metrics.tex', formatters=formatters, bold_rows=True, column_format='c|l|rrr|rrr|rrr|rrr|rrr|rrr|rrr', multirow=True, multicolumn=True, multicolumn_format='c', escape=False)
+    df.to_latex(f'tmp/metrics.tex', formatters=formatters, bold_rows=True, column_format='c|l|rrr|rrr|rrr|rrr|rrr|rrr|rrr', multirow=True, multicolumn=True, multicolumn_format='c', escape=False)
 
     df_keys_values = pd.DataFrame({'key': [
         'num_epochs',
@@ -307,4 +305,4 @@ if __name__ == '__main__':
             [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + \
             [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]
             })
-    df_keys_values.to_csv(f'{args.results_dir}/keys-values.csv')
+    df_keys_values.to_csv(f'tmp/keys-values.csv')

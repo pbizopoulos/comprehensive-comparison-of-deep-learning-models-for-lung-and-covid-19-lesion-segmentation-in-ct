@@ -12,7 +12,7 @@ plt.rcParams['savefig.format'] = 'pdf'
 plt.rcParams['savefig.bbox'] = 'tight'
 
 
-def save_weights(model, experiment_name, architecture_name, encoder_weights, results_dir):
+def save_weights(model, experiment_name, architecture_name, encoder_weights):
     rows = 8
     columns = 8
     fig = plt.figure(figsize=(4, 4.6))
@@ -24,10 +24,10 @@ def save_weights(model, experiment_name, architecture_name, encoder_weights, res
             plt.imshow(weight[0].detach().cpu().numpy(), cmap='gray', vmin=-0.4, vmax=0.4)
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-    plt.savefig(f'{results_dir}/{experiment_name}-{architecture_name}-{encoder_weights}-weights')
+    plt.savefig(f'tmp/{experiment_name}-{architecture_name}-{encoder_weights}-weights')
     plt.close()
 
-def save_hist(hist_images, hist_masks, hist_range, experiment_name, results_dir):
+def save_hist(hist_images, hist_masks, hist_range, experiment_name):
     t = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
     hist_images = hist_images.reshape(-1, hist_images.shape[-1]).sum(0)
     hist_masks = hist_masks.reshape(-1, hist_masks.shape[-1]).sum(0)
@@ -43,10 +43,10 @@ def save_hist(hist_images, hist_masks, hist_range, experiment_name, results_dir)
     plt.grid(True, which='both')
     ax.set_yscale('log')
     ax.legend()
-    plt.savefig(f'{results_dir}/{experiment_name}-hist')
+    plt.savefig(f'tmp/{experiment_name}-hist')
     plt.close()
 
-def save_loss(loss, train_or_validation, experiment_name, architecture_name_list, ylim, results_dir):
+def save_loss(loss, train_or_validation, experiment_name, architecture_name_list, ylim):
     loss = np.nan_to_num(loss)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     p1 = [None]*len(architecture_name_list)
@@ -69,30 +69,30 @@ def save_loss(loss, train_or_validation, experiment_name, architecture_name_list
     ax.tick_params(axis='both', which='major', labelsize='large')
     ax.tick_params(axis='both', which='minor', labelsize='large')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(f'{results_dir}/{experiment_name}-{train_or_validation.lower().replace(" ", "-")}-loss')
+    plt.savefig(f'tmp/{experiment_name}-{train_or_validation.lower().replace(" ", "-")}-loss')
     plt.close()
 
-def save_architecture_box(dice, architecture_name_list, experiment_name, results_dir):
+def save_architecture_box(dice, architecture_name_list, experiment_name):
     dice_ = dice.reshape(dice.shape[0], -1).T
     fig, ax = plt.subplots()
     plt.boxplot(dice_)
     plt.grid(True)
     plt.xticks(ticks=np.arange(len(architecture_name_list))+1, labels=architecture_name_list, fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig(f'{results_dir}/{experiment_name}-boxplot-dice')
+    plt.savefig(f'tmp/{experiment_name}-boxplot-dice')
     plt.close()
 
-def save_initialization_box(dice, encoder_weights_list, results_dir):
+def save_initialization_box(dice, encoder_weights_list):
     dice_ = dice.reshape(-1, dice.shape[-1])
     fig, ax = plt.subplots()
     plt.boxplot(dice_)
     plt.grid(True)
     plt.xticks(ticks=np.arange(len(encoder_weights_list))+1, labels=[str(e) for e in encoder_weights_list], fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig(f'{results_dir}/initialization-boxplot-dice')
+    plt.savefig(f'tmp/initialization-boxplot-dice')
     plt.close()
 
-def save_scatter(num_parameters_array, dice, architecture_name_list, experiment_name, ylim, results_dir):
+def save_scatter(num_parameters_array, dice, architecture_name_list, experiment_name, ylim):
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     dice_ = dice.mean(-1)
     fig, ax = plt.subplots()
@@ -119,10 +119,10 @@ def save_scatter(num_parameters_array, dice, architecture_name_list, experiment_
     plt.ylim(ylim)
     ax.legend(loc='lower right')
     ax.set_aspect(aspect='auto')
-    plt.savefig(f'{results_dir}/{experiment_name}-scatter-dice-vs-num-parameters')
+    plt.savefig(f'tmp/{experiment_name}-scatter-dice-vs-num-parameters')
     plt.close()
 
-def save_3d(volume, is_full, experiment_name, architecture, encoder_weights, results_dir):
+def save_3d(volume, is_full, experiment_name, architecture, encoder_weights):
     if is_full:
         step_size = 1
     else:
@@ -146,18 +146,18 @@ def save_3d(volume, is_full, experiment_name, architecture, encoder_weights, res
         line.set_visible(False)
     for line in ax.zaxis.get_ticklines():
         line.set_visible(False)
-    plt.savefig(f'{results_dir}/{experiment_name}-{architecture}-{encoder_weights}-volume')
+    plt.savefig(f'tmp/{experiment_name}-{architecture}-{encoder_weights}-volume')
     plt.close()
 
-def save_image(image, experiment_name, results_dir):
+def save_image(image, experiment_name):
     image = image.cpu().numpy()
     fig, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
-    plt.savefig(f'{results_dir}/{experiment_name}-image')
+    plt.savefig(f'tmp/{experiment_name}-image')
     plt.close()
 
-def save_masked_image(image, mask, prediction, experiment_name, architecture, encoder, results_dir):
+def save_masked_image(image, mask, prediction, experiment_name, architecture, encoder):
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
@@ -169,7 +169,7 @@ def save_masked_image(image, mask, prediction, experiment_name, architecture, en
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
     plt.imshow(correct, cmap='Greens', alpha=0.3)
     plt.imshow(false, cmap='Reds', alpha=0.3)
-    plt.savefig(f'{results_dir}/{experiment_name}-{architecture}-{encoder.replace("_", "")}-masked-image')
+    plt.savefig(f'tmp/{experiment_name}-{architecture}-{encoder.replace("_", "")}-masked-image')
     plt.close()
 
 def get_num_parameters(model):
