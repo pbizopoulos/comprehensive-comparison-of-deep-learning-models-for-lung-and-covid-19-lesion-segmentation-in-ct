@@ -51,7 +51,7 @@ if __name__ == '__main__':
     gradio.reset_all()
     gradio.Interface(predict, 
             [
-                gradio.inputs.Image(shape=(512, 512, 1)),
+                gradio.inputs.Image(shape=(512, 512)),
                 gradio.inputs.Dropdown(experiment_name_list),
                 gradio.inputs.Dropdown(architecture_name_list),
                 gradio.inputs.Dropdown(encoder_list),
