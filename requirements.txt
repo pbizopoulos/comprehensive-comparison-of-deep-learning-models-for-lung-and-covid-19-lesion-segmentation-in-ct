@@ -2,6 +2,6 @@ gdown==3.12.2
 matplotlib==3.3.3
 nibabel==3.2.1
 requests==2.25.0
-scikit-image==0.17.2
+scikit-image==0.18.0
 segmentation-models-pytorch==0.1.3
 statsmodels==0.12.1
