@@ -349,20 +349,10 @@ class CTSegBenchmark(Dataset):
 
 
 if __name__ == '__main__':
-    # DO NOT EDIT BLOCK - Required by the Makefile
+    # Set appropriate variables (e.g. num_samples) to a lower value to reduce the computational cost of the draft (fast) version document.
     parser = argparse.ArgumentParser()
     parser.add_argument('--full', default=False, action='store_true')
     args = parser.parse_args()
-    # END OF DO NOT EDIT BLOCK
-
-    # Set random seeds for reproducibility.
-    np.random.seed(0)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-    torch.cuda.manual_seed_all(0)
-    torch.manual_seed(0)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if args.full:
         num_epochs = 100
         index_train_range = range(80)
@@ -375,6 +365,15 @@ if __name__ == '__main__':
         index_validation_range = range(2, 4)
         index_test_volume_range = range(1)
         encoder_list = ['vgg11', 'resnet18', 'mobilenet_v2', 'efficientnet-b0']
+
+    # Set random seeds for reproducibility.
+    np.random.seed(0)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    torch.cuda.manual_seed_all(0)
+    torch.manual_seed(0)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     batch_size = 2
     architecture_list = [Unet, Linknet, FPN, PSPNet]
     architecture_name_list = [architecture.__name__ for architecture in architecture_list]

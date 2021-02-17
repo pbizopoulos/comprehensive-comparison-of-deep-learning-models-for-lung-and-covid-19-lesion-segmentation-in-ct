@@ -18,9 +18,9 @@ This repository contains the code that generates **Comprehensive Comparison of D
 2. `cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/`
 3. `sudo systemctl start docker`
 4. make options
-    * `make`             # Generate the draft (fast) version document.
-    * `make VER=--full`  # Generate the full (slow) version document.
-    * `make clean`       # Remove the tmp/ directory.
+    * `make`                # Generate the draft (fast) version document.
+    * `make VERSION=--full` # Generate the full (slow) version document.
+    * `make clean`          # Remove the tmp/ directory.
 
 ## Instructions for evaluating trained models using [Gradio](https://github.com/gradio-app/gradio)
 1. `git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct`
