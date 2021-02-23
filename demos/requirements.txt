@@ -1,2 +1,2 @@
-gradio==1.5.3
+gradio==1.5.4
 segmentation-models-pytorch==0.1.3
