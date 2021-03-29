@@ -529,6 +529,8 @@ if __name__ == '__main__':
                                     save_3d(volume_mask, args.full, experiment_name, 'mask', '')
                                 volume_prediction = volume_prediction[:, :, ::-1]
                                 save_3d(volume_prediction, args.full, experiment_name, architecture_name, encoder_weights)
+                    if not args.full:
+                        os.remove(model_path)
 
     for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_hist(hist_images, hist_masks, hist_range, experiment_name)
