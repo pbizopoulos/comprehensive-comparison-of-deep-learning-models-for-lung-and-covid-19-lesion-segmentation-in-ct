@@ -1,2 +1,0 @@
-matplotlib==3.4.2
-segmentation-models-pytorch==0.1.3
