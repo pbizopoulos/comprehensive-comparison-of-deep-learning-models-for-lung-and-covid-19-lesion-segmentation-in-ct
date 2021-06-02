@@ -1,2 +1,4 @@
+ipywidgets==7.6.3
+jupyter_contrib_nbextensions==0.5.1
 matplotlib==3.4.2
 segmentation-models-pytorch==0.1.3
