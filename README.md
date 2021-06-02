@@ -29,4 +29,4 @@ This repository contains the code that generates **Comprehensive Comparison of D
 5. visit http://0.0.0.0:7860/ in your browser
 
 ## Instructions for evaluating trained models using [Jupyter](https://jupyter.org/)
-1. visit https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/master/demos/main.ipynb
+1. visit https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/master/jupyter/main.ipynb
