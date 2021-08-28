@@ -1,0 +1,493 @@
+\documentclass{elsarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{amssymb}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{datatool}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\newcommand{\DTLfetchsave}[5]{
+	\edtlgetrowforvalue{#2}{\dtlcolumnindex{#2}{#3}}{#4}
+	\dtlgetentryfromcurrentrow{\dtlcurrentvalue}{\dtlcolumnindex{#2}{#5}}
+	\let#1\dtlcurrentvalue}
+
+\pdfinfoomitdate=1
+\pdfsuppressptexinfo=-1
+\pdftrailerid{}
+
+\begin{document}
+\DTLloaddb{keys-values}{tmp/keys-values.csv}
+
+\title{Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT scans}
+\author[1]{Paschalis Bizopoulos}
+\author[1]{Nicholas Vretos}
+\author[1]{Petros Daras}
+
+\address[1]{Visual Computing Lab of the Information Technologies Institute, Centre for Research and Technology Hellas, Thessaloniki, Greece e-mail: pbizopoulos@protonmail.com,\{vretos,daras\}@iti.gr}
+
+\begin{abstract}
+	Deep Learning (DL) methods are extensively used for medical image segmentation.
+	However the field's reliability is hindered by the lack of a common base of reference for accuracy/performance evaluation and that previous research uses different datasets for evaluation.
+	In this paper, an extensive comparison of DL models for lung and COVID-19 lesion segmentation in Computerized Tomography (CT) scans is presented, which can also be used as a benchmark for testing medical image segmentation models.
+	Four DL architectures (Unet, Linknet, FPN, PSPNet) are combined with $25$ randomly initialized and pretrained encoders (variations of VGG, DenseNet, ResNet, ResNext, DPN, MobileNet, Xception, Inception-v4, EfficientNet), to construct $200$ tested models.
+	Three experimental setups are conducted for lung segmentation, lesion segmentation and lesion segmentation using the original lung masks.
+	A COVID-19 dataset with $100$ CT scan images is used for training/validation and a different dataset consisting of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ images from $9$ CT scan volumes for testing.
+	Multiple findings are provided including the best architecture-encoder models for each experiment as well as mean Dice results for each experiment, architecture and encoder independently.
+	The source code and $600$ pretrained models for the three experiments are provided, suitable for fine-tuning in experimental setups without GPU capabilities.
+\end{abstract}
+
+\begin{keyword}
+	COVID 19, deep learning, lung segmentation, lesion segmentation
+\end{keyword}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+Coronavirus Disease 2019 (COVID-19) has emerged in December of 2019 and was declared as a pandemic in March of 2020~\cite{world2020coronavirus}.
+The Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) has certain properties that makes it highly infectious, thus, turning ineffective government policy measures such as social distancing and increasing the need for fast and accurate diagnosis of the disease.
+A well established, high resolution, imaging procedure that targets lungs and depicts rich pathological information is Computerized Tomography (CT) scan.
+More specifically, for a COVID-19 patient, CT scan images show bilateral patchy shadows or ground glass opacity on the infected region~\cite{wang2020clinical}, which are not always visible in common X-Ray scans~\cite{ng2020imaging}.
+Another method that has been used for COVID-19 diagnosis is the so-called Reverse-Transcription Polymerase Chain Reaction (RT-PCR), which, however, has been found to have lower sensitivity compared to CT~\cite{ai2020correlation} scan and is more time consuming.
+
+Medical experts often need to examine a large number of CT scan images, which is an error prone and time consuming process.
+To that aim, automatic segmentation methods are being proposed that segment regions-of-interest (ROIs) of different size and shape such as lungs, nodules and lesions, taking advantage of the CT scan resolution.
+These methods facilitate medical experts in diagnosing by focusing on the ROIs instead of the whole image.
+Methods for automatic segmentation in the lung area from the literature include the use of morphological operations~\cite{hu2001automatic}, active contours~\cite{keshani2013lung} and fuzzy clustering~\cite{manikandan2016lung}.
+
+Feature engineering methods however, were surpassed by end-to-end learning such as Deep Learning (DL)~\cite{lecun2015deep}, which were successfully applied in medical image segmentation tasks~\cite{minaee2020image}.
+More specifically, applications of DL methods in medical image segmentation primarily target lungs~\cite{skourt2018lung, jin2020ai}, pathological lungs~\cite{harrison2017progressive}, infections~\cite{fan2020inf, chen2020residual, wang2020noise}, lungs and infections~\cite{yan2020covid}, lungs and COVID-19 lesions~\cite{shan2020lung}.
+The majority of them uses encoder-decoder architectures such as Unet~\cite{ronneberger2015u} and its variations.
+
+A major issue in the field of lung/lesion segmentation (and medical image segmentation in general) is the use of different datasets for evaluating newly proposed models.
+Moreover, there is lack of benchmark baseline models that could play the role of reference for evaluating the accuracy and the performance of proposed models.
+Benchmarks for COVID-19 in CT scan images were provided in the literature, such as Ma et al.~\cite{ma2020towards} that has a limited number of cases and He et al.~\cite{he2020benchmarking} that test $20$ models for lung segmentation of COVID-19 patients.
+Other comparison studies on similar tasks such as lung nodule segmentation were proposed in~\cite{kalpathy2016comparison}, which compare three non-learnable algorithms, where each one is created by a different research group.
+Comparison studies of deep learning image segmentation tasks has also been conducted on non-medical images such as coral reef images~\cite{king2018comparison} where the authors test four models as well as aerial city images~\cite{liu2018comparison} where the authors test $12$ different models.
+No previous work, to the best of our knowledge, includes a comprehensive quantified comparison of $600$ DL models on the task of image segmentation.
+
+In this paper, four of the most widely used DL image segmentation architectures are explored, namely Unet~\cite{ronneberger2015u}, Linknet~\cite{chaurasia2017linknet}, Feature Pyramid Network (FPN)~\cite{lin2017feature} and Pyramid Scene Parsing Network (PSPNet)~\cite{zhao2017pyramid} combined with $25$ encoders for lung and COVID-19 lesion segmentation in CT scan images.
+The contribution of this paper in the field of medical image segmentation can be summarized as follows:
+\begin{itemize}
+	\item derivation of best architecture-encoder combinations for the three experiments that are conducted (lung, lesion and lesion with lung masks experiments),
+	\item quantitative comparison of architectures,
+	\item quantitative comparison of encoders,
+	\item quantitative comparison of lesion segmentation with and without masks (in this case lungs) as a preprocessing step,
+	\item quantitative comparison of random and ImageNet initialization,
+	\item open source implementation\footnote{\url{https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct}},
+	\item release of $600$ pretrained models of all experimental setups for use by external researchers.
+\end{itemize}
+
+The rest of the paper is organized as follows: a detailed description of the models and their components (architecture, encoder) is provided in Section~\ref{sec:methods}, the datasets used are presented in Section~\ref{sec:datasets}, the experimental setup used to evaluate the models is shown in Section~\ref{sec:experimentalsetup} and the results are demonstrated in Section~\ref{sec:results}. Finally the findings in relation with findings in the previous literature are shown in Section~\ref{sec:discussion} and the final remarks are concluded in Section~\ref{sec:conclusions}.
+
+\section{Methods}\label{sec:methods}
+In this Section the problem of segmentation is formalized and the architectures and encoders that are used in this study are presented.
+
+\subsection{Formalization}
+Let $\mathcal{D}$ be a dataset containing images $\bm{X} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y} \in \{0, 1\}^{n_r, n_c}$ the corresponding target mask (in our case $n_r=512$, $n_c=512$).
+Let $m_{ex, ar, en, ew}$ be a DL model for segmentation where $ex$ denotes the specific experiment, $ar$ the architecture, $en$ the encoder and $ew$ the encoder weights.
+The `encoder' is defined as the part of the model that performs the feature extraction.
+The model $m_{ex, ar, en, ew}$ is trained on a dataset $\mathcal{D}_{train}\subset\mathcal{D}$ consisting of $\bm{X}_{train} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{train} \in \{0, 1\}^{n_r, n_c}$.
+Moreover a validation dataset is defined as $\mathcal{D}_{val}\subset\mathcal{D}$ where $\mathcal{D}_{val}\cap\mathcal{D}_{train}=\emptyset$ consisting of $\bm{X}_{val} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{val} \in \{0, 1\}^{n_r, n_c}$.
+Therefore, the objective of the experiments conducted in this study can be designed as, finding an optimal point in the parameter space of $m_{ex, ar, en, ew}$ during training such that when presented with an input from $\mathcal{D}$ such as $\bm{X}_{val}$, its prediction $\hat{\bm{Y}}_{val} \in [0, 1]^{n_r, n_c}$ is as near as possible with the target $\bm{Y}_{val}$.
+This is implemented by selecting the model that performs the minimum validation error out of all epochs.
+Subsequently, the selected models are tested on the generalization ability on an unseen $\mathcal{D}_{test}$ with $\mathcal{D}_{test}\cap\mathcal{D}=\emptyset$.
+A high level overview of the training of the models can be seen in Fig.~\ref{fig:highleveloverview}.
+
+\begin{figure}[!t]
+	\centering
+	\begin{tikzpicture}[]
+		\node[] (input) {\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-image}};
+		\node[draw] (architecture) [right=0.5cm of input, minimum height=2.8cm, minimum width=1.2cm]{\hspace{-2em}\rotatebox{90}{architecture}};
+		\node[draw] (encoder) [right=1cm of input, minimum height=2cm]{\rotatebox{90}{encoder}};
+		\node[] (output) [right=0.5cm of encoder]{\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-prediction-train-masked-image}};
+		\node[draw, below=0.5cm of output, circle] (loss){$\mathcal{L}$};
+		\node[] (mask) [below=0.5cm of loss]{\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-mask-train-masked-image}};
+		\node[] at (0, 1){$\bm{X}$};
+		\node[] at (5.2, 1){$\hat{\bm{Y}}$};
+		\node[] at (5.2, -4){$\bm{Y}$};
+		\draw[->] (input) -- node{} (architecture);
+		\draw[->] (architecture) -- node{} (output);
+		\draw[->] (output) -- node{} (loss);
+		\draw[->] (mask) -- node{} (loss);
+		\draw[->] (loss) -| node[shift={(0, -0.2)}]{backpropagation} (architecture);
+	\end{tikzpicture}
+	\caption{High level overview of a lesion segmentation model with an architecture consisting of an encoder trained using a single training augmented image.
+	$\bm{X}$ is the input, $\bm{Y}$ is the target mask, $\hat{\bm{Y}}$ is the predicted mask and $\mathcal{L}$ is the loss function, which in this case is the Dice loss.
+	Green and red pixels at $\hat{\bm{Y}}$ depict correctly and falsely classified pixels, while green pixels at $\bm{Y}$ depict the pixels of the target mask.
+	Arrows denote the flow of the feed-forward and backpropagation pass.
+	$\bm{X}$ is passed to the architecture consisting of a specific encoder and $\hat{\bm{Y}}$ is calculated.
+	Then $\hat{\bm{Y}}$ and $\bm{Y}$ are used to calculate the loss, which is then used to backpropagate the error to the weights.
+	This procedure is repeated for a number of times using more training examples till $\mathcal{L}$ converges.}\label{fig:highleveloverview}
+\end{figure}
+
+\subsection{Architectures}\label{sec:architectures}
+Four architectures are used as the basis of the models to be tested:
+\begin{itemize}
+	\item Unet~\cite{ronneberger2015u}
+	\item Linknet~\cite{chaurasia2017linknet}
+	\item Feature Pyramid Network (FPN)~\cite{lin2017feature}
+	\item Pyramid Scene Parsing Network (PSPNet)~\cite{zhao2017pyramid}
+\end{itemize}
+
+Unet~\cite{ronneberger2015u} combines an encoder that scales down the features to a lower dimensional bottleneck and a decoder that scales them up to original dimensions.
+It also uses skip connections that were proven to improve image segmentation results~\cite{drozdzal2016importance}.
+Linknet~\cite{chaurasia2017linknet} is similar to Unet with the difference of using residual~\cite{he2016deep} instead of convolutional blocks in its encoder and decoder networks.
+Feature Pyramid Network (FPN)~\cite{lin2017feature} is also similar to Unet with the difference of applying a $1\times1$ convolution layer and adding the features instead of copying and appending them as done in the Unet architecture.
+The Pyramid Scene Parsing Network (PSPNet)~\cite{zhao2017pyramid} exploits a pyramid pooling module to aggregate the image global context information with an auxiliary loss~\cite{hu2019comparison}.
+
+\subsection{Encoders}\label{sec:encoders}
+The following encoders are used along with their variations denoted in the parenthesis:
+\begin{itemize}
+	\item VGG~\cite{simonyan2014very} (11, 13, 19)
+	\item DenseNet~\cite{huang2017densely} (121, 161, 169, 201)
+	\item ResNet~\cite{he2016deep} (18, 34, 50, 101, 152)
+	\item ResNext~\cite{xie2017aggregated}
+	\item Dual Path Networks (DPN)~\cite{chen2017dual} (68, 98)
+	\item MobileNet~\cite{howard2017mobilenets}
+	\item Xception~\cite{chollet2017xception}
+	\item Inception-v4~\cite{szegedy2017inception}
+	\item EfficientNet~\cite{tan2019efficientnet} (b0, b1, b3, b4, b5, b6)
+\end{itemize}
+
+VGG~\cite{simonyan2014very} is named after the Visual Geometry Group that proposed it and took the second place during the ImageNet Competition in 2014~\cite{deng2009imagenet}.
+It was one of the first models that demonstrated the importance of depth in DL and it is preferred for tasks such as feature extraction due to its simple repeating structure.
+On the other hand, ResNet's~\cite{he2016deep} (abbreviation of Residual Networks) contributions allowed training deep networks by using layers that learn residual functions with reference to layer inputs, while DenseNet~\cite{huang2017densely} uses connections between each layer and every other layer in a feed-forward fashion.
+Moreover ResNext~\cite{xie2017aggregated} consists of a stack of residual blocks, which are subject to two rules.
+The first one is that layers that output spatial maps with the same size, share hyper-parameters and the second is that when a spatial map is downsampled by two, the width of the blocks is multiplied by two.
+Dual Path Networks (DPN)~\cite{chen2017dual} proposed as a network that combines feature re-usage and feature exploration that ResNet and DenseNet do respectively, while MobileNet~\cite{howard2017mobilenets} constructed to fill the need of training and inferencing on devices with low computational capabilities such as embedded device and mobile phones.
+Xception~\cite{chollet2017xception} is a variation of Inception Network~\cite{szegedy2015going} in which the inception modules have been replaced with depthwise convolutions followed by a pointwise convolution.
+Finally Inception-v4~\cite{szegedy2017inception} combines previous inception architectures with residual connections achieving state-of-the-art performance on the ImageNet, while EfficientNet~\cite{tan2019efficientnet} is an improvement of MobileNet where the compound scaling module was proposed as an efficient way to uniformly scale depth, width and resolution.
+
+\section{Datasets}\label{sec:datasets}
+Two public COVID-19 CT scan datasets with lung and lesion masks were used.
+The first dataset\footnote{\url{http://medicalsegmentation.com/covid19/}} consists of $100$ CT axial scans from $<40$ patients with $512\times 512$ size and corresponding lung masks from~\cite{hofmanninger2020automatic} and lesion masks labeled with four classes (none, ground-glass, consolidation, pleural effusion).
+The original dataset, without the annotations, was selected from the Italian Society of Medical and Interventional Radiology\footnote{\url{https://www.sirm.org/category/senza-categoria/covid-19/}}.
+The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} consists of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ images from $9$ CT\@ scan volumes (a set of CT scan images acquired from the same patient at the same moment) with corresponding target masks.
+373 out of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ were annotated as positive and segmented by a radiologist by the same group as the first dataset.
+Raw data from both datasets contain samples in Hounsfield units~\cite{schneider1996calibration}.
+
+Regarding preprocessing, first the positive classes of the pixels of the images in the first dataset are merged into one, converting the problem to a binary segmentation problem.
+The CT scan images from the second dataset are resized to $512\times 512$, and both datasets are normalized with $\mu=-500$ and $\sigma=500$.
+We use $80$ scans from the first dataset for training the models, $20$ scans for validation and all scans from the second dataset for the testing of the models.
+
+In Fig.~\ref{fig:hist} the histograms of the pixel intensities of all the CT scan images and the target masks in the test dataset after normalization, for each of the three experiments, are depicted.
+The considerable overlap between the histograms makes the use of thresholding models in this kind of problem unsuitable, thus justifying the use of learning models such as DL\@.
+
+\begin{figure*}[!t]
+	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Normalized frequencies}\subfloat[Lung segmentation]{\includegraphics[width=0.33\textwidth]{tmp/lung-segmentation-hist}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.33\textwidth]{tmp/lesion-segmentation-a-hist}}
+	\subfloat[Lesion segmentation B]{\includegraphics[width=0.33\textwidth]{tmp/lesion-segmentation-b-hist}}
+	\caption{Histogram plots of the normalized pixel intensities for the images (blue) and target masks (orange) for each experimental setup.
+	The vertical axis depicts the normalized frequencies of each pixel intensity in the logarithmic scale.
+	The outlier bar at zero is because most of the pixels in the target masks are near zero.}\label{fig:hist}
+\end{figure*}
+
+\section{Experimental setup}\label{sec:experimentalsetup}
+In this Section the experimental setup is presented.
+In total three experiments are conducted:
+\begin{itemize}
+	\item lung segmentation
+	\item lesion segmentation (referred to as `lesion segmentation A')
+	\item lesion segmentation with lung masks (referred to as `lesion segmentation B')
+\end{itemize}
+
+The choice of these experiments covers balanced (lung segmentation), unbalanced (lesion segmentation A) and unbalanced with preprocessing (lesion segmentation B) image segmentation tasks and the findings could apply in image segmentation tasks with non-medical images.
+Each of the performed experiments uses a different target mask $\bm{Y}$, where for the `lesion segmentation B' the corresponding lung masks is also applied in the input image $\bm{X}$.
+
+Each model is constructed using a unique combination of the four architectures described in Subsection~\ref{sec:architectures} and the $25$ encoders referenced in Subsection~\ref{sec:encoders}.
+The selection of architectures and encoders was based on the restriction of the GPU memory of our graphics card, combined with the value of batch size.
+Then, for each model we also test the randomly initialized and its ImageNet pretrained version.
+
+The default values for every hyperparameter of the models were used (as seen in Table.~\ref{table:architecturehyperparameters}), to avoid favoring models that were proposed after being evaluated in a controlled experimental setup.
+The activation function for all architectures was sigmoid that squashes the output in the range of $[0, 1]$.
+
+\begin{table}[]
+	\centering
+	\caption{Architecture hyperparameters}\label{table:architecturehyperparameters}
+	\begin{tabular}{lccc}
+		\toprule
+		\textbf{Architecture} & \textbf{\makecell{Encoder\\ depth}}          & \textbf{Batch Norm}                & \textbf{Various}                                                                                             \\ \hline
+		Unet    & 5 & Yes (decoder) & \makecell{decoder channel sizes =\\ (256, 128, 64, 32, 16)}                                 \\ \hline
+		Linknet & 5 & Yes (decoder) & -                                                                              \\ \hline
+		FPN     & 5 & No            & \makecell{pyramid channels=256,\\ segment channels=128,\\ merge policy=add,\\ dropout=0.2} \\ \hline
+		PSPNet  & 3 & Yes (encoder) & \makecell{output channels=512,\\ dropout=0.2}                                              \\ \hline
+	\end{tabular}
+\end{table}
+
+For all experiments and in each epoch during training, data augmentation is applied on the images from the training dataset:
+\begin{itemize}
+	\item horizontal/vertical flip each with probability 50\%,
+	\item rotation with an angle chosen from a uniform distribution with range $[-180^{\circ}, 180^{\circ}]$ and
+	\item scale within a range of $[0.5, 1.5]$ with zero padding
+\end{itemize}
+
+During training the Soft Dice Loss is used to calculate the error of the model on the training dataset as:
+\begin{equation}
+	Soft Dice Loss = 1 - 2\frac{\sum\limits^{n_r}_i\sum\limits^{n_c}_j\bm{Y}_{ij}\hat{\bm{Y}}_{ij}}{\sum\limits^{n_r}_i\sum\limits^{n_c}_j\bm{Y}_{ij}^2 + \sum\limits^{n_r}_i\sum\limits^{n_c}_j\hat{\bm{Y}}_{ij}^2 + \epsilon},
+\end{equation}
+
+where $\bm{Y}_{ij}$, $\hat{\bm{Y}}_{ij}$ are the pixel intensities at the $i^{th}$ column, $j^{th}$ row of the target mask and predicted mask, respectively (which applies for $\bm{Y}_{train}$, $\bm{Y}_{val}$ and $\bm{Y}_{test}$) and $\epsilon=10^{-5}$.
+The model selection is done using Soft Dice Loss in each epoch during training on the validation dataset.
+During testing, the predicted mask $\hat{\bm{Y}}_{test}$ is binarized with a threshold value of $0.5$ allowing us to use hard metrics for testing the models:
+\begin{equation}
+	Sensitivity = \frac{TP}{TP + FN + \epsilon}
+\end{equation}
+\begin{equation}
+	Specificity = \frac{TN}{TN + FP + \epsilon}
+\end{equation}
+\begin{equation}
+	Dice = \frac{2TP}{2TP + FP + FN + \epsilon}
+\end{equation}
+
+where $TP$, $TN$, $FP$ and $FN$ are the true positive, true negative, false positive and false negative of $\hat{\bm{Y}}$ w.r.t $\bm{Y}$, respectively and $\epsilon=10^{-5}$ to prevent division with zero.
+When $TP+FP=0$ the model has correctly identified that the input does not have any positive pixel and in that case all metrics are set to $1$.
+
+We train a total of $600$ different models for the three experiments each one for $\DTLfetch{keys-values}{key}{num-epochs}{value}$ epochs with a batch size of $\DTLfetch{keys-values}{key}{batch-size}{value}$, which was the maximum possible considering the GPU memory restriction.
+We use the optimizer~\cite{kingma2014adam} with the default values of learning rate $0.001$, $\beta_1=0.9$, $\beta_2=0.999$, $\epsilon=10^{-8}$, without weight decay.
+Pytorch~\cite{paszke2019pytorch} and the `Segmentation Models Pytorch' library~\cite{yakubovskiy2019segmentation} were used for implementing the experiments, a GeForce RTX 2080 Ti Graphics Card with 11Gb RAM from NVIDIA and an Intel Core i9-9900K CPU @3.60GHz, on a Linux-based operating system for training the models for two weeks.
+A pseudo-code implementation of the experimental setup is shown in Algorithm~\ref{alg:experimentalsetup}.
+
+\begin{algorithm}[H]
+	\caption{Experimental setup}\label{alg:experimentalsetup}
+	\begin{algorithmic}[1]
+		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+		\renewcommand{\algorithmicensure}{\textbf{Output:}}
+		\REQUIRE{$epochs$}
+		\ENSURE{$metrics$}
+		\\ \textit{Hyperparameters:  $\lambda$, $batches$}
+		\FOR {$ex$ = 1 to $n_{experiments}$}
+		\FOR {$ar$ = 1 to $n_{architectures}$}
+		\FOR {$en$ = 1 to $n_{encoders}$}
+		\FOR {$ew$ = 1 to $n_{encoder\ weights}$}
+		\FOR {$ep$ = 1 to $epochs$}
+		\FOR {$b$ = 1 to $batches$}
+		\STATE{$\bm{Y}_{train}, \bm{X}_{train} \sim \mathcal{D}_{train}$}
+		\STATE{$\bm{Y}_{train}, \bm{X}_{train} \leftarrow Augm(\bm{Y}_{train}, \bm{X}_{train})$}
+		\STATE{$\hat{\bm{Y}}_{train} \leftarrow m_{ex, ar, en, ew}(\bm{X}_{train})$}
+		\STATE{$\mathcal{L}_{train} \leftarrow DiceLoss(\hat{\bm{Y}}_{train}, \bm{Y}_{train})$}
+		\STATE{$\nabla\mathcal{L}_{train} = \left( \frac{\partial\mathcal{L}}{\partial\bm{w}^{(1)}},\ldots\frac{\partial\mathcal{L}}{\partial\bm{w}^{(q)}}\right)$}
+		\STATE{$\Delta\bm{w}^{(i)} \leftarrow -\lambda\frac{\partial\mathcal{L}}{\partial\bm{w}^{(i)}}$}
+		\ENDFOR{}
+		\FOR {$b$ = 1 to $batches$}
+		\STATE{$\bm{Y}_{val}, \bm{X}_{val} \sim \mathcal{D}_{val}$}
+		\STATE{$\hat{\bm{Y}}_{val} \leftarrow m_{ex, ar, en, ew}(\bm{X}_{val})$}
+		\STATE{$\mathcal{L}_{val} \leftarrow DiceLoss(\hat{\bm{Y}}_{val}, \bm{Y}_{val})$}
+		\ENDFOR{}
+		\IF{$\mathcal{L}_{val} < \mathcal{L}_{val}^{best}$}
+		\STATE{$m_{ex, ar, en, ew}^{best} \leftarrow m_{ex, ar, en, ew}$}
+		\ENDIF{}
+		\ENDFOR{}
+		\STATE{$\hat{\bm{Y}}_{test} \leftarrow m_{ex, ar, en, ew}^{best}(\bm{X}_{test})$}
+		\STATE{$metrics_{ex, ar, en, ew} = metrics(\hat{\bm{Y}}_{test}, \bm{Y}_{test})$}
+		\ENDFOR{}
+		\ENDFOR{}
+		\ENDFOR{}
+		\ENDFOR{}
+		\RETURN{$metrics$}
+	\end{algorithmic}
+\end{algorithm}
+
+\section{Results}\label{sec:results}
+In this Section the results of the three experimental setups are demonstrated, along with several comparisons between experiments, architectures, encoders and weight initialization schemes.
+
+\subsection{Overall}
+In Table.~\ref{table:metrics} the resulted metrics of all experiments are presented.
+The best combination of architecture-encoder for each combination of encoder weight initialization, experimental setup and metric are showin in bold.
+The mean Dice results for each experiment are $\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-std}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-std}{value}\%$, for `lesion segmentation A' and $\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-std}{value}\%$, for `lesion segmentation B'.
+The best performing models w.r.t.\ Dice for each experiment were the \DTLfetch{keys-values}{key}{lung-segmentation-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lung-segmentation-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-max}{value}\%$) for lung segmentation, \DTLfetch{keys-values}{key}{lesion-segmentation-a-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-a-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-max}{value}\%$) for lesion segmentation A and \DTLfetch{keys-values}{key}{lesion-segmentation-b-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-b-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-max}{value}\%$) for lesion segmentation B.
+In Fig.~\ref{fig:predictedmasks} the predicted masks for $24$ out of the $600$ models are depicted, demonstrating the difference in segmentation quality between the best (\DTLfetch{keys-values}{key}{encoder-best}{value}) and the worst (\DTLfetch{keys-values}{key}{encoder-worst}{value}) performing encoder of the models for each architecture, with randomly initialized weights.
+In Fig.~\ref{fig:dicevsnumparameters} the Dice vs.\ the number of parameters is plotted, demonstrating that there is positive correlation, suggesting that segmentation generally improves when using higher number of parameters.
+However, this is not a significant positive correlation.
+It is worth noting that the best model is not the one with the largest number of parameters.
+
+\DTLfetchsave{\best}{keys-values}{key}{encoder-best}{value}
+\DTLfetchsave{\worst}{keys-values}{key}{encoder-worst}{value}
+
+\begin{figure}[!t]
+	\centering
+	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-PSPNet-\best-masked-image}}
+	\\
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-PSPNet-\best-masked-image}}
+	\\
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-PSPNet-\best-masked-image}}
+	\\
+	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Linknet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-FPN-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-PSPNet-\worst-masked-image}}
+	\\
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Unet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Linknet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-FPN-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-PSPNet-\worst-masked-image}}
+	\\
+	\setcounter{subfigure}{0}
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat[{\tiny Unet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Unet-\worst-masked-image}}
+	\subfloat[{\tiny Linknet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Linknet-\worst-masked-image}}
+	\subfloat[{\tiny FPN}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-FPN-\worst-masked-image}}
+	\subfloat[{\tiny PSPNet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-PSPNet-\worst-masked-image}}
+	\caption{Predicted masks on a CT scan image from the test data for $24$ out of $600$ of the models.
+	The three top columns correspond to predicted masks generated from a model with the best encoder and the bottom three for the worst.
+	Rows correspond to each of the four architectures.
+	Green and red depict correctly and falsely classified pixels respectively.}\label{fig:predictedmasks}
+\end{figure}
+
+\begin{figure}[!t]
+	\centering
+	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-scatter-dice-vs-num-parameters}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-scatter-dice-vs-num-parameters}}
+	\\
+	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-scatter-dice-vs-num-parameters}}
+	\subfloat[Lesion segmentation B-A]{\includegraphics[width=0.24\textwidth]{tmp/diff-scatter-dice-vs-num-parameters}}
+	\caption{Dice vs.\ number of parameters for the three experimental setups and the difference between lesion segmentation B and A.
+	The green regions depict the kernel density estimate for all points using Gaussian kernels.
+	The method used to calculate the estimator bandwidth was Scott and the points are assumed to be equally weighted.}\label{fig:dicevsnumparameters}
+\end{figure}
+
+\begin{table*}[!t]
+	\centering
+	\caption{Metrics}\label{table:metrics}
+	\setlength\tabcolsep{6.5pt}
+	\scalebox{0.35}{\input{tmp/metrics.tex}}
+\end{table*}
+
+\subsection{Architecture comparison}
+In Fig.~\ref{fig:loss} the train and validation loss vs.\ epochs of the four architectures segregated upon encoders is depicted.
+In all experiments and architectures, the training loss during the $5$ first epochs, decreases fast and in a slower rate during the next epochs.
+We can observe the same behaviour for validation loss during the $15$ first epochs but with more variability, which can be explained by the use of the dice loss as a validation metric.
+More specifically, we observe faster convergence for PSPNet for training loss compared to the other architectures, greater variance for FPN and lower convergence for Linknet in both training and validation.
+In Fig.~\ref{fig:box} the Dice boxplots for the three experiments is plotted.
+Regarding time performance for training and inference, the fastest architecture is PSPNet and the slowest is Linknet even having more parameters than Unet.
+
+\begin{figure}[!t]
+	\centering
+	\rotatebox[origin=l]{90}{\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-validation-loss}}
+	\\
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-validation-loss}}
+	\\
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-validation-loss}}
+	\\
+	\setcounter{subfigure}{0}
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B-A}\subfloat[Train loss]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-train-diff-loss}}
+	\subfloat[Validation loss]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-validation-diff-loss}}
+	\caption{Training and validation loss plots with mean (line) and standard deviation (patch) for the four architectures segregated upon encoders for each experimental setup.
+	Rows correspond to experimental setups and the difference between lesion segmentation B and A and columns correspond to train and validation losses.}\label{fig:loss}
+\end{figure}
+
+\begin{figure}[!t]
+	\centering
+	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-boxplot-dice}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-boxplot-dice}}
+	\\
+	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-boxplot-dice}}
+	\subfloat[Initialization]{\includegraphics[width=0.24\textwidth]{tmp/initialization-boxplot-dice}}
+	\caption{Boxplots of Dice for the three experiments and for each architecture in (a), (b) and (c) and weight initialization for all experiments in (d).}\label{fig:box}
+\end{figure}
+
+The mean Dice results for Unet are $\DTLfetch{keys-values}{key}{lung-segmentation-Unet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lung-segmentation-Unet-imagenet-std}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-Unet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-a-Unet-imagenet-std}{value}\%$ for `lesion segmentation A', $\DTLfetch{keys-values}{key}{lesion-segmentation-b-Unet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-b-Unet-imagenet-std}{value}\%$ for `lesion segmentation B'.
+The mean Dice results for Linknet are $\DTLfetch{keys-values}{key}{lung-segmentation-Linknet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lung-segmentation-Linknet-imagenet-std}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-Linknet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-a-Linknet-imagenet-std}{value}\%$ for `lesion segmentation A', $\DTLfetch{keys-values}{key}{lesion-segmentation-b-Linknet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-b-Linknet-imagenet-std}{value}\%$ for `lesion segmentation B'.
+The mean Dice results for FPN are $\DTLfetch{keys-values}{key}{lung-segmentation-FPN-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lung-segmentation-FPN-imagenet-std}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-FPN-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-a-FPN-imagenet-std}{value}\%$ for `lesion segmentation A', $\DTLfetch{keys-values}{key}{lesion-segmentation-b-FPN-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-b-FPN-imagenet-std}{value}\%$ for `lesion segmentation B'.
+The mean Dice results for PSPNet are $\DTLfetch{keys-values}{key}{lung-segmentation-PSPNet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lung-segmentation-PSPNet-imagenet-std}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-PSPNet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-a-PSPNet-imagenet-std}{value}\%$ for `lesion segmentation A', $\DTLfetch{keys-values}{key}{lesion-segmentation-b-PSPNet-imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{lesion-segmentation-b-PSPNet-imagenet-std}{value}\%$ for `lesion segmentation B'.
+
+In Fig.~\ref{fig:volumes} the predictions as a volume for the three experiments, for the resnet18 encoder are visualized, demonstrating good match with the original masks.
+
+\begin{figure*}[!t]
+	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-mask--volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-Unet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-Linknet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-FPN-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-PSPNet-None-volume}}
+	\\
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-mask--volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-Unet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-Linknet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-FPN-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-PSPNet-None-volume}}
+	\\
+	\setcounter{subfigure}{0}
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-mask--volume}}
+	\subfloat[Unet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-Unet-None-volume}}
+	\subfloat[Linknet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-Linknet-None-volume}}
+	\subfloat[FPN]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-FPN-None-volume}}
+	\subfloat[PSPNet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-PSPNet-None-volume}}
+	\caption{Reconstructed volumes from predicted masks.
+	Reconstruction was done by stacking the predicted masks on the z-axis and then applying the marching cubes algorithm.}\label{fig:volumes}
+\end{figure*}
+
+\subsection{Lesion segmentation A vs.\ Lesion segmentation B}
+In the bottom two subfigures in Fig.~\ref{fig:loss} the difference of the train and validation loss between the `lesion segmentation A' and `lesion segmentation B' are depicted.
+We observe convergence between the losses, which is an indication that when training for large number of epochs the use of lung masks, as a preprocessing step, is less required.
+
+\subsection{Random initialization vs.\ pretrained on ImageNet}
+In Fig.~\ref{fig:weights} the weights are depicted, in which we observe that with random initialization the weights depict high and low frequency textures after training.
+The Dice for using random initialization is $\DTLfetch{keys-values}{key}{None-mean}{value}\%\pm\DTLfetch{keys-values}{key}{None-std}{value}\%$ and for ImageNet initialization is $\DTLfetch{keys-values}{key}{imagenet-mean}{value}\%\pm\DTLfetch{keys-values}{key}{imagenet-std}{value}\%$.
+
+\begin{figure}[!t]
+	\centering
+	\rotatebox[origin=l]{90}{\scriptsize Random initialization}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-None-before-weights}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-None-after-weights}}
+	\\
+	\setcounter{subfigure}{0}
+	\rotatebox[origin=l]{90}{\scriptsize ImageNet initialization}\subfloat[Before training]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-imagenet-before-weights}}
+	\subfloat[After training]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-imagenet-after-weights}}
+	\caption{Grid visualization of the $64$ weights with size $7\times 7$ of the first convolutional layer for the Unet architecture with ResNet-18 encoder.
+	The two left and two right grids correspond to random and ImageNet pretrained initialization, respectively.
+	The data range of the colormap of the images has been adjusted in the range $[-0.4, 0.4]$.}\label{fig:weights}
+\end{figure}
+
+\section{Discussion}\label{sec:discussion}
+A motivation for this study is that the large amount of new models that are proposed, rarely conduct ablation studies and do not compare with simple baselines.
+This study can be used as a set of baseline models that DL model designers will test on, to confirm and evaluate whether their novel model performs better than other models, e.g.\ by comparing their accuracy with models with the same number of parameters and/or training/validation time.
+
+A common preprocessing step for lesion segmentation is using lung masks as either from manual annotation or from an automatic method.
+This step naturally improves lesion segmentation since the model only needs to search within the lung region instead of the whole image.
+Moreover, the use of this step is necessary in cases where the lesion is orders of magnitude smaller than the lungs and the background, justifying the characterization of lesion datasets as `unbalanced'.
+The arguments against using this preprocessing step is that the complexity of the model and the cost of annotation by the experts are increased.
+The question to be answered by the expert is whether it is beneficial to increase the model complexity and the annotation cost to achieve the additional lesion segmentation accuracy increase.
+Related previous work was conducted by Shi et al.~\cite{shi2020review}, which categorized COVID-19 segmentation models between:
+\begin{itemize}
+	\item the lung-lesion-oriented models, which directly segment lesions and
+	\item the lung-region-oriented models, which first segment the lungs and then pass the masked region for further segmentation or classification.
+\end{itemize}
+
+Regarding the encoder weight initialization experiment we confirm previous research such as~\cite{orsic2019defense} that pretrained weights significantly improve segmentation results, however we hypothesize that for as the number of epochs increases, the accuracy gap between them decreases.
+Similar positive findings regarding transfer learning such as improved performance and faster convergence were also reported in~\cite{wang2020does}.
+
+Limitations of this study include the use of small number of training data, however this is partially solved by the use of data augmentation methods that are applied on each training epoch.
+Moreover, it is costly to gather and annotate medical images especially when extreme events such as the COVID-19 outbreak occur.
+Therefore, the use of this study training dataset is representative of medical datasets that exist in the wild as summarized in~\cite{hesamian2019deep}, which contains samples in the order of $10^2$ to lower $10^3$.
+
+Future work includes the use of neuron and layer attribution methods to investigate reasons that specific combinations of architectures and encoders perform better than others.
+
+\section{Conclusions}\label{sec:conclusions}
+The need for fast, accurate and automatic diagnosis of COVID-19 requires highly reliable and publicly available models.
+We demonstrate specific properties that increase model segmentation and help experts in improved diagnosis by publicly providing pretrained models ready to be used for fine-tuning in experimental setups without GPU\@.
+
+\section*{ACKNOWLEDGMENT}
+This work received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 875325 (TeNDER, affecTive basEd iNtegrateD carE for betteR Quality of Life).
+
+\bibliographystyle{elsarticle-num}
+\bibliography{ms.bib}
+
+\end{document}
