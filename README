@@ -31,3 +31,9 @@ Preparation for usage with Gradio https://github.com/gradio-app/gradio:
 
 Preparation for usage with Binder https://mybinder.org/:
 1. visit https://mybinder.org/v2/gh/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/4bfeeaa08d6de8e71a24ec9a7f42ce8d3881987f?filepath=binder%2Fmain.ipynb
+
+Preparation for generating tfjs models:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/tfjs/
+3. sudo systemctl start docker
+4. make MODEL_NAME=experiment.architecture.encoder.encoder_weight (PSPNet, efficientnet and resnext do not work)

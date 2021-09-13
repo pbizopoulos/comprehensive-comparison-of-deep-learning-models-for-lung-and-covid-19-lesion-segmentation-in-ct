@@ -8,6 +8,10 @@ updates:
     directory: "/gradio"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/tfjs"
+    schedule:
+      interval: "monthly"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -22,5 +26,9 @@ updates:
       interval: "monthly"
   - package-ecosystem: "pip"
     directory: "/gradio"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/tfjs"
     schedule:
       interval: "monthly"
