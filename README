@@ -1,0 +1,54 @@
+This repository generates 'Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT'.
+- https://arxiv.org/abs/2009.06412
+
+Requirements:
+- POSIX-oriented operating system https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems
+- Make https://www.gnu.org/software/make/
+- Docker https://docs.docker.com/get-docker/
+- [Optional] NVIDIA Container Toolkit https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+
+Preparation:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
+3. sudo systemctl start docker
+
+Usage:
+make				# Generate draft (fast) version document.
+make FULL=1	 		# Generate full (slow) version document.
+make clean 			# Remove tmp/ directory.
+make tmp/format-python 		# Format main.py using autopep8 and isort.
+make tmp/lint-texlive 		# Lint ms.tex using chktex and lacheck.
+make tmp/ms-from-arxiv.pdf	# Generate full version document from arxiv.
+make tmp/update-docker-images 	# Update docker images.
+
+Preparation for usage with Gradio https://github.com/gradio-app/gradio:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/gradio/
+3. sudo systemctl start docker
+4. make
+5. visit http://0.0.0.0:7860/ in your browser
+
+Preparation for usage with Binder https://mybinder.org/:
+1. visit https://mybinder.org/v2/gh/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/4bfeeaa08d6de8e71a24ec9a7f42ce8d3881987f?filepath=binder%2Fmain.ipynb
+
+Preparation for generating tfjs models:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/tfjs/
+3. sudo systemctl start docker
+4. make MODEL_NAME=experiment.architecture.encoder.encoder_weight (PSPNet, efficientnet and resnext do not work)
+
+Preparation for usage with gooey https://github.com/chriskiehl/Gooey:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/gooey/
+3. sudo systemctl start docker
+
+Usage with gooey:
+make 				# Execute the linux CLI version.
+make gui 			# Execute the linux GUI version.
+make clean 			# Remove temporary files and directories.
+make run-linux 			# Execute the linux binary.
+make run-windows 		# Execute the windows binary.
+make tmp/dist/main 		# Generate the linux binary.
+make tmp/dist/main.exe 		# Generate the windows binary.
+make tmp/format-python 		# Format python source code.
+make tmp/update-docker-images 	# Update docker images.

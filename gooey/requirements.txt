@@ -1,0 +1,5 @@
+gooey==1.0.8.1
+matplotlib==3.4.3
+pyinstaller==4.5.1
+torch==1.9.0
+segmentation-models-pytorch==0.2.0

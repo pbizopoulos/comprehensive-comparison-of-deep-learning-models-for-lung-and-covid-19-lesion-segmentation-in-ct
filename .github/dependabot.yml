@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/gradio"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/tfjs"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/gooey"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/binder"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/gradio"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/tfjs"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/gooey"
+    schedule:
+      interval: "monthly"
