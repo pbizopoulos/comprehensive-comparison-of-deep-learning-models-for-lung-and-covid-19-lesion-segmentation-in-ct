@@ -1,0 +1,23 @@
+This repository generates 'Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT'.
+- https://arxiv.org/abs/2009.06412
+
+Requirements:
+- POSIX-oriented operating system https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems
+- Make https://www.gnu.org/software/make/
+- Docker https://docs.docker.com/get-docker/
+- [Optional] NVIDIA Container Toolkit https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+
+Preparation:
+1. git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
+2. cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
+3. sudo systemctl start docker
+
+Usage:
+make				# Generate draft (fast) version document.
+make FULL=1	 		# Generate full (slow) version document.
+make clean 			# Remove tmp/ directory.
+make tmp/coverage-python 	# Code coverage for main.py using coverage.
+make tmp/format-python 		# Format main.py using autopep8 and isort.
+make tmp/lint-texlive 		# Lint ms.tex using chktex and lacheck.
+make tmp/ms-from-arxiv.pdf	# Generate full version document from arxiv.
+make tmp/update-texlive 	# Update texlive docker image.

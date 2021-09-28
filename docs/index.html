@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT scans</title>
+		<link rel="stylesheet" href="styles.css">
+		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
+		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
+		<script defer src="script.js"></script>
+	</head>
+
+	<body>
+		<div style="float:left;width:200px;">
+			<div style="border-style:solid;">
+				<div>
+					<input type="file" id="inputFile" accept=".dcm,.nii,.nii.gz" onchange="loadImages()" multiple/>
+				</div>
+				<div id="divImageIndex">
+				</div>
+				<div id="divRowsXColumns">
+				</div>
+				<div>
+					Model: <select id="selectModel" onchange="selectModelName();" style="width:140px;">
+					</select>
+				</div>
+				<div>
+					<button id="buttonPredictMask" onclick="predictMask();">Predict mask</button>
+				</div>
+				<div>
+					<button id="buttonSaveMasks" onclick="saveMasks()">Save masks</button>
+				</div>
+			</div>
+		</div>
+		<div>
+			<canvas id="canvasImage" width="512" height="512"></canvas>
+			<canvas id="canvasMask" width="512" height="512"></canvas>
+		</div>
+	</body>
+</html>
