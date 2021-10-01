@@ -4,7 +4,7 @@ coverage==5.5
 isort==5.9.3
 
 # document requirements
-gdown==3.13.1
+gdown==3.14.0
 matplotlib==3.4.3
 nibabel==3.2.1
 requests==2.26.0
