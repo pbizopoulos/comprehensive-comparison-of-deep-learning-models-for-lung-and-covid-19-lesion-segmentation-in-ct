@@ -5,12 +5,12 @@ coverage
 isort
 
 # pythonfile requirements
-gdown==3.14.0
+gdown==4.2.0
 matplotlib==3.4.3
 nibabel==3.2.1
 onnx-tf==1.9.0
 requests==2.26.0
 scikit-image==0.18.3
 segmentation-models-pytorch==0.2.0
-statsmodels==0.12.2
-tensorflowjs==3.9.0
+statsmodels==0.13.0
+tensorflowjs==3.11.0
