@@ -12,5 +12,5 @@ onnx-tf==1.9.0
 requests==2.26.0
 scikit-image==0.18.3
 segmentation-models-pytorch==0.2.0
-statsmodels==0.12.2
+statsmodels==0.13.0
 tensorflowjs==3.9.0
