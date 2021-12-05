@@ -1,1 +1,1 @@
-git+https://github.com/pbizopoulos/pyjsclient.git@da7f9fbacf121ef7984fdb356d9422a266f2b580
+git+https://github.com/pbizopoulos/pyjsclient.git@4a0dc3124beec8bf3f6e585a52d4e49b1b478f43

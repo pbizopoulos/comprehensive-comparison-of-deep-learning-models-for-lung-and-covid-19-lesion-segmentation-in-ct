@@ -35,10 +35,9 @@ def main():
     url = 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
     block_width = 256
     block_height = 256
-    image_editing = True
     pixel_scaling = 3/255
     pixel_baseline = 1.5
-    pyjsclient(model_dir, problem_type, class_names, title, description, url, block_width, block_height, image_editing, pixel_scaling, pixel_baseline)
+    pyjsclient(model_dir, problem_type, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline)
 
 
 if __name__ == '__main__':
