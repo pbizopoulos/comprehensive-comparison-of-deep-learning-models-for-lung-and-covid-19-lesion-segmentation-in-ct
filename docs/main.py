@@ -37,7 +37,8 @@ def main():
     block_height = 256
     pixel_scaling = 3/255
     pixel_baseline = 1.5
-    pyjsclient(model_dir, problem_type, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline)
+    input_filename = 'example-image.jpg'
+    pyjsclient(model_dir, problem_type, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline, input_filename)
 
 
 if __name__ == '__main__':
