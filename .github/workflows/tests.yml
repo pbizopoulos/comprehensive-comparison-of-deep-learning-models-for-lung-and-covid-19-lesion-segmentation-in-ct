@@ -1,6 +1,9 @@
 name: tests
 on:
-  [push, pull]:
+  push:
+    paths-ignore:
+      - 'docs/'
+  pull:
     paths-ignore:
       - 'docs/'
 
