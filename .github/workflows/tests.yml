@@ -1,5 +1,9 @@
 name: tests
-on: [push, pull_request]
+on:
+  [push, pull]:
+    paths-ignore:
+      - 'docs/'
+
 jobs:
   make:
     runs-on: ubuntu-20.04
