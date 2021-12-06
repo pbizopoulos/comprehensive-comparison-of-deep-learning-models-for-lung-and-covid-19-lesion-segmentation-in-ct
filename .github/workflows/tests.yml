@@ -3,7 +3,7 @@ on:
   push:
     paths-ignore:
       - 'docs/'
-  pull:
+  pull_request:
     paths-ignore:
       - 'docs/'
 
