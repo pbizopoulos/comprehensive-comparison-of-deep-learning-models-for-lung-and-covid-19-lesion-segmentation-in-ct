@@ -4,7 +4,6 @@ from pyclientsideml import generate_page_image_segmentation
 def main():
     model_dirs = [
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.resnet18.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.vgg11.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.vgg13.imagenet/model.json',
@@ -20,16 +19,9 @@ def main():
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.mobilenet_v2.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.resnet18.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg11.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.resnet18.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.vgg11.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.vgg13.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.mobilenet_v2.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.resnet18.imagenet/model.json',
-            'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg11.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg13.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Unet.mobilenet_v2.imagenet/model.json']
     model_names = [
-            'lesion-segmentation-a.FPN.mobilenet_v2.imagenet',
             'lesion-segmentation-a.FPN.mobilenet_v2.imagenet',
             'lesion-segmentation-a.FPN.resnet18.imagenet',
             'lesion-segmentation-a.FPN.vgg11.imagenet',
@@ -40,12 +32,6 @@ def main():
             'lesion-segmentation-a.Linknet.vgg13.imagenet',
             'lesion-segmentation-a.Unet.mobilenet_v2.imagenet',
             'lung-segmentation.FPN.mobilenet_v2.imagenet',
-            'lung-segmentation.FPN.resnet18.imagenet',
-            'lung-segmentation.FPN.vgg11.imagenet',
-            'lung-segmentation.FPN.vgg13.imagenet',
-            'lung-segmentation.Linknet.mobilenet_v2.imagenet',
-            'lung-segmentation.Linknet.resnet18.imagenet',
-            'lung-segmentation.Linknet.vgg11.imagenet',
             'lung-segmentation.FPN.resnet18.imagenet',
             'lung-segmentation.FPN.vgg11.imagenet',
             'lung-segmentation.FPN.vgg13.imagenet',
