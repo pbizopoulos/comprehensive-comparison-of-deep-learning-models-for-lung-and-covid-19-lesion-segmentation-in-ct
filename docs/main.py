@@ -23,6 +23,7 @@ def main():
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg13.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Unet.mobilenet_v2.imagenet/model.json']
     class_names = ['covid-19']
+    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image-1.jpg'
     title = 'COVID-19 CT segmentation demo'
     description = 'NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment COVID-19 lesions using a DNN.'
     url = 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
@@ -30,8 +31,7 @@ def main():
     block_height = 256
     pixel_scaling = 3/255
     pixel_baseline = 1.5
-    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image-1.jpg'
-    generate_page(ml_type, model_dirs, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline, input_filename)
+    generate_page(ml_type, model_dirs, class_names, input_filename, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline)
 
 
 if __name__ == '__main__':
