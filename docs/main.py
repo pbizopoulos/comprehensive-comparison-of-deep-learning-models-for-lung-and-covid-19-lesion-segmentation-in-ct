@@ -1,7 +1,8 @@
-from pyclientsideml import generate_page_image_segmentation
+from pyclientsideml import generate_page
 
 
 def main():
+    ml_type = 'image-segmentation'
     model_dirs = [
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.resnet18.imagenet/model.json',
@@ -29,8 +30,8 @@ def main():
     block_height = 256
     pixel_scaling = 3/255
     pixel_baseline = 1.5
-    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image.jpg'
-    generate_page_image_segmentation(model_dirs, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline, input_filename)
+    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image-1.jpg'
+    generate_page(ml_type, model_dirs, class_names, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline, input_filename)
 
 
 if __name__ == '__main__':
