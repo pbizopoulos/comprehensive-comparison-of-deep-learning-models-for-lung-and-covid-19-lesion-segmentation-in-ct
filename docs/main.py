@@ -22,6 +22,7 @@ def main():
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg11.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg13.imagenet/model.json',
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Unet.mobilenet_v2.imagenet/model.json']
+    output_filename = 'index.html'
     class_names = ['covid-19']
     input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image-1.jpg'
     title = 'COVID-19 CT segmentation demo'
@@ -31,7 +32,7 @@ def main():
     block_height = 256
     pixel_scaling = 3/255
     pixel_baseline = 1.5
-    generate_page(ml_type, model_dirs, class_names, input_filename, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline)
+    generate_page(ml_type, model_dirs, output_filename, class_names, input_filename, title, description, url, block_width, block_height, pixel_scaling, pixel_baseline)
 
 
 if __name__ == '__main__':

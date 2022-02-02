@@ -27,28 +27,6 @@
                             border-style: solid;
                             }
                     </style>
-                
-                <style>
-                    .modal {
-                            display: none;
-                            position: fixed;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                            height: 100%;
-                            background-color: rgba(0,0,0,0.4);
-                            }
-
-                    .modal-content {
-                            position: fixed;
-                            bottom: 0;
-                            width: 100%;
-                            height: 70%;
-                            }
-                    </style>
-                <script src="https://cdn.jsdelivr.net/npm/tui-code-snippet@1.5.2/dist/tui-code-snippet.min.js"></script>
-                <script src="https://cdn.jsdelivr.net/npm/tui-color-picker@latest/dist/tui-color-picker.min.js"></script>
-                <script src="https://cdn.jsdelivr.net/npm/tui-image-editor@latest/dist/tui-image-editor.min.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
                 
         </head>
@@ -119,13 +97,6 @@
                         <canvas height="256" id="canvasMaskOutput" style="position:absolute;top:0px;left:0px;" width="256"></canvas>
                         
                 </div>
-                
-                <div class="modal" id="divModal">
-                        <div class="modal-content">
-                                <div id="tui-image-editor-container"></div>
-                        </div>
-                </div>
-                
                 <script>
                 const canvasWidth = 256;
                 const canvasHeight = 256;
@@ -147,12 +118,19 @@
                     imageInput.crossOrigin = 'anonymous';
                     imageInput.src = inputFilename;
                     imageInput.onload = () => {
-                            contextMaskOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-                            contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
                             contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
+                            contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
                             contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
+                            contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
                             imageSegmentationPredictView();
                             };
+
+                    function getCursorPosition(canvas, event) {
+                            const rect = canvas.getBoundingClientRect()
+                            const x = event.clientX - rect.left
+                            const y = event.clientY - rect.top
+                            return [x, y];
+                            }
 
                     function imageSegmentationLoadView() {
                             const files = event.currentTarget.files;
@@ -179,34 +157,66 @@
                                 maskToPixels = tf.stack([maskToPixels, tf.zerosLike(maskToPixels), tf.zerosLike(maskToPixels), alphaChannel], -1);
                                 maskToPixels = tf.image.resizeBilinear(maskToPixels, originalShape);
                                 contextMaskOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-                                contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-                                contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
                                 tf.browser.toPixels(maskToPixels, canvasMaskOutput);
                                 });
                             }
 
-                    const imageEditor = new tui.ImageEditor('#tui-image-editor-container', {
-                        includeUI: {
-                            initMenu: 'filter',
-                            loadImage: { path: imageInput.src },
-                            },
-                        usageStatistics: false,
-                        });
-                    const divModal = document.getElementById('divModal');
-                    canvasImageInput.onclick = function() {
-                            divModal.style.display = 'block';
-                            imageEditor.loadImageFromURL(imageInput.src, 'value')
-                            .then((result) => {
-                                document.getElementsByClassName('tui-image-editor-header-buttons')[0].style.display = 'none';
-                                imageEditor.ui.activeMenuEvent();
-                                });
-                            }
-                    window.onclick = function(event) {
-                            if (event.target == divModal) {
-                                divModal.style.display = 'none';
-                                imageInput.src = imageEditor.toDataURL();
-                                imageSegmentationPredictView();
+                    canvasImageInput.onclick = function(event) {
+
+                            contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
+                            contextImageInput.save();
+                            contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
+                            contextImageOutput.save();
+                            const [x, y] = getCursorPosition(canvasImageInput, event);
+                            let isUpper = y < canvasHeight/3;
+                            let isLower = y > 2*canvasHeight/3;
+                            let isLeft = x < canvasWidth/3;
+                            let isRight = x > 2*canvasWidth/3;
+                            let isLeftMiddle = isLeft && !(isUpper || isLower);
+                            let isRightMiddle = isRight && !(isUpper || isLower);
+                            let isUpperLeft = isUpper && isLeft;
+                            let isUpperMiddle = isUpper && !(isLeft || isRight);
+                            let isUpperRight = isUpper && isRight;
+                            let isLowerLeft = isLower && isLeft;
+                            let isLowerMiddle = isLower && !(isLeft || isRight);
+                            let isLowerRight = isLower && isRight;
+                            let rotationDegree;
+                            if (isUpperMiddle) {
+                                rotationDegree = 0;
                                 }
+                            else if (isUpperRight) {
+                                rotationDegree = 45;
+                                }
+                            else if (isRightMiddle) {
+                                rotationDegree = 90;
+                                }
+                            else if (isLowerRight) {
+                                rotationDegree = 135;
+                                }
+                            else if (isLowerMiddle) {
+                                rotationDegree = 180;
+                                }
+                            else if (isLowerLeft) {
+                                rotationDegree = 225;
+                                }
+                            else if (isLeftMiddle) {
+                                rotationDegree = 270;
+                                }
+                            else if (isUpperLeft) {
+                                rotationDegree = 315;
+                                }
+                            else {
+                                rotationDegree = 360;
+                                }
+                            contextImageInput.translate(canvasWidth/2, canvasHeight/2);
+                            contextImageInput.rotate(rotationDegree*Math.PI/180);
+                            contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
+                            contextImageInput.restore();
+                            contextImageOutput.translate(canvasWidth/2, canvasHeight/2);
+                            contextImageOutput.rotate(rotationDegree*Math.PI/180);
+                            contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
+                            contextImageOutput.restore();
+                            imageSegmentationPredictView();
                             }
                     
 
