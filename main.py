@@ -47,25 +47,7 @@ def save_tfjs_from_torch(model, model_name, input_shape):
     os.remove(f'{model_name_dir}/model.onnx')
 
 
-def metrics(prediction, mask):
-    prediction = prediction > 0.5
-    true_positive = (mask * prediction).sum().float()
-    true_negative = (~mask * ~prediction).sum().float()
-    false_positive = (mask * ~prediction).sum().float()
-    false_negative = (~mask * prediction).sum().float()
-    is_mask_and_prediction_empty = (true_positive + false_positive) == 0
-    if is_mask_and_prediction_empty:
-        specificity = 1
-        sensitivity = 1
-        dice = 1
-    else:
-        specificity = (true_negative / (true_negative + false_positive + eps)).item()
-        sensitivity = (true_positive / (true_positive + false_negative + eps)).item()
-        dice = (2 * true_positive / (2 * true_positive + false_positive + false_negative + eps)).item()
-    return sensitivity, specificity, dice
-
-
-def save_weights(model, experiment_name, architecture_name, encoder_weights):
+def save_figure_weights(model, experiment_name, architecture_name, encoder_weights):
     rows = 8
     columns = 8
     plt.figure(figsize=(4, 4.6))
@@ -81,7 +63,7 @@ def save_weights(model, experiment_name, architecture_name, encoder_weights):
     plt.close()
 
 
-def save_hist(hist_images, hist_masks, hist_range, experiment_name):
+def save_figure_histogram(hist_images, hist_masks, hist_range, experiment_name):
     t = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
     hist_images = hist_images.reshape(-1, hist_images.shape[-1]).sum(0)
     hist_masks = hist_masks.reshape(-1, hist_masks.shape[-1]).sum(0)
@@ -101,7 +83,7 @@ def save_hist(hist_images, hist_masks, hist_range, experiment_name):
     plt.close()
 
 
-def save_loss(loss, train_or_validation, experiment_name, architecture_name_list, ylim):
+def save_figure_loss(loss, train_or_validation, experiment_name, architecture_name_list, ylim):
     loss = np.nan_to_num(loss)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     p1 = [None] * len(architecture_name_list)
@@ -128,7 +110,7 @@ def save_loss(loss, train_or_validation, experiment_name, architecture_name_list
     plt.close()
 
 
-def save_architecture_box(dice, architecture_name_list, experiment_name):
+def save_figure_architecture_box(dice, architecture_name_list, experiment_name):
     dice_ = dice.reshape(dice.shape[0], -1).T
     plt.subplots()
     plt.boxplot(dice_)
@@ -139,7 +121,7 @@ def save_architecture_box(dice, architecture_name_list, experiment_name):
     plt.close()
 
 
-def save_initialization_box(dice, encoder_weights_list):
+def save_figure_initialization_box(dice, encoder_weights_list):
     dice_ = dice.reshape(-1, dice.shape[-1])
     plt.subplots()
     plt.boxplot(dice_)
@@ -150,7 +132,7 @@ def save_initialization_box(dice, encoder_weights_list):
     plt.close()
 
 
-def save_scatter(num_parameters_array, dice, architecture_name_list, experiment_name, ylim):
+def save_figure_scatter(num_parameters_array, dice, architecture_name_list, experiment_name, ylim):
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     dice_ = dice.mean(-1)
     _, ax = plt.subplots()
@@ -181,7 +163,7 @@ def save_scatter(num_parameters_array, dice, architecture_name_list, experiment_
     plt.close()
 
 
-def save_3d(volume, is_full, experiment_name, architecture, encoder_weights):
+def save_figure_3d(volume, is_full, experiment_name, architecture, encoder_weights):
     if is_full:
         step_size = 1
     else:
@@ -209,7 +191,7 @@ def save_3d(volume, is_full, experiment_name, architecture, encoder_weights):
     plt.close()
 
 
-def save_image(image, experiment_name):
+def save_figure_image(image, experiment_name):
     image = image.cpu().numpy()
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
@@ -218,7 +200,7 @@ def save_image(image, experiment_name):
     plt.close()
 
 
-def save_masked_image(image, mask, prediction, experiment_name, architecture, encoder):
+def save_figure_image_masked(image, mask, prediction, experiment_name, architecture, encoder):
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
@@ -234,11 +216,29 @@ def save_masked_image(image, mask, prediction, experiment_name, architecture, en
     plt.close()
 
 
+def calculate_metrics(prediction, mask):
+    prediction = prediction > 0.5
+    true_positive = (mask * prediction).sum().float()
+    true_negative = (~mask * ~prediction).sum().float()
+    false_positive = (mask * ~prediction).sum().float()
+    false_negative = (~mask * prediction).sum().float()
+    is_mask_and_prediction_empty = (true_positive + false_positive) == 0
+    if is_mask_and_prediction_empty:
+        specificity = 1
+        sensitivity = 1
+        dice = 1
+    else:
+        specificity = (true_negative / (true_negative + false_positive + eps)).item()
+        sensitivity = (true_positive / (true_positive + false_negative + eps)).item()
+        dice = (2 * true_positive / (2 * true_positive + false_positive + false_negative + eps)).item()
+    return sensitivity, specificity, dice
+
+
 def get_num_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def preprocess(image, lung_mask, lesion_mask, use_transforms):
+def preprocess_image(image, lung_mask, lesion_mask, use_transforms):
     image = tf.to_pil_image(image.astype('float32'))
     lesion_mask = tf.to_pil_image(lesion_mask.astype('uint8'))
     lung_mask = tf.to_pil_image(lung_mask.astype('uint8'))
@@ -287,7 +287,7 @@ class MedicalSegmentation1(Dataset):
         self.use_transforms = use_transforms
 
     def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
         return image, lung_mask, lesion_mask
 
     def __len__(self):
@@ -319,7 +319,7 @@ class MedicalSegmentation2(Dataset):
         self.use_transforms = use_transforms
 
     def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
         return image, lung_mask, lesion_mask
 
     def __len__(self):
@@ -359,7 +359,7 @@ class CTSegBenchmark(Dataset):
         self.use_transforms = use_transforms
 
     def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
         return image, lung_mask, lesion_mask
 
     def __len__(self):
@@ -441,14 +441,14 @@ def main():
                                     predictions = model(images)
                                 train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cpu_time for item in prof.function_events])
                             if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]) and (index_epoch == num_epochs - 1):
-                                save_image(images[0, 0], experiment_name)
-                                save_masked_image(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
-                                save_masked_image(images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train')
+                                save_figure_image(images[0, 0], experiment_name)
+                                save_figure_image_masked(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
+                                save_figure_image_masked(images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train')
                             if (architecture_name == architecture_name_list[0]) and (encoder == 'resnet18'):
                                 if index_epoch == 0:
-                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-before')
+                                    save_figure_weights(model, experiment_name, architecture_name, f'{encoder_weights}-before')
                                 elif index_epoch == num_epochs - 1:
-                                    save_weights(model, experiment_name, architecture_name, f'{encoder_weights}-after')
+                                    save_figure_weights(model, experiment_name, architecture_name, f'{encoder_weights}-after')
                             loss = dice_loss(predictions, masks)
                             loss.backward()
                             optimizer.step()
@@ -508,7 +508,7 @@ def main():
                                 if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]):
                                     hist_images_array[index_experiment_name] += np.histogram(images.cpu(), hist_bins, hist_range)[0]
                                     hist_masks_array[index_experiment_name] += np.histogram(images.cpu() * masks.cpu(), hist_bins, hist_range)[0]
-                                metrics_values = metrics(predictions, masks)
+                                metrics_values = calculate_metrics(predictions, masks)
                                 metrics_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += metrics_values
                             if index_test_volume == 0:
                                 index_test = 12
@@ -523,7 +523,7 @@ def main():
                                     images *= lung_masks
                                     masks = lesion_masks
                                 predictions = model(images.unsqueeze(0).to(device))
-                                save_masked_image(images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder)
+                                save_figure_image_masked(images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder)
                             if (index_test_volume == 0) and (encoder == 'resnet18') and (encoder_weights is None):
                                 volume_mask = np.zeros((512, 512, len(test_dataset)))
                                 volume_prediction = np.zeros((512, 512, len(test_dataset)))
@@ -540,9 +540,9 @@ def main():
                                     volume_prediction[:, :, index_slice_volume] = predictions[0].float().cpu()
                                 volume_mask = volume_mask[:, :, ::-1]
                                 if architecture_name == 'Unet':
-                                    save_3d(volume_mask, full, experiment_name, 'mask', '')
+                                    save_figure_3d(volume_mask, full, experiment_name, 'mask', '')
                                 volume_prediction = volume_prediction[:, :, ::-1]
-                                save_3d(volume_prediction, full, experiment_name, architecture_name, encoder_weights)
+                                save_figure_3d(volume_prediction, full, experiment_name, architecture_name, encoder_weights)
                     model_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
                     if (architecture_name in ['Linknet', 'FPN']) and (encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2']) and (encoder_weights == 'imagenet'):
                         save_tfjs_from_torch(model, model_name, [1, 1, 512, 512])
@@ -552,21 +552,21 @@ def main():
                         os.remove(model_path)
 
     for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
-        save_hist(hist_images, hist_masks, hist_range, experiment_name)
+        save_figure_histogram(hist_images, hist_masks, hist_range, experiment_name)
 
     for experiment_name, train_loss, validation_loss in zip(experiment_name_list, train_loss_array, validation_loss_array):
-        save_loss(train_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
-        save_loss(validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
-    save_loss(train_loss_array[2] - train_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
-    save_loss(validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
+        save_figure_loss(train_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
+        save_figure_loss(validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
+    save_figure_loss(train_loss_array[2] - train_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
+    save_figure_loss(validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
 
     metrics_array = 100 * metrics_array / num_slices_test
     num_parameters_array = num_parameters_array / 10 ** 6
     for experiment, experiment_name, metrics_ in zip(experiment_list, experiment_name_list, metrics_array):
-        save_architecture_box(metrics_[..., -1], architecture_name_list, experiment_name)
-        save_scatter(num_parameters_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100])
-    save_scatter(num_parameters_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15])
-    save_initialization_box(metrics_array[..., -1], encoder_weights_list)
+        save_figure_architecture_box(metrics_[..., -1], architecture_name_list, experiment_name)
+        save_figure_scatter(num_parameters_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100])
+    save_figure_scatter(num_parameters_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15])
+    save_figure_initialization_box(metrics_array[..., -1], encoder_weights_list)
 
     encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
     encoder_weights_std = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).std(0).round(2)
