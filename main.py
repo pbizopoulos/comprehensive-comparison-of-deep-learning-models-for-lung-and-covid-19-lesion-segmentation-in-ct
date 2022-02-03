@@ -34,10 +34,10 @@ plt.rcParams['savefig.bbox'] = 'tight'
 eps = 1e-6
 
 
-def save_tfjs(model, model_name):
+def save_tfjs_from_torch(model, model_name, input_shape):
     model_name_dir = f'{tmpdir}/tfjs-models/{model_name}'
     os.makedirs(model_name_dir, exist_ok=True)
-    example_input = torch.randn(1, 1, 512, 512, requires_grad=False)
+    example_input = torch.randn(*input_shape, requires_grad=False)
     torch.onnx.export(model.cpu(), example_input, f'{model_name_dir}/model.onnx', export_params=True, opset_version=11)
     onnx_model = onnx.load(f'{model_name_dir}/model.onnx')
     tf_model = prepare(onnx_model)
@@ -545,7 +545,7 @@ def main():
                                 save_3d(volume_prediction, full, experiment_name, architecture_name, encoder_weights)
                     model_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
                     if (architecture_name in ['Linknet', 'FPN']) and (encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2']) and (encoder_weights == 'imagenet'):
-                        save_tfjs(model, model_name)
+                        save_tfjs_from_torch(model, model_name, [1, 1, 512, 512])
                         if not full:
                             rmtree(f'{tmpdir}/tfjs-models/{model_name}')
                     if not full:
