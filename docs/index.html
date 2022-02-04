@@ -34,7 +34,7 @@
                         </div>
                         <div>
                                 
-                                <input accept="image/*" onchange="imageSegmentationLoadView();" type="file">
+                                <input accept="image/*" onchange="imageLoadView();" type="file">
                                 
                         </div>
                         <div>
@@ -128,7 +128,7 @@
                             return [x, y];
                             }
 
-                    function imageSegmentationLoadView() {
+                    function imageLoadView() {
                             const files = event.currentTarget.files;
                             if (files[0]) {
                                 imageFileReader.readAsDataURL(files[0]);
@@ -208,7 +208,7 @@
                             contextImageInput.rotate(rotationDegree*Math.PI/180);
                             contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
                             contextImageInput.restore();
-                            contextImageOutput.translate(canvasWidth/2, canvasHeight/2);
+                    contextImageOutput.translate(canvasWidth/2, canvasHeight/2);
                             contextImageOutput.rotate(rotationDegree*Math.PI/180);
                             contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
                             contextImageOutput.restore();
@@ -225,7 +225,9 @@
 
                     let model;
                     async function loadModel(predictFunction) {
+                            
                             model = await tf.loadGraphModel(selectModel.value, {onProgress: disableUI(true)});
+                            
                             predictFunction();
                             disableUI(false);
                             }
