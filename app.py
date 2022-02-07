@@ -24,7 +24,7 @@ def main():
             'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Unet.mobilenet_v2.imagenet/model.json']
     output_filename = 'index.html'
     class_names = ['covid-19']
-    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/example-image-1.jpg'
+    input_filename = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/example-image-1.jpg'
     title = 'COVID-19 CT segmentation demo'
     description = 'NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment COVID-19 lesions using a DNN.'
     url = 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
