@@ -24,7 +24,6 @@
                     }
             </style>
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-        
     </head>
     <body>
         <div id="divInputControl" style="width:256px;height:256px;position:fixed;top:0px;left:0px;">
@@ -33,74 +32,48 @@
                 <a href=https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct>[url]</a>
             </div>
             <div>
-                
                 <input accept="image/*" onchange="imageLoadView();" type="file">
-                
             </div>
             <div>
                 <select id="selectModel" onchange="loadModel(predictView);" style="width:100%;">
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.FPN.mobilenet_v2.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.resnet18.imagenet/model.json">lesion-segmentation-a.FPN.resnet18.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.vgg11.imagenet/model.json">lesion-segmentation-a.FPN.vgg11.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.FPN.vgg13.imagenet/model.json">lesion-segmentation-a.FPN.vgg13.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.Linknet.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.Linknet.mobilenet_v2.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.Linknet.resnet18.imagenet/model.json">lesion-segmentation-a.Linknet.resnet18.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.Linknet.vgg11.imagenet/model.json">lesion-segmentation-a.Linknet.vgg11.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.Linknet.vgg13.imagenet/model.json">lesion-segmentation-a.Linknet.vgg13.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lesion-segmentation-a.Unet.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.Unet.mobilenet_v2.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.resnet18.imagenet/model.json">lung-segmentation.FPN.resnet18.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.vgg11.imagenet/model.json">lung-segmentation.FPN.vgg11.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.FPN.vgg13.imagenet/model.json">lung-segmentation.FPN.vgg13.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.mobilenet_v2.imagenet/model.json">lung-segmentation.Linknet.mobilenet_v2.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.resnet18.imagenet/model.json">lung-segmentation.Linknet.resnet18.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg11.imagenet/model.json">lung-segmentation.Linknet.vgg11.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Linknet.vgg13.imagenet/model.json">lung-segmentation.Linknet.vgg13.imagenet</option>
-                    
                     <option  value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-inct-tfjs/master/lung-segmentation.Unet.mobilenet_v2.imagenet/model.json">lung-segmentation.Unet.mobilenet_v2.imagenet</option>
-                    
                 </select>
             </div>
+            <div id="divModelDownloadFraction">0%</div>
             <div style="position:absolute;bottom:0;">Made with 
                 <a href="https://github.com/pbizopoulos/pyclientsideml">pyclientsideml</a>.
             </div>
         </div>
         <div id="divInput" style="width:256px;height:256px;position:fixed;top:0px;left:256px;">
-            
             <canvas id="canvasImageInput" height="256" width="256"></canvas>
-            
         </div>
         <div id="divOutput" style="height:256px;width:256px;position:fixed;top:0px;left:512px;">
-            
             <canvas id="canvasImageOutput" height="256" width="256"></canvas>
             <canvas id="canvasMaskOutput" height="256" width="256" style="position:absolute;top:0px;left:0px;"></canvas>
-            
         </div>
         <script>
             const canvasWidth = 256;
             const canvasHeight = 256;
             const inputFilename = "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/example-image-1.jpg";
-            
             const canvasImageInput = document.getElementById("canvasImageInput");
             const contextImageInput = canvasImageInput.getContext("2d");
-            
             const canvasImageOutput = document.getElementById("canvasImageOutput");
             const contextImageOutput = canvasImageOutput.getContext("2d");
             const canvasMaskOutput = document.getElementById("canvasMaskOutput");
@@ -128,14 +101,6 @@
                         });
                     }
 
-            
-
-            function getCursorPosition(canvas, event) {
-                    const rect = canvas.getBoundingClientRect()
-                    const x = event.clientX - rect.left
-                    const y = event.clientY - rect.top
-                    return [x, y];
-                    }
 
             function imageLoadView() {
                     const files = event.currentTarget.files;
@@ -144,64 +109,33 @@
                         }
                     }
 
-            canvasImageInput.onclick = function(event) {
+            canvasImageInput.onmousedown = function(event) {
                     contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
                     contextImageInput.save();
-                    
                     contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
                     contextImageOutput.save();
-                    
-                    const [x, y] = getCursorPosition(canvasImageInput, event);
-                    let isUpper = y < canvasHeight/3;
-                    let isLower = y > 2*canvasHeight/3;
-                    let isLeft = x < canvasWidth/3;
-                    let isRight = x > 2*canvasWidth/3;
-                    let isLeftMiddle = isLeft && !(isUpper || isLower);
-                    let isRightMiddle = isRight && !(isUpper || isLower);
-                    let isUpperLeft = isUpper && isLeft;
-                    let isUpperMiddle = isUpper && !(isLeft || isRight);
-                    let isUpperRight = isUpper && isRight;
-                    let isLowerLeft = isLower && isLeft;
-                    let isLowerMiddle = isLower && !(isLeft || isRight);
-                    let isLowerRight = isLower && isRight;
-                    let rotationDegree;
-                    if (isUpperMiddle) {
-                        rotationDegree = 0;
-                        }
-                    else if (isUpperRight) {
-                        rotationDegree = 45;
-                        }
-                    else if (isRightMiddle) {
-                        rotationDegree = 90;
-                        }
-                    else if (isLowerRight) {
-                        rotationDegree = 135;
-                        }
-                    else if (isLowerMiddle) {
-                        rotationDegree = 180;
-                        }
-                    else if (isLowerLeft) {
-                        rotationDegree = 225;
-                        }
-                    else if (isLeftMiddle) {
-                        rotationDegree = 270;
-                        }
-                    else if (isUpperLeft) {
-                        rotationDegree = 315;
-                        }
-                    else {
-                        rotationDegree = 360;
+                    const rect = canvasImageInput.getBoundingClientRect();
+                    const mousedownX = event.clientX - rect.left;
+                    const mousedownY = event.clientY - rect.top;
+                    let mousedownDistanceFromCenter = Math.sqrt((mousedownX - canvasWidth/2)**2 + (mousedownY - canvasHeight/2)**2);
+                    let rotationDegree = 0;
+                    if (mousedownDistanceFromCenter > canvasWidth/4) {
+                        const mousedownXtranslated = (mousedownX - canvasWidth/2);
+                        const mousedownYtranslated = (mousedownY - canvasHeight/2);
+                        const originXtranslated = (canvasWidth/2 - canvasWidth/2);
+                        const originYtranslated = (0 - canvasHeight/2);
+                        const dot = mousedownXtranslated*originXtranslated + mousedownYtranslated*originYtranslated;
+                        const det = mousedownYtranslated*originXtranslated - mousedownXtranslated*originYtranslated;
+                        rotationDegree = Math.atan2(det, dot);
                         }
                     contextImageInput.translate(canvasWidth/2, canvasHeight/2);
-                    contextImageInput.rotate(rotationDegree*Math.PI/180);
+                    contextImageInput.rotate(rotationDegree);
                     contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
-            contextImageInput.restore();
-                    
+                    contextImageInput.restore();
                     contextImageOutput.translate(canvasWidth/2, canvasHeight/2);
-                    contextImageOutput.rotate(rotationDegree*Math.PI/180);
+                    contextImageOutput.rotate(rotationDegree);
                     contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
                     contextImageOutput.restore();
-                    
                     predictView();
                     }
 
@@ -216,14 +150,11 @@
             imageInput.onload = () => {
                     contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
                     contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
-                    
                     contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
                     contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
-                    
                     predictView();
                     };
 
-            
 
             function disableUI(argument) {
                     const nodes = document.getElementById('divInputControl').getElementsByTagName('*');
@@ -234,9 +165,16 @@
 
             let model;
             async function loadModel(predictFunction) {
-                    
-                    model = await tf.loadGraphModel(selectModel.value, {onProgress: disableUI(true)});
-                    
+                    const loadModelFunction = tf.loadGraphModel;
+                    model = await loadModelFunction(selectModel.value, {
+                        onProgress: function (fraction) {
+                            document.getElementById('divModelDownloadFraction').innerHTML = 'Downloading model, please wait ' + Math.round(100*fraction) + '%.';
+                            if (fraction == 1) {
+                                document.getElementById('divModelDownloadFraction').innerHTML = 'Model downloaded.';
+                                }
+                            disableUI(true);
+                            }
+                        });
                     predictFunction();
                     disableUI(false);
                     }
