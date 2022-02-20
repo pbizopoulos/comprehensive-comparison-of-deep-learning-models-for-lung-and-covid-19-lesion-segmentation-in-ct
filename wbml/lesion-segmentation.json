@@ -3,5 +3,5 @@
 	"classNames": ["None", "Covid-19"],
 	"exampleData": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation-example-data.png",
 	"name": "lesion-segmentation-a.FPN.mobilenet_v2.imagenet",
-	"type": "image-segmentation",
+	"type": "image-segmentation"
 },
