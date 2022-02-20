@@ -1,7 +1,7 @@
 {
 	"URL": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json",
 	"classNames": ["None", "Lung"],
-	"exampleData": 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation-example-data.jpg",
+	"exampleData": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation-example-data.jpg",
 	"name": "lung-segmentation.FPN.mobilenet_v2.imagenet",
-	"type": "image-segmentation",
+	"type": "image-segmentation"
 },
