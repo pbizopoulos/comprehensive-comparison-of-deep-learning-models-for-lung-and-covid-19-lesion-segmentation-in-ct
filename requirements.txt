@@ -5,7 +5,7 @@ coverage
 isort
 
 # pythonfile requirements
-gdown==4.2.1
+gdown==4.4.0
 matplotlib==3.5.1
 nibabel==3.2.1
 onnx-tf==1.9.0
