@@ -605,12 +605,12 @@ def main():
     df.index.names = ['Architecture', 'Encoder']
     df = df.round(2)
     max_per_column_list = df.max(0)
-    min_per_column_list = df.min(0)
     index_max_per_column_list = df.idxmax(0)
     df.idxmin(0)
-    formatters = [lambda x, max_per_column=max_per_column: fr'\textbf{{{x:.2f}}}' if (x == max_per_column) else f'{x:.2f}' for max_per_column in max_per_column_list]
-    formatters[-3:] = [lambda x, min_per_column=min_per_column: fr'\textbf{{{x:.2f}}}' if (x == min_per_column) else f'{x:.2f}' for min_per_column in min_per_column_list[-3:]]
-    df.to_latex(f'{tmpdir}/metrics.tex', formatters=formatters, bold_rows=True, multirow=True, multicolumn=True, multicolumn_format='c', escape=False)
+    styler = df.style
+    styler.format(precision=2)
+    styler.highlight_max(props='bfseries: ;')
+    styler.to_latex(f'{tmpdir}/metrics.tex', hrules=True, multicol_align='c')
 
     df_keys_values = pd.DataFrame(
         {
