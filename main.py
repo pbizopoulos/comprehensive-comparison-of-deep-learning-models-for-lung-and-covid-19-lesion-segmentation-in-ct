@@ -302,16 +302,13 @@ class MedicalSegmentation2(Dataset):
                 gdown.download(url, zip_path, quiet=False)
                 with ZipFile(zip_path, 'r') as z:
                     z.extractall(tmpdir)
-        images_fullname_list = glob.glob(f'{tmpdir}/rp_im/*.nii.gz')
-        images_fullname_list.sort()
+        images_fullname_list = sorted(glob.glob(f'{tmpdir}/rp_im/*.nii.gz'))
         images = nib.load(images_fullname_list[index_volume])
         self.images = images.get_fdata()
-        lesion_masks_fullname_list = glob.glob(f'{tmpdir}/rp_msk/*.nii.gz')
-        lesion_masks_fullname_list.sort()
+        lesion_masks_fullname_list = sorted(glob.glob(f'{tmpdir}/rp_msk/*.nii.gz'))
         lesion_masks = nib.load(lesion_masks_fullname_list[index_volume])
         self.lesion_masks = lesion_masks.get_fdata()
-        lung_masks_fullname_list = glob.glob(f'{tmpdir}/rp_lung_msk/*.nii.gz')
-        lung_masks_fullname_list.sort()
+        lung_masks_fullname_list = sorted(glob.glob(f'{tmpdir}/rp_lung_msk/*.nii.gz'))
         lung_masks = nib.load(lung_masks_fullname_list[index_volume])
         self.lung_masks = lung_masks.get_fdata()
         self.use_transforms = use_transforms
@@ -431,11 +428,11 @@ def main():
                             if device == 'cuda':
                                 with torch.autograd.profiler.profile(use_cuda=True) as prof:
                                     predictions = model(images)
-                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cuda_time for item in prof.function_events])
+                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cuda_time for item in prof.function_events)
                             else:
                                 with torch.autograd.profiler.profile(use_cuda=False) as prof:
                                     predictions = model(images)
-                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cpu_time for item in prof.function_events])
+                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cpu_time for item in prof.function_events)
                             if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]) and (index_epoch == num_epochs - 1):
                                 save_figure_image(images[0, 0], experiment_name)
                                 save_figure_image_masked(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
@@ -467,11 +464,11 @@ def main():
                                 if device == 'cuda':
                                     with torch.autograd.profiler.profile(use_cuda=True) as prof:
                                         predictions = model(images)
-                                    validation_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cuda_time for item in prof.function_events])
+                                    validation_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cuda_time for item in prof.function_events)
                                 else:
                                     with torch.autograd.profiler.profile(use_cuda=False) as prof:
                                         predictions = model(images)
-                                    validation_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum([item.cpu_time for item in prof.function_events])
+                                    validation_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cpu_time for item in prof.function_events)
                                 loss = dice_loss(predictions, masks)
                                 validation_loss_sum += loss.item()
                             validation_loss = validation_loss_sum / len(validation_dataloader)
@@ -598,8 +595,7 @@ def main():
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
     styler.to_latex(f'{tmpdir}/metrics.tex', hrules=True, multicol_align='c')
-    df_keys_values = pd.DataFrame({'key': ['num-epochs', 'batch-size', 'num-slices-test', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(num_epochs)), str(int(batch_size)), str(int(num_slices_test)),
-                                  encoder_list[encoder_mean.argmax()].replace('_', ''), encoder_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], index_max_per_column_list[2][0], index_max_per_column_list[2][1], index_max_per_column_list[11][0], index_max_per_column_list[11][1], index_max_per_column_list[5][0], index_max_per_column_list[5][1], index_max_per_column_list[14][0], index_max_per_column_list[14][1], index_max_per_column_list[8][0], index_max_per_column_list[8][1], index_max_per_column_list[17][0], index_max_per_column_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)], })
+    df_keys_values = pd.DataFrame({'key': ['num-epochs', 'batch-size', 'num-slices-test', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(num_epochs)), str(int(batch_size)), str(int(num_slices_test)), encoder_list[encoder_mean.argmax()].replace('_', ''), encoder_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], index_max_per_column_list[2][0], index_max_per_column_list[2][1], index_max_per_column_list[11][0], index_max_per_column_list[11][1], index_max_per_column_list[5][0], index_max_per_column_list[5][1], index_max_per_column_list[14][0], index_max_per_column_list[14][1], index_max_per_column_list[8][0], index_max_per_column_list[8][1], index_max_per_column_list[17][0], index_max_per_column_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)], })
     df_keys_values.to_csv(f'{tmpdir}/keys-values.csv')
 
 
