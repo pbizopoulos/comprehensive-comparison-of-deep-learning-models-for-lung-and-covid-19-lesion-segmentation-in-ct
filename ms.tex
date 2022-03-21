@@ -26,7 +26,7 @@
 \pdftrailerid{}
 
 \begin{document}
-\DTLloaddb{keys-values}{tmp/keys-values.csv}
+\DTLloaddb{keys-values}{artifacts/keys-values.csv}
 
 \title{Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT scans}
 \author[1]{Paschalis Bizopoulos}
@@ -106,12 +106,12 @@ A high level overview of the training of the models can be seen in Fig.~\ref{fig
 \begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[]
-		\node[] (input) {\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-image}};
+		\node[] (input) {\includegraphics[scale=0.3]{artifacts/lesion-segmentation-a-image}};
 		\node[draw] (architecture) [right=0.5cm of input, minimum height=2.8cm, minimum width=1.2cm]{\hspace{-2em}\rotatebox{90}{architecture}};
 		\node[draw] (encoder) [right=1cm of input, minimum height=2cm]{\rotatebox{90}{encoder}};
-		\node[] (output) [right=0.5cm of encoder]{\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-prediction-train-masked-image}};
+		\node[] (output) [right=0.5cm of encoder]{\includegraphics[scale=0.3]{artifacts/lesion-segmentation-a-prediction-train-masked-image}};
 		\node[draw, below=0.5cm of output, circle] (loss){$\mathcal{L}$};
-		\node[] (mask) [below=0.5cm of loss]{\includegraphics[scale=0.3]{tmp/lesion-segmentation-a-mask-train-masked-image}};
+		\node[] (mask) [below=0.5cm of loss]{\includegraphics[scale=0.3]{artifacts/lesion-segmentation-a-mask-train-masked-image}};
 		\node[] at (0, 1){$\bm{X}$};
 		\node[] at (5.2, 1){$\hat{\bm{Y}}$};
 		\node[] at (5.2, -4){$\bm{Y}$};
@@ -184,9 +184,9 @@ In Fig.~\ref{fig:hist} the histograms of the pixel intensities of all the CT sca
 The considerable overlap between the histograms makes the use of thresholding models in this kind of problem unsuitable, thus justifying the use of learning models such as DL\@.
 
 \begin{figure*}[!t]
-	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Normalized frequencies}\subfloat[Lung segmentation]{\includegraphics[width=0.33\textwidth]{tmp/lung-segmentation-hist}}
-	\subfloat[Lesion segmentation A]{\includegraphics[width=0.33\textwidth]{tmp/lesion-segmentation-a-hist}}
-	\subfloat[Lesion segmentation B]{\includegraphics[width=0.33\textwidth]{tmp/lesion-segmentation-b-hist}}
+	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Normalized frequencies}\subfloat[Lung segmentation]{\includegraphics[width=0.33\textwidth]{artifacts/lung-segmentation-hist}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.33\textwidth]{artifacts/lesion-segmentation-a-hist}}
+	\subfloat[Lesion segmentation B]{\includegraphics[width=0.33\textwidth]{artifacts/lesion-segmentation-b-hist}}
 	\caption{Histogram plots of the normalized pixel intensities for the images (blue) and target masks (orange) for each experimental setup.
 	The vertical axis depicts the normalized frequencies of each pixel intensity in the logarithmic scale.
 	The outlier bar at zero is because most of the pixels in the target masks are near zero.}\label{fig:hist}
@@ -319,36 +319,36 @@ It is worth noting that the best model is not the one with the largest number of
 
 \begin{figure}[!t]
 	\centering
-	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Unet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Linknet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-FPN-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-PSPNet-\best-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-PSPNet-\best-masked-image}}
 	\\
-	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Unet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Linknet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-FPN-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-PSPNet-\best-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-PSPNet-\best-masked-image}}
 	\\
-	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Unet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Linknet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-FPN-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-PSPNet-\best-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-Linknet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-FPN-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-PSPNet-\best-masked-image}}
 	\\
-	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Unet-\best-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-Linknet-\worst-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-FPN-\worst-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lung-segmentation-PSPNet-\worst-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lung segmentation}\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-Unet-\best-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-Linknet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-FPN-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lung-segmentation-PSPNet-\worst-masked-image}}
 	\\
-	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Unet-\worst-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-Linknet-\worst-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-FPN-\worst-masked-image}}
-	\subfloat{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-a-PSPNet-\worst-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation A}\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-Unet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-Linknet-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-FPN-\worst-masked-image}}
+	\subfloat{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-a-PSPNet-\worst-masked-image}}
 	\\
 	\setcounter{subfigure}{0}
-	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat[{\tiny Unet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Unet-\worst-masked-image}}
-	\subfloat[{\tiny Linknet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-Linknet-\worst-masked-image}}
-	\subfloat[{\tiny FPN}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-FPN-\worst-masked-image}}
-	\subfloat[{\tiny PSPNet}]{\includegraphics[width=0.12\textwidth]{tmp/lesion-segmentation-b-PSPNet-\worst-masked-image}}
+	\rotatebox[origin=l]{90}{\tiny Lesion segmentation B}\subfloat[{\tiny Unet}]{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-Unet-\worst-masked-image}}
+	\subfloat[{\tiny Linknet}]{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-Linknet-\worst-masked-image}}
+	\subfloat[{\tiny FPN}]{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-FPN-\worst-masked-image}}
+	\subfloat[{\tiny PSPNet}]{\includegraphics[width=0.12\textwidth]{artifacts/lesion-segmentation-b-PSPNet-\worst-masked-image}}
 	\caption{Predicted masks on a CT scan image from the test data for $24$ out of $600$ of the models.
 	The three top columns correspond to predicted masks generated from a model with the best encoder and the bottom three for the worst.
 	Rows correspond to each of the four architectures.
@@ -357,11 +357,11 @@ It is worth noting that the best model is not the one with the largest number of
 
 \begin{figure}[!t]
 	\centering
-	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-scatter-dice-vs-num-parameters}}
-	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-scatter-dice-vs-num-parameters}}
+	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-scatter-dice-vs-num-parameters}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-a-scatter-dice-vs-num-parameters}}
 	\\
-	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-scatter-dice-vs-num-parameters}}
-	\subfloat[Lesion segmentation B-A]{\includegraphics[width=0.24\textwidth]{tmp/diff-scatter-dice-vs-num-parameters}}
+	\rotatebox[origin=l]{90}{\hspace{2em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-scatter-dice-vs-num-parameters}}
+	\subfloat[Lesion segmentation B-A]{\includegraphics[width=0.24\textwidth]{artifacts/diff-scatter-dice-vs-num-parameters}}
 	\caption{Dice vs.\ number of parameters for the three experimental setups and the difference between lesion segmentation B and A.
 	The green regions depict the kernel density estimate for all points using Gaussian kernels.
 	The method used to calculate the estimator bandwidth was Scott and the points are assumed to be equally weighted.}\label{fig:dicevsnumparameters}
@@ -371,7 +371,7 @@ It is worth noting that the best model is not the one with the largest number of
 	\centering
 	\caption{Metrics}\label{table:metrics}
 	\begin{adjustbox}{width=\textwidth}
-		\input{tmp/metrics.tex}
+		\input{artifacts/metrics.tex}
 	\end{adjustbox}
 \end{table*}
 
@@ -385,29 +385,29 @@ Regarding time performance for training and inference, the fastest architecture 
 
 \begin{figure}[!t]
 	\centering
-	\rotatebox[origin=l]{90}{\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-train-loss}}
-	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-validation-loss}}
+	\rotatebox[origin=l]{90}{\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-validation-loss}}
 	\\
-	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-train-loss}}
-	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-validation-loss}}
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-a-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-a-validation-loss}}
 	\\
-	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-train-loss}}
-	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-validation-loss}}
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B}\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-train-loss}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-validation-loss}}
 	\\
 	\setcounter{subfigure}{0}
-	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B-A}\subfloat[Train loss]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-train-diff-loss}}
-	\subfloat[Validation loss]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-validation-diff-loss}}
+	\rotatebox[origin=l]{90}{\scriptsize Lesion segmentation B-A}\subfloat[Train loss]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-train-diff-loss}}
+	\subfloat[Validation loss]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-validation-diff-loss}}
 	\caption{Training and validation loss plots with mean (line) and standard deviation (patch) for the four architectures segregated upon encoders for each experimental setup.
 	Rows correspond to experimental setups and the difference between lesion segmentation B and A and columns correspond to train and validation losses.}\label{fig:loss}
 \end{figure}
 
 \begin{figure}[!t]
 	\centering
-	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-boxplot-dice}}
-	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-a-boxplot-dice}}
+	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lung segmentation]{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-boxplot-dice}}
+	\subfloat[Lesion segmentation A]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-a-boxplot-dice}}
 	\\
-	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{tmp/lesion-segmentation-b-boxplot-dice}}
-	\subfloat[Initialization]{\includegraphics[width=0.24\textwidth]{tmp/initialization-boxplot-dice}}
+	\rotatebox[origin=l]{90}{\hspace{1.5em}\scriptsize Dice (\%)}\subfloat[Lesion segmentation B]{\includegraphics[width=0.24\textwidth]{artifacts/lesion-segmentation-b-boxplot-dice}}
+	\subfloat[Initialization]{\includegraphics[width=0.24\textwidth]{artifacts/initialization-boxplot-dice}}
 	\caption{Boxplots of Dice for the three experiments and for each architecture in (a), (b) and (c) and weight initialization for all experiments in (d).}\label{fig:box}
 \end{figure}
 
@@ -419,24 +419,24 @@ The mean Dice results for PSPNet are $\DTLfetch{keys-values}{key}{lung-segmentat
 In Fig.~\ref{fig:volumes} the predictions as a volume for the three experiments, for the resnet18 encoder are visualized, demonstrating good match with the original masks.
 
 \begin{figure*}[!t]
-	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-mask--volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-Unet-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-Linknet-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-FPN-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lung-segmentation-PSPNet-None-volume}}
+	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lung-segmentation-mask--volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lung-segmentation-Unet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lung-segmentation-Linknet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lung-segmentation-FPN-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lung-segmentation-PSPNet-None-volume}}
 	\\
-	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-mask--volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-Unet-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-Linknet-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-FPN-None-volume}}
-	\subfloat{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-a-PSPNet-None-volume}}
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-a-mask--volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-a-Unet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-a-Linknet-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-a-FPN-None-volume}}
+	\subfloat{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-a-PSPNet-None-volume}}
 	\\
 	\setcounter{subfigure}{0}
-	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-mask--volume}}
-	\subfloat[Unet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-Unet-None-volume}}
-	\subfloat[Linknet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-Linknet-None-volume}}
-	\subfloat[FPN]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-FPN-None-volume}}
-	\subfloat[PSPNet]{\includegraphics[width=0.20\textwidth]{tmp/lesion-segmentation-b-PSPNet-None-volume}}
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-b-mask--volume}}
+	\subfloat[Unet]{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-b-Unet-None-volume}}
+	\subfloat[Linknet]{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-b-Linknet-None-volume}}
+	\subfloat[FPN]{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-b-FPN-None-volume}}
+	\subfloat[PSPNet]{\includegraphics[width=0.20\textwidth]{artifacts/lesion-segmentation-b-PSPNet-None-volume}}
 	\caption{Reconstructed volumes from predicted masks.
 	Reconstruction was done by stacking the predicted masks on the z-axis and then applying the marching cubes algorithm.}\label{fig:volumes}
 \end{figure*}
@@ -451,12 +451,12 @@ The Dice for using random initialization is $\DTLfetch{keys-values}{key}{None-me
 
 \begin{figure}[!t]
 	\centering
-	\rotatebox[origin=l]{90}{\scriptsize Random initialization}\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-None-before-weights}}
-	\subfloat{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-None-after-weights}}
+	\rotatebox[origin=l]{90}{\scriptsize Random initialization}\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-Unet-None-before-weights}}
+	\subfloat{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-Unet-None-after-weights}}
 	\\
 	\setcounter{subfigure}{0}
-	\rotatebox[origin=l]{90}{\scriptsize ImageNet initialization}\subfloat[Before training]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-imagenet-before-weights}}
-	\subfloat[After training]{\includegraphics[width=0.24\textwidth]{tmp/lung-segmentation-Unet-imagenet-after-weights}}
+	\rotatebox[origin=l]{90}{\scriptsize ImageNet initialization}\subfloat[Before training]{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-Unet-imagenet-before-weights}}
+	\subfloat[After training]{\includegraphics[width=0.24\textwidth]{artifacts/lung-segmentation-Unet-imagenet-after-weights}}
 	\caption{Grid visualization of the $64$ weights with size $7\times 7$ of the first convolutional layer for the Unet architecture with ResNet-18 encoder.
 	The two left and two right grids correspond to random and ImageNet pretrained initialization, respectively.
 	The data range of the colormap of the images has been adjusted in the range $[-0.4, 0.4]$.}\label{fig:weights}
