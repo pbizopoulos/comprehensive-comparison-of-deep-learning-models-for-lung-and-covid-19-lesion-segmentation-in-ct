@@ -15,16 +15,16 @@ function predictView() {
 	tf.tidy(() => {
 		let fromPixels = tf.browser.fromPixels(canvasImageInput);
 		originalShape = fromPixels.shape.slice(0, 2);
-		fromPixels = tf.image.resizeBilinear(fromPixels, [model.inputs[0].shape[2], model.inputs[0].shape[3]]);
+		fromPixels = tf.image.resizeNearestNeighbor(fromPixels, [model.inputs[0].shape[2], model.inputs[0].shape[3]]);
 		let pixels = fromPixels.slice([0, 0, 2]).squeeze(-1).expandDims(0).expandDims(0);
-		pixels = pixels.mul(0.011764705882352941);
+		pixels = pixels.mul(3/255);
 		pixels = pixels.sub(1.5);
 		const mask = model.predict(pixels);
 		let maskToPixels = mask.squeeze(0).squeeze(0);
 		const alphaTensor = tf.tensor([0.3]);
 		const alphaChannel = alphaTensor.where(maskToPixels.greaterEqual(0.5), 0);
 		maskToPixels = tf.stack([maskToPixels, tf.zerosLike(maskToPixels), tf.zerosLike(maskToPixels), alphaChannel], -1);
-		maskToPixels = tf.image.resizeBilinear(maskToPixels, originalShape);
+		maskToPixels = tf.image.resizeNearestNeighbor(maskToPixels, originalShape);
 		contextMaskOutput.clearRect(0, 0, canvasWidth, canvasHeight);
 		tf.browser.toPixels(maskToPixels, canvasMaskOutput);
 	});

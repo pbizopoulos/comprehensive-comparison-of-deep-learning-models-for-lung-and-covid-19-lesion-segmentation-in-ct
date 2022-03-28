@@ -33,10 +33,9 @@ plt.rcParams['savefig.bbox'] = 'tight'
 eps = 1e-6
 
 
-def save_tfjs_from_torch(model, model_name, input_shape):
+def save_tfjs_from_torch(model, model_name, example_input):
     model_name_dir = join(artifacts_dir, 'tfjs-models', model_name)
     os.makedirs(model_name_dir, exist_ok=True)
-    example_input = torch.randn(*input_shape, requires_grad=False)
     torch.onnx.export(model.cpu(), example_input, join(model_name_dir, 'model.onnx'), export_params=True, opset_version=11)
     onnx_model = onnx.load(join(model_name_dir, 'model.onnx'))
     tf_model = prepare(onnx_model)
@@ -82,7 +81,7 @@ def save_figure_histogram(hist_images, hist_masks, hist_range, experiment_name):
     plt.close()
 
 
-def save_figure_loss(loss, train_or_validation, experiment_name, architecture_name_list, ylim):
+def save_figure_loss(loss, training_or_validation, experiment_name, architecture_name_list, ylim):
     loss = np.nan_to_num(loss)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     p1 = [None] * len(architecture_name_list)
@@ -100,12 +99,12 @@ def save_figure_loss(loss, train_or_validation, experiment_name, architecture_na
     plt.grid(True)
     plt.autoscale(enable=True, axis='x', tight=True)
     plt.ylim(ylim)
-    if train_or_validation not in ['Train', 'Validation']:
+    if training_or_validation not in ['Train', 'Validation']:
         plt.xlabel('Epochs', fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize='large')
     ax.tick_params(axis='both', which='minor', labelsize='large')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-{train_or_validation.lower().replace(" ", "-")}-loss'))
+    plt.savefig(join(artifacts_dir, f'{experiment_name}-{training_or_validation.lower().replace(" ", "-")}-loss'))
     plt.close()
 
 
@@ -365,13 +364,13 @@ class CTSegBenchmark(Dataset):
 def main():
     if full:
         num_epochs = 100
-        index_train_range = range(80)
+        index_training_range = range(80)
         index_validation_range = range(80, 100)
         index_test_volume_range = range(9)
         encoder_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
     else:
         num_epochs = 2
-        index_train_range = range(1)
+        index_training_range = range(1)
         index_validation_range = range(2, 4)
         index_test_volume_range = range(1)
         encoder_list = ['vgg11', 'resnet18', 'mobilenet_v2', 'efficientnet-b0']
@@ -387,8 +386,8 @@ def main():
     experiment_list = ['Lung segmentation', 'Lesion segmentation A', 'Lesion segmentation B']
     experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
     encoder_weights_list = [None, 'imagenet']
-    train_dataset = MedicalSegmentation1(index_train_range, use_transforms=True)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    training_dataset = MedicalSegmentation1(index_training_range, use_transforms=True)
+    training_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True)
     validation_dataset = MedicalSegmentation1(index_validation_range, use_transforms=False)
     validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size)
     dice_loss = DiceLoss()
@@ -399,10 +398,10 @@ def main():
     hist_range = [-2, 2]
     hist_images_array = np.zeros((len(experiment_list), hist_bins))
     hist_masks_array = np.zeros_like(hist_images_array)
-    train_loss_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list), num_epochs))
-    validation_loss_array = np.zeros_like(train_loss_array)
-    train_time_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list)))
-    validation_time_array = np.zeros_like(train_time_array)
+    training_loss_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list), num_epochs))
+    validation_loss_array = np.zeros_like(training_loss_array)
+    training_time_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list)))
+    validation_time_array = np.zeros_like(training_time_array)
     for index_experiment_name, experiment_name in enumerate(experiment_name_list):
         for index_architecture, (architecture, architecture_name) in enumerate(zip(architecture_list, architecture_name_list)):
             for index_encoder, encoder in enumerate(encoder_list):
@@ -413,9 +412,9 @@ def main():
                     validation_loss_best = float('inf')
                     model_path = join(artifacts_dir, f'{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt')
                     for index_epoch, epoch in enumerate(range(num_epochs)):
-                        train_loss_sum = 0
+                        training_loss_sum = 0
                         model.train()
-                        for images, lung_masks, lesion_masks in train_dataloader:
+                        for images, lung_masks, lesion_masks in training_dataloader:
                             if experiment_name == experiment_name_list[0]:
                                 masks = lung_masks
                             elif experiment_name == experiment_name_list[1]:
@@ -429,11 +428,11 @@ def main():
                             if device == 'cuda':
                                 with torch.autograd.profiler.profile(use_cuda=True) as prof:
                                     predictions = model(images)
-                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cuda_time for item in prof.function_events)
+                                training_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cuda_time for item in prof.function_events)
                             else:
                                 with torch.autograd.profiler.profile(use_cuda=False) as prof:
                                     predictions = model(images)
-                                train_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cpu_time for item in prof.function_events)
+                                training_time_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights] += sum(item.cpu_time for item in prof.function_events)
                             if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]) and (index_epoch == num_epochs - 1):
                                 save_figure_image(images[0, 0], experiment_name)
                                 save_figure_image_masked(images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
@@ -446,9 +445,9 @@ def main():
                             loss = dice_loss(predictions, masks)
                             loss.backward()
                             optimizer.step()
-                            train_loss_sum += loss.item()
-                        train_loss = train_loss_sum / len(train_dataloader)
-                        train_loss_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights, index_epoch] = train_loss
+                            training_loss_sum += loss.item()
+                        training_loss = training_loss_sum / len(training_dataloader)
+                        training_loss_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights, index_epoch] = training_loss
                         validation_loss_sum = 0
                         model.eval()
                         with torch.no_grad():
@@ -474,7 +473,7 @@ def main():
                                 validation_loss_sum += loss.item()
                             validation_loss = validation_loss_sum / len(validation_dataloader)
                             validation_loss_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights, index_epoch] = validation_loss
-                            print(f'{experiment_name}, {architecture_name}, {encoder}, {encoder_weights}, epoch: {epoch}, train loss: {train_loss:.3f}, validation loss: {validation_loss:.3f}')
+                            print(f'{experiment_name}, {architecture_name}, {encoder}, {encoder_weights}, epoch: {epoch}, train loss: {training_loss:.3f}, validation loss: {validation_loss:.3f}')
                             if validation_loss < validation_loss_best:
                                 validation_loss_best = validation_loss
                                 torch.save(model.state_dict(), model_path)
@@ -538,18 +537,18 @@ def main():
                                 volume_prediction = volume_prediction[:, :, ::-1]
                                 save_figure_3d(volume_prediction, full, experiment_name, architecture_name, encoder_weights)
                     model_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
-                    if (architecture_name in ['Linknet', 'FPN']) and (encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2']) and (encoder_weights == 'imagenet'):
-                        save_tfjs_from_torch(model, model_name, [1, 1, 512, 512])
+                    if (architecture_name in ['Unet', 'Linknet', 'FPN']) and (encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2']) and (encoder_weights == 'imagenet'):
+                        save_tfjs_from_torch(model, model_name, training_dataset[0][0].unsqueeze(0))
                         if not full:
                             rmtree(join(artifacts_dir, 'tfjs-models', model_name))
                     if not full:
                         os.remove(model_path)
     for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_figure_histogram(hist_images, hist_masks, hist_range, experiment_name)
-    for experiment_name, train_loss, validation_loss in zip(experiment_name_list, train_loss_array, validation_loss_array):
-        save_figure_loss(train_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
+    for experiment_name, training_loss, validation_loss in zip(experiment_name_list, training_loss_array, validation_loss_array):
+        save_figure_loss(training_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
         save_figure_loss(validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
-    save_figure_loss(train_loss_array[2] - train_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
+    save_figure_loss(training_loss_array[2] - training_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
     save_figure_loss(validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
     metrics_array = 100 * metrics_array / num_slices_test
     num_parameters_array = num_parameters_array / 10 ** 6
@@ -569,11 +568,11 @@ def main():
     num_parameters_array_global_mean = num_parameters_array.mean()
     num_parameters_array_global_std = num_parameters_array.std()
     num_parameters_array = np.concatenate((num_parameters_array, num_parameters_array.mean(1, keepdims=True), num_parameters_array.std(1, keepdims=True)), 1)
-    train_time_array /= num_epochs * 10 ** 6
-    train_time_array = train_time_array.mean(0).mean(-1)
-    train_time_array_global_mean = train_time_array.mean()
-    train_time_array_global_std = train_time_array.std()
-    train_time_array = np.concatenate((train_time_array, train_time_array.mean(1, keepdims=True), train_time_array.std(1, keepdims=True)), 1)
+    training_time_array /= num_epochs * 10 ** 6
+    training_time_array = training_time_array.mean(0).mean(-1)
+    training_time_array_global_mean = training_time_array.mean()
+    training_time_array_global_std = training_time_array.std()
+    training_time_array = np.concatenate((training_time_array, training_time_array.mean(1, keepdims=True), training_time_array.std(1, keepdims=True)), 1)
     validation_time_array /= num_epochs * 10 ** 6
     validation_time_array = validation_time_array.mean(0).mean(-1)
     validation_time_array_global_mean = validation_time_array.mean()
@@ -583,10 +582,10 @@ def main():
     multicolumn = pd.MultiIndex.from_product([[str(e) for e in encoder_weights_list], experiment_list, metric_list])
     df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
     df['Performance', 'related', 'Pars(M)'] = num_parameters_array.flatten()
-    df['Performance', 'related', 'Train(s)'] = train_time_array.flatten()
+    df['Performance', 'related', 'Train(s)'] = training_time_array.flatten()
     df['Performance', 'related', 'Val(s)'] = validation_time_array.flatten()
-    df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (num_parameters_array_global_mean, train_time_array_global_mean, validation_time_array_global_mean))
-    df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (num_parameters_array_global_std, train_time_array_global_std, validation_time_array_global_std))
+    df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (num_parameters_array_global_mean, training_time_array_global_mean, validation_time_array_global_mean))
+    df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (num_parameters_array_global_std, training_time_array_global_std, validation_time_array_global_std))
     df.index.names = ['Architecture', 'Encoder']
     df = df.round(2)
     max_per_column_list = df.max(0)
