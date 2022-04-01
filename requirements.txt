@@ -11,7 +11,7 @@ pyupgrade
 gdown==4.4.0
 matplotlib==3.5.1
 nibabel==3.2.2
-onnx-tf==1.9.0
+onnx-tf==1.10.0
 requests==2.27.1
 scikit-image==0.19.2
 segmentation-models-pytorch==0.2.1
