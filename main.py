@@ -30,7 +30,6 @@ full = os.getenv('FULL')
 plt.rcParams['image.interpolation'] = 'none'
 plt.rcParams['savefig.format'] = 'pdf'
 plt.rcParams['savefig.bbox'] = 'tight'
-eps = 1e-6
 
 
 def save_tfjs_from_torch(model, model_name, example_input):
@@ -226,6 +225,7 @@ def calculate_metrics(prediction, mask):
         sensitivity = 1
         dice = 1
     else:
+        eps = 1e-6
         specificity = (true_negative / (true_negative + false_positive + eps)).item()
         sensitivity = (true_positive / (true_positive + false_negative + eps)).item()
         dice = (2 * true_positive / (2 * true_positive + false_positive + false_negative + eps)).item()
@@ -362,13 +362,12 @@ class CTSegBenchmark(Dataset):
 
 
 def main():
-    if full:
-        num_epochs = 100
-        index_training_range = range(80)
-        index_validation_range = range(80, 100)
-        index_test_volume_range = range(9)
-        encoder_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
-    else:
+    num_epochs = 100
+    index_training_range = range(80)
+    index_validation_range = range(80, 100)
+    index_test_volume_range = range(9)
+    encoder_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
+    if not full:
         num_epochs = 2
         index_training_range = range(1)
         index_validation_range = range(2, 4)
@@ -590,7 +589,6 @@ def main():
     df = df.round(2)
     max_per_column_list = df.max(0)
     index_max_per_column_list = df.idxmax(0)
-    df.idxmin(0)
     styler = df.style
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
