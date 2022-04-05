@@ -472,7 +472,7 @@ def main():
                                 validation_loss_sum += loss.item()
                             validation_loss = validation_loss_sum / len(validation_dataloader)
                             validation_loss_array[index_experiment_name, index_architecture, index_encoder, index_encoder_weights, index_epoch] = validation_loss
-                            print(f'{experiment_name}, {architecture_name}, {encoder}, {encoder_weights}, epoch: {epoch}, train loss: {training_loss:.3f}, validation loss: {validation_loss:.3f}')
+                            print(f'{experiment_name = }, {architecture_name = }, {encoder = }, {encoder_weights = }, {epoch = }, {training_loss = :.3f}, {validation_loss = :.3f}')
                             if validation_loss < validation_loss_best:
                                 validation_loss_best = validation_loss
                                 torch.save(model.state_dict(), model_path)
