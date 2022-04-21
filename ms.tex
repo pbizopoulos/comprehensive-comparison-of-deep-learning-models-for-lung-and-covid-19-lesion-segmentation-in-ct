@@ -41,7 +41,7 @@
 	In this paper, an extensive comparison of DL models for lung and COVID-19 lesion segmentation in Computerized Tomography (CT) scans is presented, which can also be used as a benchmark for testing medical image segmentation models.
 	Four DL architectures (Unet, Linknet, FPN, PSPNet) are combined with $25$ randomly initialized and pretrained encoders (variations of VGG, DenseNet, ResNet, ResNext, DPN, MobileNet, Xception, Inception-v4, EfficientNet), to construct $200$ tested models.
 	Three experimental setups are conducted for lung segmentation, lesion segmentation and lesion segmentation using the original lung masks.
-	A COVID-19 dataset with $100$ CT scan images is used for training/validation and a different dataset consisting of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ images from $9$ CT scan volumes for testing.
+	A COVID-19 dataset with $100$ CT scan images is used for training/validation and a different dataset consisting of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ images from $9$ CT scan volumes for testing.
 	Multiple findings are provided including the best architecture-encoder models for each experiment as well as mean Dice results for each experiment, architecture and encoder independently.
 	The source code and $600$ pretrained models for the three experiments are provided, suitable for fine-tuning in experimental setups without GPU capabilities.
 \end{abstract}
@@ -172,8 +172,8 @@ Finally Inception-v4~\cite{szegedy2017inception} combines previous inception arc
 Two public COVID-19 CT scan datasets with lung and lesion masks were used.
 The first dataset\footnote{\url{http://medicalsegmentation.com/covid19/}} consists of $100$ CT axial scans from $<40$ patients with $512\times 512$ size and corresponding lung masks from~\cite{hofmanninger2020automatic} and lesion masks labeled with four classes (none, ground-glass, consolidation, pleural effusion).
 The original dataset, without the annotations, was selected from the Italian Society of Medical and Interventional Radiology\footnote{\url{https://www.sirm.org/category/senza-categoria/covid-19/}}.
-The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} consists of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ images from $9$ CT\@ scan volumes (a set of CT scan images acquired from the same patient at the same moment) with corresponding target masks.
-373 out of $\DTLfetch{keys-values}{key}{num-slices-test}{value}$ were annotated as positive and segmented by a radiologist by the same group as the first dataset.
+The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} consists of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ images from $9$ CT\@ scan volumes (a set of CT scan images acquired from the same patient at the same moment) with corresponding target masks.
+373 out of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ were annotated as positive and segmented by a radiologist by the same group as the first dataset.
 Raw data from both datasets contain samples in Hounsfield units~\cite{schneider1996calibration}.
 
 Regarding preprocessing, first the positive classes of the pixels of the images in the first dataset are merged into one, converting the problem to a binary segmentation problem.
@@ -256,7 +256,7 @@ During testing, the predicted mask $\hat{\bm{Y}}_{test}$ is binarized with a thr
 where $TP$, $TN$, $FP$ and $FN$ are the true positive, true negative, false positive and false negative of $\hat{\bm{Y}}$ w.r.t $\bm{Y}$, respectively and $\epsilon=10^{-5}$ to prevent division with zero.
 When $TP+FP=0$ the model has correctly identified that the input does not have any positive pixel and in that case all metrics are set to $1$.
 
-We train a total of $600$ different models for the three experiments each one for $\DTLfetch{keys-values}{key}{num-epochs}{value}$ epochs with a batch size of $\DTLfetch{keys-values}{key}{batch-size}{value}$, which was the maximum possible considering the GPU memory restriction.
+We train a total of $600$ different models for the three experiments each one for $\DTLfetch{keys-values}{key}{epochs-num}{value}$ epochs with a batch size of $\DTLfetch{keys-values}{key}{batch-size}{value}$, which was the maximum possible considering the GPU memory restriction.
 We use the optimizer~\cite{kingma2014adam} with the default values of learning rate $0.001$, $\beta_1=0.9$, $\beta_2=0.999$, $\epsilon=10^{-8}$, without weight decay.
 Pytorch~\cite{paszke2019pytorch} and the `Segmentation Models Pytorch' library~\cite{yakubovskiy2019segmentation} were used for implementing the experiments, a GeForce RTX 2080 Ti Graphics Card with 11Gb RAM from NVIDIA and an Intel Core i9-9900K CPU @3.60GHz, on a Linux-based operating system for training the models for two weeks.
 A pseudo-code implementation of the experimental setup is shown in Algorithm~\ref{alg:experimentalsetup}.
