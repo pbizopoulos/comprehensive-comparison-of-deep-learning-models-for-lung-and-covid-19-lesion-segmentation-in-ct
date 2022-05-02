@@ -4,32 +4,32 @@
 		<title>COVID-19 CT segmentation demo</title>
 		<meta charset="UTF-8">
 		<link href="data:" rel="icon">
-		<link rel="stylesheet" href="styles.css">
+		<link href="styles.css" rel="stylesheet">
 		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 	</head>
 	<body>
-		<div id="divInputControl" style="width:256px;height:256px;position:fixed;top:0px;left:0px;">
+		<div id="inputControlDiv" style="width:256px;height:256px;position:fixed;top:0px;left:0px;">
 			<div>NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment COVID-19 lesions using a DNN.</div>
 			<div>
 				<a href=https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct>[url]</a>
 			</div>
 			<div>
-				<input accept="image/*" onchange="imageLoadView();" type="file">
+				<input accept="image/*" onchange="viewImage();" type="file">
 			</div>
 			<div>
-				<select id="selectModel" onchange="loadModel(predictView);" style="width:100%;">
+				<select id="modelSelect" onchange="loadModel(predictView);" style="width:100%;">
 					<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.FPN.mobilenet_v2.imagenet</option>
 					<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
 				</select>
 			</div>
-			<div id="divModelDownloadFraction">0%</div>
+			<div id="modelDownloadFractionDiv">0%</div>
 		</div>
-		<div id="divInput" style="width:256px;height:256px;position:fixed;top:0px;left:256px;">
-			<canvas id="canvasImageInput" height="256" width="256"></canvas>
+		<div id="inputDiv" style="width:256px;height:256px;position:fixed;top:0px;left:256px;">
+			<canvas id="imageInputCanvas" height="256" width="256"></canvas>
 		</div>
-		<div id="divOutput" style="height:256px;width:256px;position:fixed;top:0px;left:512px;">
-			<canvas id="canvasImageOutput" height="256" width="256"></canvas>
-			<canvas id="canvasMaskOutput" height="256" width="256" style="position:absolute;top:0px;left:0px;"></canvas>
+		<div id="outputDiv" style="height:256px;width:256px;position:fixed;top:0px;left:512px;">
+			<canvas id="imageOutputCanvas" height="256" width="256"></canvas>
+			<canvas id="maskOutputCanvas" height="256" width="256" style="position:absolute;top:0px;left:0px;"></canvas>
 		</div>
 		<script src="script.js"></script>
 	</body>

@@ -1,36 +1,39 @@
-import glob
-import itertools
-import os
-from os.path import join
-from shutil import rmtree
-from zipfile import ZipFile
-
-import gdown
-import nibabel as nib
-import numpy as np
-import onnx
-import pandas as pd
-import requests
-import torch
-from matplotlib import gridspec
-from matplotlib import pyplot as plt
+from matplotlib import gridspec, pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from onnx_tf.backend import prepare
+from os.path import join
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet
 from segmentation_models_pytorch.utils.losses import DiceLoss
+from shutil import rmtree
 from skimage.measure import marching_cubes
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from torch import optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
+from zipfile import ZipFile
+import gdown
+import glob
+import itertools
+import nibabel as nib
+import numpy as np
+import onnx
+import os
+import pandas as pd
+import requests
+import torch
 
 
 class CTSegBenchmark(Dataset):
+
+    def __getitem__(self, index):
+        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        return (image, lung_mask, lesion_mask)
+
     def __init__(self, artifacts_dir, index_range, use_transforms):
         url_list = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_name_list = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
-        for url, file_name in zip(url_list, file_name_list):
+        for (url, file_name) in zip(url_list, file_name_list):
             zip_file_path = join(artifacts_dir, f'{file_name}.zip')
             if not os.path.isfile(zip_file_path):
                 r = requests.get(url)
@@ -58,19 +61,20 @@ class CTSegBenchmark(Dataset):
         self.lung_masks = lung_masks[..., index_range]
         self.use_transforms = use_transforms
 
-    def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return image, lung_mask, lesion_mask
-
     def __len__(self):
         return self.images.shape[-1]
 
 
 class MedicalSegmentation1(Dataset):
+
+    def __getitem__(self, index):
+        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        return (image, lung_mask, lesion_mask)
+
     def __init__(self, artifacts_dir, index_range, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_name_list = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
-        for url, file_name in zip(url_list, file_name_list):
+        for (url, file_name) in zip(url_list, file_name_list):
             if not os.path.isfile(join(artifacts_dir, file_name)):
                 gdown.download(url, join(artifacts_dir, file_name), quiet=False)
         images_file_path = join(artifacts_dir, 'tr_im.nii.gz')
@@ -84,19 +88,20 @@ class MedicalSegmentation1(Dataset):
         self.lung_masks = lung_masks.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
-    def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return image, lung_mask, lesion_mask
-
     def __len__(self):
         return self.images.shape[-1]
 
 
 class MedicalSegmentation2(Dataset):
+
+    def __getitem__(self, index):
+        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
+        return (image, lung_mask, lesion_mask)
+
     def __init__(self, artifacts_dir, index_volume, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_name_list = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
-        for url, file_name in zip(url_list, file_name_list):
+        for (url, file_name) in zip(url_list, file_name_list):
             zip_file_path = join(artifacts_dir, file_name)
             if not os.path.isfile(zip_file_path):
                 gdown.download(url, zip_file_path, quiet=False)
@@ -113,10 +118,6 @@ class MedicalSegmentation2(Dataset):
         self.lung_masks = lung_masks.get_fdata()
         self.use_transforms = use_transforms
 
-    def __getitem__(self, index):
-        image, lung_mask, lesion_mask = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return image, lung_mask, lesion_mask
-
     def __len__(self):
         return self.images.shape[-1]
 
@@ -127,17 +128,17 @@ def calculate_metrics(prediction, mask):
     true_negative = (~mask * ~prediction).sum().float()
     false_positive = (mask * ~prediction).sum().float()
     false_negative = (~mask * prediction).sum().float()
-    is_mask_and_prediction_empty = (true_positive + false_positive) == 0
+    is_mask_and_prediction_empty = true_positive + false_positive == 0
     if is_mask_and_prediction_empty:
         specificity = 1
         sensitivity = 1
         dice = 1
     else:
-        eps = 1e-6
+        eps = 1e-06
         specificity = (true_negative / (true_negative + false_positive + eps)).item()
         sensitivity = (true_positive / (true_positive + false_negative + eps)).item()
         dice = (2 * true_positive / (2 * true_positive + false_positive + false_negative + eps)).item()
-    return sensitivity, specificity, dice
+    return (sensitivity, specificity, dice)
 
 
 def main():
@@ -185,19 +186,19 @@ def main():
     validation_loss_array = np.zeros_like(training_loss_array)
     training_time_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_list), len(encoder_weights_list)))
     validation_time_array = np.zeros_like(training_time_array)
-    for experiment_name_index, experiment_name in enumerate(experiment_name_list):
-        for architecture_index, (architecture, architecture_name) in enumerate(zip(architecture_list, architecture_name_list)):
-            for encoder_index, encoder in enumerate(encoder_list):
-                for encoder_index_weights, encoder_weights in enumerate(encoder_weights_list):
+    for (experiment_name_index, experiment_name) in enumerate(experiment_name_list):
+        for (architecture_index, (architecture, architecture_name)) in enumerate(zip(architecture_list, architecture_name_list)):
+            for (encoder_index, encoder) in enumerate(encoder_list):
+                for (encoder_index_weights, encoder_weights) in enumerate(encoder_weights_list):
                     model = architecture(encoder, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to(device)
-                    parameters_num_array[architecture_index, encoder_index] = sum(p.numel() for p in model.parameters() if p.requires_grad)
+                    parameters_num_array[architecture_index, encoder_index] = sum((p.numel() for p in model.parameters() if p.requires_grad))
                     optimizer = optim.Adam(model.parameters())
                     validation_loss_best = float('inf')
                     model_file_path = join(artifacts_dir, f'{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt')
-                    for epoch_index, epoch in enumerate(range(epochs_num)):
+                    for (epoch_index, epoch) in enumerate(range(epochs_num)):
                         training_loss_sum = 0
                         model.train()
-                        for images, lung_masks, lesion_masks in training_dataloader:
+                        for (images, lung_masks, lesion_masks) in training_dataloader:
                             if experiment_name == experiment_name_list[0]:
                                 masks = lung_masks
                             elif experiment_name == experiment_name_list[1]:
@@ -211,16 +212,16 @@ def main():
                             if device == 'cuda':
                                 with torch.autograd.profiler.profile(use_cuda=True) as prof:
                                     predictions = model(images)
-                                training_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum(item.cuda_time for item in prof.function_events)
+                                training_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum((item.cuda_time for item in prof.function_events))
                             else:
                                 with torch.autograd.profiler.profile(use_cuda=False) as prof:
                                     predictions = model(images)
-                                training_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum(item.cpu_time for item in prof.function_events)
-                            if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]) and (epoch_index == epochs_num - 1):
+                                training_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum((item.cpu_time for item in prof.function_events))
+                            if architecture_name == architecture_name_list[0] and encoder == encoder_list[0] and (encoder_weights == encoder_weights_list[0]) and (epoch_index == epochs_num - 1):
                                 save_figure_image(artifacts_dir, experiment_name, images[0, 0])
                                 save_figure_image_masked(artifacts_dir, images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
                                 save_figure_image_masked(artifacts_dir, images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train')
-                            if (architecture_name == architecture_name_list[0]) and (encoder == 'resnet18'):
+                            if architecture_name == architecture_name_list[0] and encoder == 'resnet18':
                                 if epoch_index == 0:
                                     save_figure_weights(artifacts_dir, model, experiment_name, architecture_name, f'{encoder_weights}-before')
                                 elif epoch_index == epochs_num - 1:
@@ -234,7 +235,7 @@ def main():
                         validation_loss_sum = 0
                         model.eval()
                         with torch.no_grad():
-                            for images, lung_masks, lesion_masks in validation_dataloader:
+                            for (images, lung_masks, lesion_masks) in validation_dataloader:
                                 if experiment_name == experiment_name_list[0]:
                                     masks = lung_masks
                                 elif experiment_name == experiment_name_list[1]:
@@ -247,20 +248,18 @@ def main():
                                 if device == 'cuda':
                                     with torch.autograd.profiler.profile(use_cuda=True) as prof:
                                         predictions = model(images)
-                                    validation_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum(item.cuda_time for item in prof.function_events)
+                                    validation_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum((item.cuda_time for item in prof.function_events))
                                 else:
                                     with torch.autograd.profiler.profile(use_cuda=False) as prof:
                                         predictions = model(images)
-                                    validation_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum(item.cpu_time for item in prof.function_events)
+                                    validation_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum((item.cpu_time for item in prof.function_events))
                                 loss = dice_loss(predictions, masks)
                                 validation_loss_sum += loss.item()
                             validation_loss = validation_loss_sum / len(validation_dataloader)
                             validation_loss_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights, epoch_index] = validation_loss
-                            print(f'{experiment_name=}, {architecture_name=}, {encoder=}, {encoder_weights=}, {epoch=}, {training_loss=:.3f}, {validation_loss=:.3f}')
                             if validation_loss < validation_loss_best:
                                 validation_loss_best = validation_loss
                                 torch.save(model.state_dict(), model_file_path)
-                                print('Saving as best model.')
                     model = architecture(encoder, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to(device)
                     model.load_state_dict(torch.load(model_file_path))
                     model.eval()
@@ -270,7 +269,7 @@ def main():
                         test_dataloader = DataLoader(test_dataset)
                         test_slices_num += len(test_dataloader)
                         with torch.no_grad():
-                            for images, lung_masks, lesion_masks in test_dataloader:
+                            for (images, lung_masks, lesion_masks) in test_dataloader:
                                 if experiment_name == experiment_name_list[0]:
                                     masks = lung_masks
                                 elif experiment_name == experiment_name_list[1]:
@@ -281,7 +280,7 @@ def main():
                                 images = images.to(device)
                                 masks = masks.to(device)
                                 predictions = model(images)
-                                if (architecture_name == architecture_name_list[0]) and (encoder == encoder_list[0]) and (encoder_weights == encoder_weights_list[0]):
+                                if architecture_name == architecture_name_list[0] and encoder == encoder_list[0] and (encoder_weights == encoder_weights_list[0]):
                                     hist_images_array[experiment_name_index] += np.histogram(images.cpu(), hist_bins, hist_range)[0]
                                     hist_masks_array[experiment_name_index] += np.histogram(images.cpu() * masks.cpu(), hist_bins, hist_range)[0]
                                 metrics_values = calculate_metrics(predictions, masks)
@@ -300,10 +299,10 @@ def main():
                                     masks = lesion_masks
                                 predictions = model(images.unsqueeze(0).to(device))
                                 save_figure_image_masked(artifacts_dir, images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder)
-                            if (test_volume_index == 0) and (encoder == 'resnet18') and (encoder_weights is None):
+                            if test_volume_index == 0 and encoder == 'resnet18' and (encoder_weights is None):
                                 volume_mask = np.zeros((512, 512, len(test_dataset)))
                                 volume_prediction = np.zeros((512, 512, len(test_dataset)))
-                                for slice_volume_index, (images, lung_masks, lesion_masks) in enumerate(test_dataset):
+                                for (slice_volume_index, (images, lung_masks, lesion_masks)) in enumerate(test_dataset):
                                     if experiment_name == experiment_name_list[0]:
                                         masks = lung_masks
                                     elif experiment_name == experiment_name_list[1]:
@@ -320,22 +319,22 @@ def main():
                                 volume_prediction = volume_prediction[:, :, ::-1]
                                 save_figure_3d(artifacts_dir, volume_prediction, full, experiment_name, architecture_name, encoder_weights)
                     model_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
-                    if (architecture_name in ['Unet', 'Linknet', 'FPN']) and (encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2']) and (encoder_weights == 'imagenet'):
+                    if architecture_name in ['Unet', 'Linknet', 'FPN'] and encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2'] and (encoder_weights == 'imagenet'):
                         save_tfjs_from_torch(artifacts_dir, training_dataset[0][0].unsqueeze(0), model, model_name)
                         if not full:
                             rmtree(join(artifacts_dir, 'tfjs-models', model_name))
                     if not full:
                         os.remove(model_file_path)
-    for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
+    for (hist_images, hist_masks, experiment_name) in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_figure_histogram(artifacts_dir, hist_images, hist_masks, hist_range, experiment_name)
-    for experiment_name, training_loss, validation_loss in zip(experiment_name_list, training_loss_array, validation_loss_array):
+    for (experiment_name, training_loss, validation_loss) in zip(experiment_name_list, training_loss_array, validation_loss_array):
         save_figure_loss(artifacts_dir, training_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
         save_figure_loss(artifacts_dir, validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
     save_figure_loss(artifacts_dir, training_loss_array[2] - training_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
     save_figure_loss(artifacts_dir, validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
     metrics_array = 100 * metrics_array / test_slices_num
     parameters_num_array = parameters_num_array / 10 ** 6
-    for experiment, experiment_name, metrics_ in zip(experiment_list, experiment_name_list, metrics_array):
+    for (experiment, experiment_name, metrics_) in zip(experiment_list, experiment_name_list, metrics_array):
         save_figure_architecture_box(artifacts_dir, metrics_[..., -1], architecture_name_list, experiment_name)
         save_figure_scatter(artifacts_dir, parameters_num_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100])
     save_figure_scatter(artifacts_dir, parameters_num_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15])
@@ -377,7 +376,7 @@ def main():
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
     styler.to_latex(join(artifacts_dir, 'metrics.tex'), hrules=True, multicol_align='c')
-    keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(test_slices_num)), encoder_list[encoder_mean.argmax()].replace('_', ''), encoder_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)], })
+    keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for (encoder_weights, stat) in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(test_slices_num)), encoder_list[encoder_mean.argmax()].replace('_', ''), encoder_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]})
     keys_values_df.to_csv(join(artifacts_dir, 'keys-values.csv'))
 
 
@@ -408,7 +407,7 @@ def preprocess_image(image, lung_mask, lesion_mask, use_transforms):
     image = tf.normalize(image, -500, 500)
     lesion_mask = lesion_mask.bool()
     lung_mask = lung_mask.bool()
-    return image, lung_mask, lesion_mask
+    return (image, lung_mask, lesion_mask)
 
 
 def save_figure_3d(artifacts_dir, volume, full, experiment_name, architecture, encoder_weights):
@@ -419,7 +418,7 @@ def save_figure_3d(artifacts_dir, volume, full, experiment_name, architecture, e
     volume = volume > 0.5
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
-    verts, faces, _, _ = marching_cubes(volume, 0.5, step_size=step_size)
+    (verts, faces, _, _) = marching_cubes(volume, 0.5, step_size=step_size)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2], alpha=0.5, rasterized=True)
@@ -457,7 +456,7 @@ def save_figure_histogram(artifacts_dir, hist_images, hist_masks, hist_range, ex
     hist_maxes = max([hist_images.max(), hist_masks.max()])
     hist_images /= hist_maxes
     hist_masks /= hist_maxes
-    _, ax = plt.subplots()
+    (_, ax) = plt.subplots()
     plt.bar(t, hist_images, width=t[1] - t[0], align='center', label='Images')
     plt.bar(t, hist_masks, width=t[1] - t[0], align='center', label='Masks')
     plt.xlabel('Normalized values', fontsize=15)
@@ -472,7 +471,7 @@ def save_figure_histogram(artifacts_dir, hist_images, hist_masks, hist_range, ex
 
 def save_figure_image(artifacts_dir, experiment_name, image):
     image = image.cpu().numpy()
-    _, ax = plt.subplots()
+    (_, ax) = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
     plt.savefig(join(artifacts_dir, f'{experiment_name}-image'))
@@ -486,12 +485,12 @@ def save_figure_image_masked(artifacts_dir, image, mask, prediction, experiment_
     prediction = prediction > 0.5
     correct = mask * prediction
     false = np.logical_xor(mask, prediction) > 0.5
-    _, ax = plt.subplots()
+    (_, ax) = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
     plt.imshow(correct, cmap='Greens', alpha=0.3)
     plt.imshow(false, cmap='Reds', alpha=0.3)
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-{architecture}-{encoder.replace("_", "")}-masked-image'))
+    plt.savefig(join(artifacts_dir, f"{experiment_name}-{architecture}-{encoder.replace('_', '')}-masked-image"))
     plt.close()
 
 
@@ -515,8 +514,8 @@ def save_figure_loss(artifacts_dir, loss, training_or_validation, experiment_nam
     loss = loss.reshape(loss.shape[0], -1, loss.shape[-1])
     mus = loss.mean(1)
     sigmas = loss.std(1)
-    _, ax = plt.subplots()
-    for index, (mu, sigma, color) in enumerate(zip(mus, sigmas, color_list)):
+    (_, ax) = plt.subplots()
+    for (index, (mu, sigma, color)) in enumerate(zip(mus, sigmas, color_list)):
         ax.fill_between(t, mu + sigma, mu - sigma, facecolor=color, alpha=0.3)
         p1[index] = ax.plot(t, mu, color=color)
         p2[index] = ax.fill(np.nan, np.nan, color, alpha=0.3)
@@ -529,15 +528,15 @@ def save_figure_loss(artifacts_dir, loss, training_or_validation, experiment_nam
     ax.tick_params(axis='both', which='major', labelsize='large')
     ax.tick_params(axis='both', which='minor', labelsize='large')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-{training_or_validation.lower().replace(" ", "-")}-loss'))
+    plt.savefig(join(artifacts_dir, f"{experiment_name}-{training_or_validation.lower().replace(' ', '-')}-loss"))
     plt.close()
 
 
 def save_figure_scatter(artifacts_dir, parameters_num_array, dice, architecture_name_list, experiment_name, ylim):
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     dice_ = dice.mean(-1)
-    _, ax = plt.subplots()
-    for parameters_num, d, architecture_name, color in zip(parameters_num_array, dice_, architecture_name_list, color_list):
+    (_, ax) = plt.subplots()
+    for (parameters_num, d, architecture_name, color) in zip(parameters_num_array, dice_, architecture_name_list, color_list):
         plt.scatter(parameters_num, d, c=color, label=architecture_name, s=3)
     x = parameters_num_array.flatten()
     y = dice_.flatten()
@@ -546,14 +545,14 @@ def save_figure_scatter(artifacts_dir, parameters_num_array, dice, architecture_
     ymin = ylim[0]
     ymax = ylim[1]
     nbins = 100
-    X, Y = np.mgrid[xmin: xmax: nbins * 1j, ymin: ymax: nbins * 1j]
+    (X, Y) = np.mgrid[xmin:xmax:nbins * 1j, ymin:ymax:nbins * 1j]
     positions = np.vstack([X.ravel(), Y.ravel()])
     values = np.vstack([x, y])
     kernel = gaussian_kde(values)
     Z = np.reshape(kernel(positions).T, X.shape)
     ax.imshow(np.rot90(Z), cmap='Greens', extent=[xmin, xmax, ymin, ymax], alpha=0.5)
     plt.grid(True)
-    plt.xlabel(r'Number of parameters ($10^6$)', fontsize=15)
+    plt.xlabel('Number of parameters ($10^6$)', fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize='large')
     ax.tick_params(axis='both', which='minor', labelsize='large')
     plt.xlim([xmin, xmax])

@@ -1,13 +1,3 @@
-# Makefile requirements
-autoflake
-autopep8
-coverage
-isort
-pipreqs
-python-minimizer
-pyupgrade
-
-# main.py requirements
 gdown==4.4.0
 matplotlib==3.5.1
 nibabel==3.2.2

@@ -1,19 +1,30 @@
-const canvasWidth = 256;
-const canvasHeight = 256;
-const inputFilename = "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation-example-data.png";
-const canvasImageInput = document.getElementById("canvasImageInput");
-const contextImageInput = canvasImageInput.getContext("2d");
-const canvasImageOutput = document.getElementById("canvasImageOutput");
-const contextImageOutput = canvasImageOutput.getContext("2d");
-const canvasMaskOutput = document.getElementById("canvasMaskOutput");
-const contextMaskOutput = canvasMaskOutput.getContext("2d");
+function disableUI(argument) {
+	const nodes = document.getElementById('inputControlDiv').getElementsByTagName('*');
+	for(let i = 0; i < nodes.length; i++){
+		nodes[i].disabled = argument;
+	}
+}
 
+async function loadModel(predictFunction) {
+	const loadModelFunction = tf.loadGraphModel;
+	model = await loadModelFunction(modelSelect.value, {
+		onProgress: function (fraction) {
+			document.getElementById('modelDownloadFractionDiv').textContent = `Downloading model, please wait ${Math.round(100*fraction)}%.`;
+			if (fraction == 1) {
+				document.getElementById('modelDownloadFractionDiv').textContent = 'Model downloaded.';
+			}
+			disableUI(true);
+		}
+	});
+	predictFunction();
+	disableUI(false);
+}
 function predictView() {
 	if (model === undefined) {
 		return;
 	}
 	tf.tidy(() => {
-		let fromPixels = tf.browser.fromPixels(canvasImageInput);
+		let fromPixels = tf.browser.fromPixels(imageInputCanvas);
 		originalShape = fromPixels.shape.slice(0, 2);
 		fromPixels = tf.image.resizeNearestNeighbor(fromPixels, [model.inputs[0].shape[2], model.inputs[0].shape[3]]);
 		let pixels = fromPixels.slice([0, 0, 2]).squeeze(-1).expandDims(0).expandDims(0);
@@ -25,46 +36,53 @@ function predictView() {
 		const alphaChannel = alphaTensor.where(maskToPixels.greaterEqual(0.5), 0);
 		maskToPixels = tf.stack([maskToPixels, tf.zerosLike(maskToPixels), tf.zerosLike(maskToPixels), alphaChannel], -1);
 		maskToPixels = tf.image.resizeNearestNeighbor(maskToPixels, originalShape);
-		contextMaskOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-		tf.browser.toPixels(maskToPixels, canvasMaskOutput);
+		maskOutputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+		tf.browser.toPixels(maskToPixels, maskOutputCanvas);
 	});
 }
 
-
-function imageLoadView() {
+function viewImage() {
 	const files = event.currentTarget.files;
 	if (files[0]) {
 		imageFileReader.readAsDataURL(files[0]);
 	}
 }
 
-canvasImageInput.onmousedown = function(event) {
-	contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
-	contextImageInput.save();
-	contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-	contextImageOutput.save();
-	const rect = canvasImageInput.getBoundingClientRect();
-	const mousedownX = event.clientX - rect.left;
-	const mousedownY = event.clientY - rect.top;
-	let mousedownDistanceFromCenter = Math.sqrt((mousedownX - canvasWidth/2)**2 + (mousedownY - canvasHeight/2)**2);
+let model;
+const imageInputCanvas = document.getElementById('imageInputCanvas');
+const imageInputContext = imageInputCanvas.getContext('2d');
+const imageOutputCanvas = document.getElementById('imageOutputCanvas');
+const imageOutputContext = imageOutputCanvas.getContext('2d');
+const maskOutputCanvas = document.getElementById('maskOutputCanvas');
+const maskOutputContext = maskOutputCanvas.getContext('2d');
+
+imageInputCanvas.onmousedown = function(event) {
+	imageInputContext.clearRect(0, 0, this.width, this.height);
+	imageInputContext.save();
+	imageOutputContext.clearRect(0, 0, this.width, this.height);
+	imageOutputContext.save();
+	const rectangular = imageInputCanvas.getBoundingClientRect();
+	const mousedownX = event.clientX - rectangular.left;
+	const mousedownY = event.clientY - rectangular.top;
+	let mousedownDistanceFromCenter = Math.sqrt((mousedownX - this.width/2)**2 + (mousedownY - this.height/2)**2);
 	let rotationDegree = 0;
-	if (mousedownDistanceFromCenter > canvasWidth/4) {
-		const mousedownXtranslated = (mousedownX - canvasWidth/2);
-		const mousedownYtranslated = (mousedownY - canvasHeight/2);
-		const originXtranslated = (canvasWidth/2 - canvasWidth/2);
-		const originYtranslated = (0 - canvasHeight/2);
+	if (mousedownDistanceFromCenter > this.width/4) {
+		const mousedownXtranslated = (mousedownX - this.width/2);
+		const mousedownYtranslated = (mousedownY - this.height/2);
+		const originXtranslated = (this.width/2 - this.width/2);
+		const originYtranslated = (0 - this.height/2);
 		const dot = mousedownXtranslated*originXtranslated + mousedownYtranslated*originYtranslated;
 		const det = mousedownYtranslated*originXtranslated - mousedownXtranslated*originYtranslated;
 		rotationDegree = Math.atan2(det, dot);
 	}
-	contextImageInput.translate(canvasWidth/2, canvasHeight/2);
-	contextImageInput.rotate(rotationDegree);
-	contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
-	contextImageInput.restore();
-	contextImageOutput.translate(canvasWidth/2, canvasHeight/2);
-	contextImageOutput.rotate(rotationDegree);
-	contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -canvasWidth/2, -canvasHeight/2, canvasWidth, canvasHeight);
-	contextImageOutput.restore();
+	imageInputContext.translate(this.width/2, this.height/2);
+	imageInputContext.rotate(rotationDegree);
+	imageInputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -this.width/2, -this.height/2, this.width, this.height);
+	imageInputContext.restore();
+	imageOutputContext.translate(this.width/2, this.height/2);
+	imageOutputContext.rotate(rotationDegree);
+	imageOutputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -this.width/2, -this.height/2, this.width, this.height);
+	imageOutputContext.restore();
 	predictView();
 }
 
@@ -75,37 +93,13 @@ imageFileReader.onload = () => {
 };
 
 imageInput.crossOrigin = 'anonymous';
-imageInput.src = inputFilename;
+imageInput.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation-example-data.png';
 imageInput.onload = () => {
-	contextImageInput.clearRect(0, 0, canvasWidth, canvasHeight);
-	contextImageInput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
-	contextImageOutput.clearRect(0, 0, canvasWidth, canvasHeight);
-	contextImageOutput.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, canvasWidth, canvasHeight);
+	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageInputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageOutputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageOutputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
 	predictView();
 };
 
-
-function disableUI(argument) {
-	const nodes = document.getElementById('divInputControl').getElementsByTagName('*');
-	for(let i = 0; i < nodes.length; i++){
-		nodes[i].disabled = argument;
-	}
-}
-
-let model;
-async function loadModel(predictFunction) {
-	const loadModelFunction = tf.loadGraphModel;
-	model = await loadModelFunction(selectModel.value, {
-		onProgress: function (fraction) {
-			document.getElementById('divModelDownloadFraction').innerHTML = 'Downloading model, please wait ' + Math.round(100*fraction) + '%.';
-			if (fraction == 1) {
-				document.getElementById('divModelDownloadFraction').innerHTML = 'Model downloaded.';
-			}
-			disableUI(true);
-		}
-	});
-	predictFunction();
-	disableUI(false);
-}
 loadModel(predictView);
-
