@@ -15,7 +15,7 @@
 				<a href=https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct>[url]</a>
 			</div>
 			<div>
-				<input type="file" id="inputFile" accept="image/*">
+				<input accept="image/*" id="inputFile" type="file">
 			</div>
 			<div>
 				<select id="modelSelect" onchange="loadModel(predictView);" style="width:100%;">
@@ -26,11 +26,11 @@
 			<div id="modelDownloadFractionDiv">0%</div>
 		</div>
 		<div class="block">
-			<canvas id="imageInputCanvas" height="256" width="256"></canvas>
+			<canvas height="256" id="imageInputCanvas" width="256"></canvas>
 		</div>
 		<div class="block">
-			<canvas id="imageOutputCanvas" height="256" width="256"></canvas>
-			<canvas id="maskOutputCanvas" class="block-mask" height="256" width="256"></canvas>
+			<canvas height="256" id="imageOutputCanvas" width="256"></canvas>
+			<canvas class="block-mask" height="256" id="maskOutputCanvas" width="256"></canvas>
 		</div>
 	</body>
 </html>
