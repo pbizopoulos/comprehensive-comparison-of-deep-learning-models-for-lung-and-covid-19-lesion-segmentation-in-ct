@@ -1,5 +1,5 @@
 gdown==4.4.0
-matplotlib==3.5.1
+matplotlib==3.5.2
 nibabel==3.2.2
 onnx-tf==1.10.0
 requests==2.27.1
