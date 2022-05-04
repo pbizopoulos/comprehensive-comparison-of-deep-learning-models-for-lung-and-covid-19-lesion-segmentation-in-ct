@@ -1,3 +1,19 @@
+'use strict';
+
+const imageFileReader = new FileReader();
+const imageInputCanvas = document.getElementById('imageInputCanvas');
+const imageInputContext = imageInputCanvas.getContext('2d');
+const imageOutputCanvas = document.getElementById('imageOutputCanvas');
+const imageOutputContext = imageOutputCanvas.getContext('2d');
+const maskOutputCanvas = document.getElementById('maskOutputCanvas');
+const maskOutputContext = maskOutputCanvas.getContext('2d');
+let image = new Image();
+let model;
+
+image.crossOrigin = 'anonymous';
+image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation-example-data.png';
+
+
 function disableUI(argument) {
 	const nodes = document.getElementById('inputControlDiv').getElementsByTagName('*');
 	for(let i = 0; i < nodes.length; i++){
@@ -19,13 +35,14 @@ async function loadModel(predictFunction) {
 	predictFunction();
 	disableUI(false);
 }
+
 function predictView() {
 	if (model === undefined) {
 		return;
 	}
 	tf.tidy(() => {
 		let fromPixels = tf.browser.fromPixels(imageInputCanvas);
-		originalShape = fromPixels.shape.slice(0, 2);
+		const originalShape = fromPixels.shape.slice(0, 2);
 		fromPixels = tf.image.resizeNearestNeighbor(fromPixels, [model.inputs[0].shape[2], model.inputs[0].shape[3]]);
 		let pixels = fromPixels.slice([0, 0, 2]).squeeze(-1).expandDims(0).expandDims(0);
 		pixels = pixels.mul(3/255);
@@ -41,20 +58,17 @@ function predictView() {
 	});
 }
 
-function viewImage() {
-	const files = event.currentTarget.files;
-	if (files[0]) {
-		imageFileReader.readAsDataURL(files[0]);
-	}
-}
+image.onload = function() {
+	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageInputContext.drawImage(image, 0, 0, image.width, image.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageOutputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageOutputContext.drawImage(image, 0, 0, image.width, image.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	predictView();
+};
 
-let model;
-const imageInputCanvas = document.getElementById('imageInputCanvas');
-const imageInputContext = imageInputCanvas.getContext('2d');
-const imageOutputCanvas = document.getElementById('imageOutputCanvas');
-const imageOutputContext = imageOutputCanvas.getContext('2d');
-const maskOutputCanvas = document.getElementById('maskOutputCanvas');
-const maskOutputContext = maskOutputCanvas.getContext('2d');
+imageFileReader.onload = function() {
+	image.src = imageFileReader.result;
+};
 
 imageInputCanvas.onmousedown = function(event) {
 	imageInputContext.clearRect(0, 0, this.width, this.height);
@@ -77,29 +91,20 @@ imageInputCanvas.onmousedown = function(event) {
 	}
 	imageInputContext.translate(this.width/2, this.height/2);
 	imageInputContext.rotate(rotationDegree);
-	imageInputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -this.width/2, -this.height/2, this.width, this.height);
+	imageInputContext.drawImage(image, 0, 0, image.width, image.height, -this.width/2, -this.height/2, this.width, this.height);
 	imageInputContext.restore();
 	imageOutputContext.translate(this.width/2, this.height/2);
 	imageOutputContext.rotate(rotationDegree);
-	imageOutputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, -this.width/2, -this.height/2, this.width, this.height);
+	imageOutputContext.drawImage(image, 0, 0, image.width, image.height, -this.width/2, -this.height/2, this.width, this.height);
 	imageOutputContext.restore();
 	predictView();
 }
 
-let imageInput = new Image();
-const imageFileReader = new FileReader();
-imageFileReader.onload = () => {
-	imageInput.src = imageFileReader.result;
-};
-
-imageInput.crossOrigin = 'anonymous';
-imageInput.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation-example-data.png';
-imageInput.onload = () => {
-	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	imageInputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	imageOutputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	imageOutputContext.drawImage(imageInput, 0, 0, imageInput.width, imageInput.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	predictView();
-};
+inputFile.onchange = function(event) {
+	const files = event.currentTarget.files;
+	if (files[0]) {
+		imageFileReader.readAsDataURL(files[0]);
+	}
+}
 
 loadModel(predictView);
