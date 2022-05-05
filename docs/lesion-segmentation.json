@@ -1,8 +1,8 @@
 { 
 	"classNames": ["None", "Covid-19"],
-	"exampleDataURL": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lesion-segmentation-example-data.jpg",
+	"exampleDataURL": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation-example-data.jpg",
 	"machineLearningType": "image segmentation",
-	"modelURL": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json",
+	"modelURL": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json",
 	"name": "CT lesion segmentation (FPN mobilenet_v2 imagenet)",
 	"projectURL": "https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct"
 }
