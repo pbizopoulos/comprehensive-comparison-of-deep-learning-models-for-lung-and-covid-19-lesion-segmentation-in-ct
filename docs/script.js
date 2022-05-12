@@ -45,8 +45,10 @@ function predictView() {
 		const originalShape = fromPixels.shape.slice(0, 2);
 		fromPixels = tf.image.resizeNearestNeighbor(fromPixels, [model.inputs[0].shape[2], model.inputs[0].shape[3]]);
 		let pixels = fromPixels.slice([0, 0, 2]).squeeze(-1).expandDims(0).expandDims(0);
-		pixels = pixels.mul(3/255);
-		pixels = pixels.sub(1.5);
+		const tensorMomentsBefore = tf.moments(pixels);
+		pixels = pixels.sub(tensorMomentsBefore.mean);
+		const tensorMomentsAfter = tf.moments(pixels);
+		pixels = pixels.div(tf.sqrt(tensorMomentsAfter.variance));
 		const mask = model.predict(pixels);
 		let maskToPixels = mask.squeeze(0).squeeze(0);
 		const alphaTensor = tf.tensor([0.3]);
