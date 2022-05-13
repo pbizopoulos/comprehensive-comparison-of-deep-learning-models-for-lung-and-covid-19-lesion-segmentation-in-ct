@@ -21,25 +21,27 @@
 			<a href="https://pbizopoulos.github.io">Home page</a>
 		</div>
 		<hr style="width:100%;">
-		<div id="inputControlDiv" class="block">
-			<div>NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment lungs or COVID-19 lesions using DNNs.</div>
-			<div>
-				<input accept="image/*" id="inputFile" type="file">
+		<div style="position:relative;">
+			<div class="block" id="inputControlDiv" style="left:0px;">
+				<div>NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment lungs or COVID-19 lesions using DNNs.</div>
+				<div>
+					<input accept="image/*" id="inputFile" type="file">
+				</div>
+				<div>
+					<select id="modelSelect" onchange="loadModel(predictView);" style="width:100%">
+						<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.FPN.mobilenet_v2.imagenet</option>
+						<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
+					</select>
+				</div>
+				<div id="modelDownloadFractionDiv">0%</div>
 			</div>
-			<div>
-				<select id="modelSelect" onchange="loadModel(predictView);" style="width:100%;">
-					<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.FPN.mobilenet_v2.imagenet</option>
-					<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
-				</select>
+			<div id="inputDiv" class="block" style="left:256px;">
+				<canvas height="256" id="imageInputCanvas" width="256"></canvas>
 			</div>
-			<div id="modelDownloadFractionDiv">0%</div>
-		</div>
-		<div class="block">
-			<canvas height="256" id="imageInputCanvas" width="256"></canvas>
-		</div>
-		<div class="block">
-			<canvas height="256" id="imageOutputCanvas" width="256"></canvas>
-			<canvas class="block-mask" height="256" id="maskOutputCanvas" width="256"></canvas>
+			<div class="block" style="left:512px;">
+				<canvas height="256" id="imageOutputCanvas" width="256"></canvas>
+				<canvas class="block-mask" height="256" id="maskOutputCanvas" width="256"></canvas>
+			</div>
 		</div>
 	</body>
 </html>

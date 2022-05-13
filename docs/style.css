@@ -1,15 +1,13 @@
 .block {
 	border-style: groove;
-	float: left;
 	height: 256px;
-	position: relative;
+	position: absolute;
 	width: 256px;
 }
 
 .block-mask {
 	left:0px;
 	position:absolute;
-	top:0px;
 }
 
 #inputDiv:hover {
