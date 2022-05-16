@@ -1,6 +1,7 @@
 from matplotlib import gridspec, pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from onnx_tf.backend import prepare
+from os import environ
 from os.path import join
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet
@@ -142,8 +143,8 @@ def calculate_metrics(prediction, mask):
 
 
 def main():
-    artifacts_dir = os.getenv('ARTIFACTSDIR')
-    full = os.getenv('FULL')
+    artifacts_dir = environ['ARTIFACTSDIR']
+    full = environ['FULL']
     plt.rcParams['image.interpolation'] = 'none'
     plt.rcParams['savefig.format'] = 'pdf'
     plt.rcParams['savefig.bbox'] = 'tight'

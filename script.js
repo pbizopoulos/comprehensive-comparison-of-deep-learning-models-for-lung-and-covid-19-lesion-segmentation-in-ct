@@ -11,7 +11,7 @@ let image = new Image();
 let model;
 
 image.crossOrigin = 'anonymous';
-image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation-example-data.png';
+image.src = 'python/release/lung-segmentation-example-data.png';
 
 
 function disableUI(argument) {

@@ -14,8 +14,7 @@ git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learni
 cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 sudo systemctl start docker
 
-Basic commands:
-make		# Generate draft artifacts (fast).
-make FULL=1	# Generate full artifacts (slow).
-make clean 	# Remove artifacts/ directory.
-make help	# Show all commands.
+Basic usage:
+make -C python/ && make	# Generate draft python and tex artifacts.
+make -C python/ help	# Show all python commands.
+make help		# Show all tex commands.
