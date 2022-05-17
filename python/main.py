@@ -6,7 +6,7 @@ from os.path import join
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet
 from segmentation_models_pytorch.utils.losses import DiceLoss
-from shutil import rmtree
+from shutil import move, rmtree
 from skimage.measure import marching_cubes
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from torch import optim
@@ -28,8 +28,8 @@ import torch
 class CTSegBenchmark(Dataset):
 
     def __getitem__(self, index):
-        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return (image, lung_mask, lesion_mask)
+        (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        return (image, mask_lung, mask_lesion)
 
     def __init__(self, artifacts_dir, index_range, use_transforms):
         url_list = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
@@ -48,18 +48,18 @@ class CTSegBenchmark(Dataset):
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
-        lesion_masks = np.array([]).reshape(512, 512, 0)
+        mask_lesions = np.array([]).reshape(512, 512, 0)
         for file_path in glob.glob(join(artifacts_dir, file_name_list[1], '*.nii.gz')):
-            lesion_masks_ = nib.load(file_path)
-            lesion_masks_ = np.resize(lesion_masks_.get_fdata(), (512, 512, lesion_masks_.shape[-1]))
-            lesion_masks = np.concatenate((lesion_masks, lesion_masks_), 2)
-        self.lesion_masks = lesion_masks[..., index_range]
-        lung_masks = np.array([]).reshape(512, 512, 0)
+            mask_lesions_ = nib.load(file_path)
+            mask_lesions_ = np.resize(mask_lesions_.get_fdata(), (512, 512, mask_lesions_.shape[-1]))
+            mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
+        self.mask_lesions = mask_lesions[..., index_range]
+        mask_lungs = np.array([]).reshape(512, 512, 0)
         for file_path in glob.glob(join(artifacts_dir, file_name_list[2], '*.nii.gz')):
-            lung_masks_ = nib.load(file_path)
-            lung_masks_ = np.resize(lung_masks_.get_fdata(), (512, 512, lung_masks.shape[-1]))
-            lung_masks = np.concatenate((lung_masks, lung_masks_), 2)
-        self.lung_masks = lung_masks[..., index_range]
+            mask_lungs_ = nib.load(file_path)
+            mask_lungs_ = np.resize(mask_lungs_.get_fdata(), (512, 512, mask_lungs.shape[-1]))
+            mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)
+        self.mask_lungs = mask_lungs[..., index_range]
         self.use_transforms = use_transforms
 
     def __len__(self):
@@ -69,8 +69,8 @@ class CTSegBenchmark(Dataset):
 class MedicalSegmentation1(Dataset):
 
     def __getitem__(self, index):
-        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return (image, lung_mask, lesion_mask)
+        (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        return (image, mask_lung, mask_lesion)
 
     def __init__(self, artifacts_dir, index_range, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
@@ -81,12 +81,12 @@ class MedicalSegmentation1(Dataset):
         images_file_path = join(artifacts_dir, 'tr_im.nii.gz')
         images = nib.load(images_file_path)
         self.images = images.get_fdata()[..., index_range]
-        lesion_masks_file_path = join(artifacts_dir, 'tr_mask.nii.gz')
-        lesion_masks = nib.load(lesion_masks_file_path)
-        self.lesion_masks = lesion_masks.get_fdata()[..., index_range]
-        lung_masks_file_path = join(artifacts_dir, 'tr_lungmasks_updated.nii.gz')
-        lung_masks = nib.load(lung_masks_file_path)
-        self.lung_masks = lung_masks.get_fdata()[..., index_range]
+        mask_lesions_file_path = join(artifacts_dir, 'tr_mask.nii.gz')
+        mask_lesions = nib.load(mask_lesions_file_path)
+        self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
+        mask_lungs_file_path = join(artifacts_dir, 'tr_lungmasks_updated.nii.gz')
+        mask_lungs = nib.load(mask_lungs_file_path)
+        self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
     def __len__(self):
@@ -96,8 +96,8 @@ class MedicalSegmentation1(Dataset):
 class MedicalSegmentation2(Dataset):
 
     def __getitem__(self, index):
-        (image, lung_mask, lesion_mask) = preprocess_image(self.images[..., index], self.lung_masks[..., index], self.lesion_masks[..., index], self.use_transforms)
-        return (image, lung_mask, lesion_mask)
+        (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        return (image, mask_lung, mask_lesion)
 
     def __init__(self, artifacts_dir, index_volume, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
@@ -111,19 +111,19 @@ class MedicalSegmentation2(Dataset):
         image_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_im/*.nii.gz')))
         images = nib.load(image_file_path_list[index_volume])
         self.images = images.get_fdata()
-        lesion_masks_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_msk/*.nii.gz')))
-        lesion_masks = nib.load(lesion_masks_file_path_list[index_volume])
-        self.lesion_masks = lesion_masks.get_fdata()
-        lung_masks_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_lung_msk/*.nii.gz')))
-        lung_masks = nib.load(lung_masks_file_path_list[index_volume])
-        self.lung_masks = lung_masks.get_fdata()
+        mask_lesions_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_msk/*.nii.gz')))
+        mask_lesions = nib.load(mask_lesions_file_path_list[index_volume])
+        self.mask_lesions = mask_lesions.get_fdata()
+        mask_lungs_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_lung_msk/*.nii.gz')))
+        mask_lungs = nib.load(mask_lungs_file_path_list[index_volume])
+        self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
 
     def __len__(self):
         return self.images.shape[-1]
 
 
-def calculate_metrics(prediction, mask):
+def calculate_metrics(mask, prediction):
     prediction = prediction > 0.5
     true_positive = (mask * prediction).sum().float()
     true_negative = (~mask * ~prediction).sum().float()
@@ -199,14 +199,14 @@ def main():
                     for (epoch_index, epoch) in enumerate(range(epochs_num)):
                         training_loss_sum = 0
                         model.train()
-                        for (images, lung_masks, lesion_masks) in training_dataloader:
+                        for (images, mask_lungs, mask_lesions) in training_dataloader:
                             if experiment_name == experiment_name_list[0]:
-                                masks = lung_masks
+                                masks = mask_lungs
                             elif experiment_name == experiment_name_list[1]:
-                                masks = lesion_masks
+                                masks = mask_lesions
                             elif experiment_name == experiment_name_list[2]:
-                                images *= lung_masks
-                                masks = lesion_masks
+                                images *= mask_lungs
+                                masks = mask_lesions
                             images = images.to(device)
                             masks = masks.to(device)
                             optimizer.zero_grad()
@@ -220,13 +220,13 @@ def main():
                                 training_time_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += sum((item.cpu_time for item in prof.function_events))
                             if architecture_name == architecture_name_list[0] and encoder == encoder_list[0] and (encoder_weights == encoder_weights_list[0]) and (epoch_index == epochs_num - 1):
                                 save_figure_image(artifacts_dir, experiment_name, images[0, 0])
-                                save_figure_image_masked(artifacts_dir, images[0, 0], masks[0, 0], masks[0, 0], experiment_name, 'mask', 'train')
-                                save_figure_image_masked(artifacts_dir, images[0, 0], masks[0, 0], predictions[0, 0], experiment_name, 'prediction', 'train')
+                                save_figure_image_masked('mask', artifacts_dir, 'train', experiment_name, images[0, 0], masks[0, 0], masks[0, 0])
+                                save_figure_image_masked('prediction', artifacts_dir, 'train', experiment_name, images[0, 0], masks[0, 0], predictions[0, 0])
                             if architecture_name == architecture_name_list[0] and encoder == 'resnet18':
                                 if epoch_index == 0:
-                                    save_figure_weights(artifacts_dir, model, experiment_name, architecture_name, f'{encoder_weights}-before')
+                                    save_figure_weights(architecture_name, artifacts_dir, f'{encoder_weights}-before', experiment_name, model)
                                 elif epoch_index == epochs_num - 1:
-                                    save_figure_weights(artifacts_dir, model, experiment_name, architecture_name, f'{encoder_weights}-after')
+                                    save_figure_weights(architecture_name, artifacts_dir, f'{encoder_weights}-after', experiment_name, model)
                             loss = dice_loss(predictions, masks)
                             loss.backward()
                             optimizer.step()
@@ -236,14 +236,14 @@ def main():
                         validation_loss_sum = 0
                         model.eval()
                         with torch.no_grad():
-                            for (images, lung_masks, lesion_masks) in validation_dataloader:
+                            for (images, mask_lungs, mask_lesions) in validation_dataloader:
                                 if experiment_name == experiment_name_list[0]:
-                                    masks = lung_masks
+                                    masks = mask_lungs
                                 elif experiment_name == experiment_name_list[1]:
-                                    masks = lesion_masks
+                                    masks = mask_lesions
                                 elif experiment_name == experiment_name_list[2]:
-                                    images *= lung_masks
-                                    masks = lesion_masks
+                                    images *= mask_lungs
+                                    masks = mask_lesions
                                 images = images.to(device)
                                 masks = masks.to(device)
                                 if device == 'cuda':
@@ -270,75 +270,76 @@ def main():
                         test_dataloader = DataLoader(test_dataset)
                         test_slices_num += len(test_dataloader)
                         with torch.no_grad():
-                            for (images, lung_masks, lesion_masks) in test_dataloader:
+                            for (images, mask_lungs, mask_lesions) in test_dataloader:
                                 if experiment_name == experiment_name_list[0]:
-                                    masks = lung_masks
+                                    masks = mask_lungs
                                 elif experiment_name == experiment_name_list[1]:
-                                    masks = lesion_masks
+                                    masks = mask_lesions
                                 elif experiment_name == experiment_name_list[2]:
-                                    images *= lung_masks
-                                    masks = lesion_masks
+                                    images *= mask_lungs
+                                    masks = mask_lesions
                                 images = images.to(device)
                                 masks = masks.to(device)
                                 predictions = model(images)
                                 if architecture_name == architecture_name_list[0] and encoder == encoder_list[0] and (encoder_weights == encoder_weights_list[0]):
                                     hist_images_array[experiment_name_index] += np.histogram(images.cpu(), hist_bins, hist_range)[0]
                                     hist_masks_array[experiment_name_index] += np.histogram(images.cpu() * masks.cpu(), hist_bins, hist_range)[0]
-                                metrics_values = calculate_metrics(predictions, masks)
+                                metrics_values = calculate_metrics(masks, predictions)
                                 metrics_array[experiment_name_index, architecture_index, encoder_index, encoder_index_weights] += metrics_values
                             if test_volume_index == 0:
                                 test_index = 12
                                 images = test_dataset[test_index][0]
-                                lung_masks = test_dataset[test_index][1]
-                                lesion_masks = test_dataset[test_index][2]
+                                mask_lungs = test_dataset[test_index][1]
+                                mask_lesions = test_dataset[test_index][2]
                                 if experiment_name == experiment_name_list[0]:
-                                    masks = lung_masks
+                                    masks = mask_lungs
                                 elif experiment_name == experiment_name_list[1]:
-                                    masks = lesion_masks
+                                    masks = mask_lesions
                                 elif experiment_name == experiment_name_list[2]:
-                                    images *= lung_masks
-                                    masks = lesion_masks
+                                    images *= mask_lungs
+                                    masks = mask_lesions
                                 predictions = model(images.unsqueeze(0).to(device))
-                                save_figure_image_masked(artifacts_dir, images[0], masks[0], predictions[0, 0], experiment_name, architecture_name, encoder)
+                                save_figure_image_masked(architecture_name, artifacts_dir, encoder, experiment_name, images[0], masks[0], predictions[0, 0])
                             if test_volume_index == 0 and encoder == 'resnet18' and (encoder_weights is None):
                                 volume_mask = np.zeros((512, 512, len(test_dataset)))
                                 volume_prediction = np.zeros((512, 512, len(test_dataset)))
-                                for (slice_volume_index, (images, lung_masks, lesion_masks)) in enumerate(test_dataset):
+                                for (slice_volume_index, (images, mask_lungs, mask_lesions)) in enumerate(test_dataset):
                                     if experiment_name == experiment_name_list[0]:
-                                        masks = lung_masks
+                                        masks = mask_lungs
                                     elif experiment_name == experiment_name_list[1]:
-                                        masks = lesion_masks
+                                        masks = mask_lesions
                                     elif experiment_name == experiment_name_list[2]:
-                                        images *= lung_masks
-                                        masks = lesion_masks
+                                        images *= mask_lungs
+                                        masks = mask_lesions
                                     volume_mask[:, :, slice_volume_index] = masks[0].float()
                                     predictions = model(images.unsqueeze(0).to(device))
                                     volume_prediction[:, :, slice_volume_index] = predictions[0].float().cpu()
                                 volume_mask = volume_mask[:, :, ::-1]
                                 if architecture_name == 'Unet':
-                                    save_figure_3d(artifacts_dir, volume_mask, full, experiment_name, 'mask', '')
+                                    save_figure_3d('mask', artifacts_dir, '', experiment_name, full, volume_mask)
                                 volume_prediction = volume_prediction[:, :, ::-1]
-                                save_figure_3d(artifacts_dir, volume_prediction, full, experiment_name, architecture_name, encoder_weights)
-                    model_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
-                    if architecture_name in ['Unet', 'Linknet', 'FPN'] and encoder in ['vgg11', 'vgg13', 'resnet18', 'mobilenet_v2'] and (encoder_weights == 'imagenet'):
-                        save_tfjs_from_torch(artifacts_dir, training_dataset[0][0].unsqueeze(0), model, model_name)
-                        if not full:
-                            rmtree(join(artifacts_dir, 'tfjs-models', model_name))
+                                save_figure_3d(architecture_name, artifacts_dir, encoder_weights, experiment_name, full, volume_prediction)
+                    model_file_name = f'{experiment_name}.{architecture_name}.{encoder}.{encoder_weights}'
+                    if model_file_name in ['lesion-segmentation-a.FPN.mobilenet_v2.imagenet', 'lung-segmentation.FPN.mobilenet_v2.imagenet']:
+                        save_tfjs_from_torch(artifacts_dir, training_dataset[0][0].unsqueeze(0), model, model_file_name)
+                        if full:
+                            rmtree(join('release', model_file_name))
+                            move(join(artifacts_dir, model_file_name), join('release', model_file_name))
                     if not full:
                         os.remove(model_file_path)
     for (hist_images, hist_masks, experiment_name) in zip(hist_images_array, hist_masks_array, experiment_name_list):
-        save_figure_histogram(artifacts_dir, hist_images, hist_masks, hist_range, experiment_name)
+        save_figure_histogram(artifacts_dir, experiment_name, hist_images, hist_masks, hist_range)
     for (experiment_name, training_loss, validation_loss) in zip(experiment_name_list, training_loss_array, validation_loss_array):
-        save_figure_loss(artifacts_dir, training_loss, 'Train', experiment_name, architecture_name_list, [0, 1])
-        save_figure_loss(artifacts_dir, validation_loss, 'Validation', experiment_name, architecture_name_list, [0, 1])
-    save_figure_loss(artifacts_dir, training_loss_array[2] - training_loss_array[1], 'Train diff', experiment_name, architecture_name_list, [-0.4, 0.4])
-    save_figure_loss(artifacts_dir, validation_loss_array[2] - validation_loss_array[1], 'Validation diff', experiment_name, architecture_name_list, [-0.4, 0.4])
+        save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, training_loss, 'Train', [0, 1])
+        save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, validation_loss, 'Validation', [0, 1])
+    save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, training_loss_array[2] - training_loss_array[1], 'Train diff', [-0.4, 0.4])
+    save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, validation_loss_array[2] - validation_loss_array[1], 'Validation diff', [-0.4, 0.4])
     metrics_array = 100 * metrics_array / test_slices_num
     parameters_num_array = parameters_num_array / 10 ** 6
     for (experiment, experiment_name, metrics_) in zip(experiment_list, experiment_name_list, metrics_array):
-        save_figure_architecture_box(artifacts_dir, metrics_[..., -1], architecture_name_list, experiment_name)
-        save_figure_scatter(artifacts_dir, parameters_num_array, metrics_[..., -1], architecture_name_list, experiment_name, [70, 100])
-    save_figure_scatter(artifacts_dir, parameters_num_array, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], architecture_name_list, 'diff', [-15, 15])
+        save_figure_architecture_box(architecture_name_list, artifacts_dir, metrics_[..., -1], experiment_name)
+        save_figure_scatter(architecture_name_list, artifacts_dir, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
+    save_figure_scatter(architecture_name_list, artifacts_dir, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
     save_figure_initialization_box(artifacts_dir, metrics_array[..., -1], encoder_weights_list)
     encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
     encoder_weights_std = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).std(0).round(2)
@@ -381,37 +382,37 @@ def main():
     keys_values_df.to_csv(join(artifacts_dir, 'keys-values.csv'))
 
 
-def preprocess_image(image, lung_mask, lesion_mask, use_transforms):
+def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
     image = tf.to_pil_image(image.astype('float32'))
-    lesion_mask = tf.to_pil_image(lesion_mask.astype('uint8'))
-    lung_mask = tf.to_pil_image(lung_mask.astype('uint8'))
+    mask_lesion = tf.to_pil_image(mask_lesion.astype('uint8'))
+    mask_lung = tf.to_pil_image(mask_lung.astype('uint8'))
     image = tf.resize(image, [512, 512])
-    lesion_mask = tf.resize(lesion_mask, [512, 512])
-    lung_mask = tf.resize(lung_mask, [512, 512])
+    mask_lesion = tf.resize(mask_lesion, [512, 512])
+    mask_lung = tf.resize(mask_lung, [512, 512])
     if use_transforms:
         if np.random.rand() > 0.5:
             image = tf.hflip(image)
-            lesion_mask = tf.hflip(lesion_mask)
-            lung_mask = tf.hflip(lung_mask)
+            mask_lesion = tf.hflip(mask_lesion)
+            mask_lung = tf.hflip(mask_lung)
         if np.random.rand() > 0.5:
             image = tf.vflip(image)
-            lesion_mask = tf.vflip(lesion_mask)
-            lung_mask = tf.vflip(lung_mask)
+            mask_lesion = tf.vflip(mask_lesion)
+            mask_lung = tf.vflip(mask_lung)
         scale = np.random.rand() + 0.5
         rotation = 360 * np.random.rand() - 180
         image = tf.affine(image, rotation, [0, 0], scale, 0)
-        lesion_mask = tf.affine(lesion_mask, rotation, [0, 0], scale, 0)
-        lung_mask = tf.affine(lung_mask, rotation, [0, 0], scale, 0)
+        mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
+        mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
     image = tf.to_tensor(image)
-    lesion_mask = tf.to_tensor(lesion_mask)
-    lung_mask = tf.to_tensor(lung_mask)
+    mask_lesion = tf.to_tensor(mask_lesion)
+    mask_lung = tf.to_tensor(mask_lung)
     image = tf.normalize(image, -500, 500)
-    lesion_mask = lesion_mask.bool()
-    lung_mask = lung_mask.bool()
-    return (image, lung_mask, lesion_mask)
+    mask_lesion = mask_lesion.bool()
+    mask_lung = mask_lung.bool()
+    return (image, mask_lung, mask_lesion)
 
 
-def save_figure_3d(artifacts_dir, volume, full, experiment_name, architecture, encoder_weights):
+def save_figure_3d(architecture, artifacts_dir, encoder_weights, experiment_name, full, volume):
     if full:
         step_size = 1
     else:
@@ -439,7 +440,7 @@ def save_figure_3d(artifacts_dir, volume, full, experiment_name, architecture, e
     plt.close()
 
 
-def save_figure_architecture_box(artifacts_dir, dice, architecture_name_list, experiment_name):
+def save_figure_architecture_box(architecture_name_list, artifacts_dir, dice, experiment_name):
     dice_ = dice.reshape(dice.shape[0], -1).T
     plt.subplots()
     plt.boxplot(dice_)
@@ -450,7 +451,7 @@ def save_figure_architecture_box(artifacts_dir, dice, architecture_name_list, ex
     plt.close()
 
 
-def save_figure_histogram(artifacts_dir, hist_images, hist_masks, hist_range, experiment_name):
+def save_figure_histogram(artifacts_dir, experiment_name, hist_images, hist_masks, hist_range):
     t = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
     hist_images = hist_images.reshape(-1, hist_images.shape[-1]).sum(0)
     hist_masks = hist_masks.reshape(-1, hist_masks.shape[-1]).sum(0)
@@ -479,7 +480,7 @@ def save_figure_image(artifacts_dir, experiment_name, image):
     plt.close()
 
 
-def save_figure_image_masked(artifacts_dir, image, mask, prediction, experiment_name, architecture, encoder):
+def save_figure_image_masked(architecture, artifacts_dir, encoder, experiment_name, image, mask, prediction):
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
@@ -506,7 +507,7 @@ def save_figure_initialization_box(artifacts_dir, dice, encoder_weights_list):
     plt.close()
 
 
-def save_figure_loss(artifacts_dir, loss, training_or_validation, experiment_name, architecture_name_list, ylim):
+def save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss, training_or_validation, ylim):
     loss = np.nan_to_num(loss)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     p1 = [None] * len(architecture_name_list)
@@ -533,7 +534,7 @@ def save_figure_loss(artifacts_dir, loss, training_or_validation, experiment_nam
     plt.close()
 
 
-def save_figure_scatter(artifacts_dir, parameters_num_array, dice, architecture_name_list, experiment_name, ylim):
+def save_figure_scatter(architecture_name_list, artifacts_dir, dice, experiment_name, parameters_num_array, ylim):
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     dice_ = dice.mean(-1)
     (_, ax) = plt.subplots()
@@ -564,7 +565,7 @@ def save_figure_scatter(artifacts_dir, parameters_num_array, dice, architecture_
     plt.close()
 
 
-def save_figure_weights(artifacts_dir, model, experiment_name, architecture_name, encoder_weights):
+def save_figure_weights(architecture_name, artifacts_dir, encoder_weights, experiment_name, model):
     rows = 8
     columns = 8
     plt.figure(figsize=(4, 4.6))
@@ -580,8 +581,8 @@ def save_figure_weights(artifacts_dir, model, experiment_name, architecture_name
     plt.close()
 
 
-def save_tfjs_from_torch(artifacts_dir, example_input, model, model_name):
-    model_file_path = join(artifacts_dir, 'tfjs-models', model_name)
+def save_tfjs_from_torch(artifacts_dir, example_input, model, model_file_name):
+    model_file_path = join(artifacts_dir, model_file_name)
     os.makedirs(model_file_path, exist_ok=True)
     torch.onnx.export(model.cpu(), example_input, join(model_file_path, 'model.onnx'), export_params=True, opset_version=11)
     model_onnx = onnx.load(join(model_file_path, 'model.onnx'))
