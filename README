@@ -3,7 +3,7 @@ Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Se
 - https://pbizopoulos.github.io/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 
 Requirements:
-- POSIX compliant shell (any of Bash, Dash, KornShell, Yash, Zsh)
+- POSIX compliant shell (ash, bash, dash, ksh, posh, yash or zsh)
 - Git (Any version)
 - Make (bmake or GNU Make)
 - Docker (Any version or >= 19.03 for NVIDIA Container Toolkit)
