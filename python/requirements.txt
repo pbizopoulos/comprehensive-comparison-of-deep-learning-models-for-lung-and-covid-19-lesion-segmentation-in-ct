@@ -7,4 +7,4 @@ scikit-image==0.19.2
 segmentation-models-pytorch==0.2.1
 statsmodels==0.13.2
 tensorflow-probability==0.16.0
-tensorflowjs==3.15.0
+tensorflowjs==3.18.0
