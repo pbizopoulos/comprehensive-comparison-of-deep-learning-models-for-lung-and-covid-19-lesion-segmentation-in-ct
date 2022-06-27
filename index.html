@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta content="width=device-width, initial-scale=1" name="viewport">
+		<title>Lung and COVID-19 CT segmentation</title>
+		<link href="data:," rel="icon">
+		<link href="https://pbizopoulos.github.io/style.css" rel="stylesheet">
+		<link href="style.css" rel="stylesheet">
+		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script defer src="script.js"></script>
+	</head>
+	<body>
+		<div class="div-header">
+			<nav>
+				<a href="https://pbizopoulos.github.io">Home page</a> / <b>Lung and COVID-19 CT segmentation</b>
+			</nav>
+			<div class="div-source-code-link">
+				<a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a>
+			</div>
+		</div>
+		<div>
+			<div class="block" id="inputControlDiv">
+				<div>NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment lungs or COVID-19 lesions using DNNs.</div>
+				<div>
+					<input accept="image/*" id="inputFile" type="file">
+				</div>
+				<div>
+					<select id="modelSelect" onchange="loadModel(predictView);" style="width:100%">
+						<option value="python/release/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json">lesion-segmentation-a.FPN.mobilenet_v2.imagenet</option>
+						<option value="python/release/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
+					</select>
+				</div>
+				<div id="modelDownloadFractionDiv">0%</div>
+			</div>
+			<div class="block" id="inputDiv">
+				<canvas height="256" id="imageInputCanvas" style="position:absolute;" width="256"></canvas>
+				<canvas height="256" id="maskOutputCanvas" style="position:absolute;opacity:0.5;" width="256"></canvas>
+			</div>
+		</div>
+		</div>
+	</body>
+</html>
