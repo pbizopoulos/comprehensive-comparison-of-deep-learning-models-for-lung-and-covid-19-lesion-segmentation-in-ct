@@ -1,6 +1,6 @@
 gdown==4.4.0
 matplotlib==3.5.2
-nibabel==3.2.2
+nibabel==4.0.1
 onnx-tf==1.10.0
 pandas==1.4.2
 scikit-image==0.19.2
