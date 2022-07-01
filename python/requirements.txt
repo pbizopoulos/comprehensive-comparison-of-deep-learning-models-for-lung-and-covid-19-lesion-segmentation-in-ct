@@ -5,5 +5,5 @@ onnx-tf==1.10.0
 pandas==1.4.2
 scikit-image==0.19.2
 segmentation-models-pytorch==0.2.1
-tensorflow-probability==0.16.0
+tensorflow-probability==0.17.0
 tensorflowjs==3.18.0
