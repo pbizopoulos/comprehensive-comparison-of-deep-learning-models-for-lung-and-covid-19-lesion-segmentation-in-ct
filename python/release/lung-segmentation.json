@@ -1,0 +1,8 @@
+{
+	"classNames": ["None", "Lung"],
+	"exampleDataUrl": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/release/lung-segmentation-example-data.png",
+	"machineLearningType": "image segmentation",
+	"modelDownloadUrl": "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/release/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json",
+	"name": "CT lung segmentation (FPN mobilenet_v2 imagenet)",
+	"projectUrl": "https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct"
+}
