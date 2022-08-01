@@ -6,4 +6,4 @@ pandas==1.4.3
 scikit-image==0.19.3
 segmentation-models-pytorch==0.2.1
 tensorflow-probability==0.17.0
-tensorflowjs==3.18.0
+tensorflowjs==3.19.0
