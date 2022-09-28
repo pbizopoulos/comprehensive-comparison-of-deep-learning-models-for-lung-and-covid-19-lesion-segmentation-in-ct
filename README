@@ -1,20 +1,19 @@
-Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT:
-- https://arxiv.org/abs/2009.06412
-- https://pbizopoulos.github.io/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
+# Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT
+https://arxiv.org/abs/2009.06412
+https://pbizopoulos.github.io/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 
-Requirements:
-- POSIX compliant shell (ash, bash, dash, ksh, posh, yash or zsh)
-- Git (Any version)
-- Make (bmake or GNU Make)
-- Docker (Any version or >= 19.03 for NVIDIA Container Toolkit)
-- [Optional] NVIDIA Container Toolkit
+# Requirements
+POSIX mandatory utilities
+Make
+Docker (>= 19.03 for NVIDIA Container Toolkit)
+NVIDIA Container Toolkit (Optional)
 
-Preparation:
+# Preparation
 git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
 cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 sudo systemctl start docker
 
-Basic usage:
+# Basic usage
 make -C python/ && make	# Generate draft python and tex artifacts.
 make -C python/ help	# Show all python commands.
 make help		# Show all tex commands.
