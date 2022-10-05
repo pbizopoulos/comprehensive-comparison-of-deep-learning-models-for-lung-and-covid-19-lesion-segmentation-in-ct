@@ -1,6 +1,18 @@
+#maskOutputCanvas {
+	opacity:0.5;
+}
+
+#modelSelect {
+	width:100%;
+}
+
 .block {
 	border-style: solid;
 	float: left;
 	height: 256px;
 	width: 256px;
+}
+
+canvas {
+	position:absolute;
 }
