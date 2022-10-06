@@ -31,31 +31,31 @@ class CTSegBenchmark(Dataset):
         (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, artifacts_dir, index_range, use_transforms):
+    def __init__(self, index_range, use_transforms):
         url_list = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_name_list = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
         for (url, file_name) in zip(url_list, file_name_list):
-            zip_file_path = join(artifacts_dir, f'{file_name}.zip')
+            zip_file_path = join('bin', f'{file_name}.zip')
             if not os.path.isfile(zip_file_path):
                 response = requests.get(url)
                 with open(zip_file_path, 'wb') as file:
                     file.write(response.content)
                 with ZipFile(zip_file_path, 'r') as zip_file:
-                    zip_file.extractall(join(artifacts_dir, file_name))
+                    zip_file.extractall(join('bin', file_name))
         images = np.array([]).reshape(512, 512, 0)
-        for file_path in glob.glob(join(artifacts_dir, file_name_list[0], '*.nii.gz')):
+        for file_path in glob.glob(join('bin', file_name_list[0], '*.nii.gz')):
             images_ = nib.load(file_path)
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
         mask_lesions = np.array([]).reshape(512, 512, 0)
-        for file_path in glob.glob(join(artifacts_dir, file_name_list[1], '*.nii.gz')):
+        for file_path in glob.glob(join('bin', file_name_list[1], '*.nii.gz')):
             mask_lesions_ = nib.load(file_path)
             mask_lesions_ = np.resize(mask_lesions_.get_fdata(), (512, 512, mask_lesions_.shape[-1]))
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
         mask_lungs = np.array([]).reshape(512, 512, 0)
-        for file_path in glob.glob(join(artifacts_dir, file_name_list[2], '*.nii.gz')):
+        for file_path in glob.glob(join('bin', file_name_list[2], '*.nii.gz')):
             mask_lungs_ = nib.load(file_path)
             mask_lungs_ = np.resize(mask_lungs_.get_fdata(), (512, 512, mask_lungs.shape[-1]))
             mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)
@@ -72,19 +72,19 @@ class MedicalSegmentation1(Dataset):
         (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, artifacts_dir, index_range, use_transforms):
+    def __init__(self, index_range, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_name_list = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
         for (url, file_name) in zip(url_list, file_name_list):
-            if not os.path.isfile(join(artifacts_dir, file_name)):
-                gdown.download(url, join(artifacts_dir, file_name), quiet=False)
-        images_file_path = join(artifacts_dir, 'tr_im.nii.gz')
+            if not os.path.isfile(join('bin', file_name)):
+                gdown.download(url, join('bin', file_name), quiet=False)
+        images_file_path = join('bin', 'tr_im.nii.gz')
         images = nib.load(images_file_path)
         self.images = images.get_fdata()[..., index_range]
-        mask_lesions_file_path = join(artifacts_dir, 'tr_mask.nii.gz')
+        mask_lesions_file_path = join('bin', 'tr_mask.nii.gz')
         mask_lesions = nib.load(mask_lesions_file_path)
         self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-        mask_lungs_file_path = join(artifacts_dir, 'tr_lungmasks_updated.nii.gz')
+        mask_lungs_file_path = join('bin', 'tr_lungmasks_updated.nii.gz')
         mask_lungs = nib.load(mask_lungs_file_path)
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
@@ -99,22 +99,22 @@ class MedicalSegmentation2(Dataset):
         (image, mask_lung, mask_lesion) = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, artifacts_dir, index_volume, use_transforms):
+    def __init__(self, index_volume, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_name_list = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
         for (url, file_name) in zip(url_list, file_name_list):
-            zip_file_path = join(artifacts_dir, file_name)
+            zip_file_path = join('bin', file_name)
             if not os.path.isfile(zip_file_path):
                 gdown.download(url, zip_file_path, quiet=False)
                 with ZipFile(zip_file_path, 'r') as zip_file:
-                    zip_file.extractall(artifacts_dir)
-        image_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_im/*.nii.gz')))
+                    zip_file.extractall('bin')
+        image_file_path_list = sorted(glob.glob(join('bin', 'rp_im/*.nii.gz')))
         images = nib.load(image_file_path_list[index_volume])
         self.images = images.get_fdata()
-        mask_lesions_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_msk/*.nii.gz')))
+        mask_lesions_file_path_list = sorted(glob.glob(join('bin', 'rp_msk/*.nii.gz')))
         mask_lesions = nib.load(mask_lesions_file_path_list[index_volume])
         self.mask_lesions = mask_lesions.get_fdata()
-        mask_lungs_file_path_list = sorted(glob.glob(join(artifacts_dir, 'rp_lung_msk/*.nii.gz')))
+        mask_lungs_file_path_list = sorted(glob.glob(join('bin', 'rp_lung_msk/*.nii.gz')))
         mask_lungs = nib.load(mask_lungs_file_path_list[index_volume])
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
@@ -143,7 +143,6 @@ def calculate_metrics(mask, prediction):
 
 
 def main():
-    artifacts_dir = environ['ARTIFACTS_DIR']
     full = environ['FULL']
     plt.rcParams['image.interpolation'] = 'none'
     plt.rcParams['savefig.format'] = 'pdf'
@@ -171,9 +170,9 @@ def main():
     experiment_list = ['Lung segmentation', 'Lesion segmentation A', 'Lesion segmentation B']
     experiment_name_list = [experiment.lower().replace(' ', '-') for experiment in experiment_list]
     encoder_weights_list = [None, 'imagenet']
-    dataset_training = MedicalSegmentation1(artifacts_dir, range_training, use_transforms=True)
+    dataset_training = MedicalSegmentation1(range_training, use_transforms=True)
     dataloader_training = DataLoader(dataset_training, batch_size=batch_size, shuffle=True)
-    dataset_validation = MedicalSegmentation1(artifacts_dir, range_validation, use_transforms=False)
+    dataset_validation = MedicalSegmentation1(range_validation, use_transforms=False)
     dataloader_validation = DataLoader(dataset_validation, batch_size=batch_size)
     dice_loss = DiceLoss()
     metric_name_list = ['Sens', 'Spec', 'Dice']
@@ -195,7 +194,7 @@ def main():
                     parameters_num_array[architecture_index, encoder_name_index] = sum((parameter.numel() for parameter in model.parameters() if parameter.requires_grad))
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float('inf')
-                    model_file_path = join(artifacts_dir, f'{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt')
+                    model_file_path = join('bin', f'{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt')
                     for (epoch_index, epoch) in enumerate(range(epochs_num)):
                         loss_training_sum = 0
                         model.train()
@@ -218,14 +217,14 @@ def main():
                                     predictions = model(images)
                                 training_time_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] += sum((item.cpu_time for item in prof.function_events))
                             if architecture_name == architecture_name_list[0] and encoder_name == encoder_name_list[0] and (encoder_weights == encoder_weights_list[0]) and (epoch_index == epochs_num - 1):
-                                save_figure_image(artifacts_dir, experiment_name, images[0, 0])
-                                save_figure_image_masked('mask', artifacts_dir, 'train', experiment_name, images[0, 0], masks[0, 0], masks[0, 0])
-                                save_figure_image_masked('prediction', artifacts_dir, 'train', experiment_name, images[0, 0], masks[0, 0], predictions[0, 0])
+                                save_figure_image(experiment_name, images[0, 0])
+                                save_figure_image_masked('mask', 'train', experiment_name, images[0, 0], masks[0, 0], masks[0, 0])
+                                save_figure_image_masked('prediction', 'train', experiment_name, images[0, 0], masks[0, 0], predictions[0, 0])
                             if architecture_name == architecture_name_list[0] and encoder_name == 'resnet18':
                                 if epoch_index == 0:
-                                    save_figure_weights(architecture_name, artifacts_dir, f'{encoder_weights}-before', experiment_name, model)
+                                    save_figure_weights(architecture_name, f'{encoder_weights}-before', experiment_name, model)
                                 elif epoch_index == epochs_num - 1:
-                                    save_figure_weights(architecture_name, artifacts_dir, f'{encoder_weights}-after', experiment_name, model)
+                                    save_figure_weights(architecture_name, f'{encoder_weights}-after', experiment_name, model)
                             loss = dice_loss(predictions, masks)
                             loss_training_sum += loss.item()
                             optimizer.zero_grad()
@@ -265,7 +264,7 @@ def main():
                     model.load_state_dict(torch.load(model_file_path))
                     slices_test_num = 0
                     for index_test_volume in range_test_volume:
-                        dataset_test = MedicalSegmentation2(artifacts_dir, index_test_volume, use_transforms=False)
+                        dataset_test = MedicalSegmentation2(index_test_volume, use_transforms=False)
                         dataloader_test = DataLoader(dataset_test)
                         slices_test_num += len(dataloader_test)
                         model.eval()
@@ -299,7 +298,7 @@ def main():
                                     images *= mask_lungs
                                     masks = mask_lesions
                                 predictions = model(images.unsqueeze(0).to(device))
-                                save_figure_image_masked(architecture_name, artifacts_dir, encoder_name, experiment_name, images[0], masks[0], predictions[0, 0])
+                                save_figure_image_masked(architecture_name, encoder_name, experiment_name, images[0], masks[0], predictions[0, 0])
                             if index_test_volume == 0 and encoder_name == 'resnet18' and (encoder_weights is None):
                                 volume_mask_array = np.zeros((512, 512, len(dataset_test)))
                                 volume_prediction_array = np.zeros((512, 512, len(dataset_test)))
@@ -316,31 +315,31 @@ def main():
                                     volume_prediction_array[:, :, slice_volume_index] = predictions[0].float().cpu()
                                 volume_mask_array = volume_mask_array[:, :, ::-1]
                                 if architecture_name == 'Unet':
-                                    save_figure_3d('mask', artifacts_dir, '', experiment_name, full, volume_mask_array)
+                                    save_figure_3d('mask', '', experiment_name, full, volume_mask_array)
                                 volume_prediction_array = volume_prediction_array[:, :, ::-1]
-                                save_figure_3d(architecture_name, artifacts_dir, encoder_weights, experiment_name, full, volume_prediction_array)
+                                save_figure_3d(architecture_name, encoder_weights, experiment_name, full, volume_prediction_array)
                     model_file_name = f'{experiment_name}.{architecture_name}.{encoder_name}.{encoder_weights}'
                     if model_file_name in ['lesion-segmentation-a.FPN.mobilenet_v2.imagenet', 'lung-segmentation.FPN.mobilenet_v2.imagenet']:
-                        save_tfjs_from_torch(artifacts_dir, dataset_training[0][0].unsqueeze(0), model, model_file_name)
+                        save_tfjs_from_torch(dataset_training[0][0].unsqueeze(0), model, model_file_name)
                         if full:
-                            rmtree(join('release', model_file_name))
-                            move(join(artifacts_dir, model_file_name), join('release', model_file_name))
+                            rmtree(join('dist', model_file_name))
+                            move(join('bin', model_file_name), join('dist', model_file_name))
                     if not full:
                         os.remove(model_file_path)
     for (hist_images, hist_masks, experiment_name) in zip(hist_images_array, hist_masks_array, experiment_name_list):
-        save_figure_histogram(artifacts_dir, experiment_name, hist_images, hist_masks, hist_range)
+        save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
     for (experiment_name, loss_training, loss_validation) in zip(experiment_name_list, loss_training_array, loss_validation_array):
-        save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss_training, 'Train', [0, 1])
-        save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss_validation, 'Validation', [0, 1])
-    save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss_training_array[2] - loss_training_array[1], 'Train diff', [-0.4, 0.4])
-    save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss_validation_array[2] - loss_validation_array[1], 'Validation diff', [-0.4, 0.4])
+        save_figure_loss(architecture_name_list, experiment_name, loss_training, 'Train', [0, 1])
+        save_figure_loss(architecture_name_list, experiment_name, loss_validation, 'Validation', [0, 1])
+    save_figure_loss(architecture_name_list, experiment_name, loss_training_array[2] - loss_training_array[1], 'Train diff', [-0.4, 0.4])
+    save_figure_loss(architecture_name_list, experiment_name, loss_validation_array[2] - loss_validation_array[1], 'Validation diff', [-0.4, 0.4])
     metrics_array = 100 * metrics_array / slices_test_num
     parameters_num_array = parameters_num_array / 10 ** 6
     for (experiment, experiment_name, metrics_) in zip(experiment_list, experiment_name_list, metrics_array):
-        save_figure_architecture_box(architecture_name_list, artifacts_dir, metrics_[..., -1], experiment_name)
-        save_figure_scatter(architecture_name_list, artifacts_dir, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
-    save_figure_scatter(architecture_name_list, artifacts_dir, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
-    save_figure_initialization_box(artifacts_dir, metrics_array[..., -1], encoder_weights_list)
+        save_figure_architecture_box(architecture_name_list, metrics_[..., -1], experiment_name)
+        save_figure_scatter(architecture_name_list, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
+    save_figure_scatter(architecture_name_list, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
+    save_figure_initialization_box(metrics_array[..., -1], encoder_weights_list)
     encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
     encoder_weights_std = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).std(0).round(2)
     encoder_mean = metrics_array.transpose([2, 0, 1, 3, 4]).reshape(metrics_array.shape[2], -1).mean(1)
@@ -377,9 +376,9 @@ def main():
     styler = df.style
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
-    styler.to_latex(join(artifacts_dir, 'metrics.tex'), hrules=True, multicol_align='c')
+    styler.to_latex(join('bin', 'metrics.tex'), hrules=True, multicol_align='c')
     keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for (encoder_weights, stat) in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]})
-    keys_values_df.to_csv(join(artifacts_dir, 'keys-values.csv'))
+    keys_values_df.to_csv(join('bin', 'keys-values.csv'))
 
 
 def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
@@ -412,7 +411,7 @@ def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
     return (image, mask_lung, mask_lesion)
 
 
-def save_figure_3d(architecture, artifacts_dir, encoder_weights, experiment_name, full, volume):
+def save_figure_3d(architecture, encoder_weights, experiment_name, full, volume):
     if full:
         step_size = 1
     else:
@@ -436,22 +435,22 @@ def save_figure_3d(architecture, artifacts_dir, encoder_weights, experiment_name
         line.set_visible(False)
     for line in ax.zaxis.get_ticklines():
         line.set_visible(False)
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-{architecture}-{encoder_weights}-volume'))
+    plt.savefig(join('bin', f'{experiment_name}-{architecture}-{encoder_weights}-volume'))
     plt.close()
 
 
-def save_figure_architecture_box(architecture_name_list, artifacts_dir, dice, experiment_name):
+def save_figure_architecture_box(architecture_name_list, dice, experiment_name):
     dice_ = dice.reshape(dice.shape[0], -1).T
     plt.subplots()
     plt.boxplot(dice_)
     plt.grid(True)
     plt.xticks(ticks=np.arange(len(architecture_name_list)) + 1, labels=architecture_name_list, fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-boxplot-dice'))
+    plt.savefig(join('bin', f'{experiment_name}-boxplot-dice'))
     plt.close()
 
 
-def save_figure_histogram(artifacts_dir, experiment_name, hist_images, hist_masks, hist_range):
+def save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range):
     t_linspace_np = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
     hist_images = hist_images.reshape(-1, hist_images.shape[-1]).sum(0)
     hist_masks = hist_masks.reshape(-1, hist_masks.shape[-1]).sum(0)
@@ -467,20 +466,20 @@ def save_figure_histogram(artifacts_dir, experiment_name, hist_images, hist_mask
     plt.grid(True, which='both')
     ax.set_yscale('log')
     ax.legend()
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-hist'))
+    plt.savefig(join('bin', f'{experiment_name}-hist'))
     plt.close()
 
 
-def save_figure_image(artifacts_dir, experiment_name, image):
+def save_figure_image(experiment_name, image):
     image = image.cpu().numpy()
     (_, ax) = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-image'))
+    plt.savefig(join('bin', f'{experiment_name}-image'))
     plt.close()
 
 
-def save_figure_image_masked(architecture, artifacts_dir, encoder_name, experiment_name, image, mask, prediction):
+def save_figure_image_masked(architecture, encoder_name, experiment_name, image, mask, prediction):
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
@@ -492,22 +491,22 @@ def save_figure_image_masked(architecture, artifacts_dir, encoder_name, experime
     plt.imshow(image, cmap='gray', vmin=-1.5, vmax=1.5)
     plt.imshow(correct, cmap='Greens', alpha=0.3)
     plt.imshow(false, cmap='Reds', alpha=0.3)
-    plt.savefig(join(artifacts_dir, f"{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image"))
+    plt.savefig(join('bin', f"{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image"))
     plt.close()
 
 
-def save_figure_initialization_box(artifacts_dir, dice, encoder_weights_list):
+def save_figure_initialization_box(dice, encoder_weights_list):
     dice_ = dice.reshape(-1, dice.shape[-1])
     plt.subplots()
     plt.boxplot(dice_)
     plt.grid(True)
     plt.xticks(ticks=np.arange(len(encoder_weights_list)) + 1, labels=[str(encoder_weights) for encoder_weights in encoder_weights_list], fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig(join(artifacts_dir, 'initialization-boxplot-dice'))
+    plt.savefig(join('bin', 'initialization-boxplot-dice'))
     plt.close()
 
 
-def save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, loss, training_or_validation, ylim):
+def save_figure_loss(architecture_name_list, experiment_name, loss, training_or_validation, ylim):
     loss = np.nan_to_num(loss)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     p1 = [None] * len(architecture_name_list)
@@ -530,11 +529,11 @@ def save_figure_loss(architecture_name_list, artifacts_dir, experiment_name, los
     ax.tick_params(axis='both', which='major', labelsize='large')
     ax.tick_params(axis='both', which='minor', labelsize='large')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(join(artifacts_dir, f"{experiment_name}-{training_or_validation.lower().replace(' ', '-')}-loss"))
+    plt.savefig(join('bin', f"{experiment_name}-{training_or_validation.lower().replace(' ', '-')}-loss"))
     plt.close()
 
 
-def save_figure_scatter(architecture_name_list, artifacts_dir, dice, experiment_name, parameters_num_array, ylim):
+def save_figure_scatter(architecture_name_list, dice, experiment_name, parameters_num_array, ylim):
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
     dice_ = dice.mean(-1)
     (_, ax) = plt.subplots()
@@ -559,11 +558,11 @@ def save_figure_scatter(architecture_name_list, artifacts_dir, dice, experiment_
     plt.ylim(ylim)
     ax.legend(loc='lower right')
     ax.set_aspect(aspect='auto')
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-scatter-dice-vs-num-parameters'))
+    plt.savefig(join('bin', f'{experiment_name}-scatter-dice-vs-num-parameters'))
     plt.close()
 
 
-def save_figure_weights(architecture_name, artifacts_dir, encoder_weights, experiment_name, model):
+def save_figure_weights(architecture_name, encoder_weights, experiment_name, model):
     rows = 8
     columns = 8
     plt.figure(figsize=(4, 4.6))
@@ -575,12 +574,12 @@ def save_figure_weights(architecture_name, artifacts_dir, encoder_weights, exper
             plt.imshow(weight[0].detach().cpu().numpy(), cmap='gray', vmin=-0.4, vmax=0.4)
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-    plt.savefig(join(artifacts_dir, f'{experiment_name}-{architecture_name}-{encoder_weights}-weights'))
+    plt.savefig(join('bin', f'{experiment_name}-{architecture_name}-{encoder_weights}-weights'))
     plt.close()
 
 
-def save_tfjs_from_torch(artifacts_dir, example_input, model, model_file_name):
-    model_file_path = join(artifacts_dir, model_file_name)
+def save_tfjs_from_torch(example_input, model, model_file_name):
+    model_file_path = join('bin', model_file_name)
     os.makedirs(model_file_path, exist_ok=True)
     torch.onnx.export(model.cpu(), example_input, join(model_file_path, 'model.onnx'), export_params=True, opset_version=11)
     model_onnx = onnx.load(join(model_file_path, 'model.onnx'))

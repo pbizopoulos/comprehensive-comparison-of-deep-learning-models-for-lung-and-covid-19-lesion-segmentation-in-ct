@@ -9,7 +9,7 @@ let image = new Image();
 let model;
 
 image.crossOrigin = 'anonymous';
-image.src = 'python/release/lung-segmentation-example-data.png';
+image.src = 'python/dist/lung-segmentation-example-data.png';
 
 
 function disableUI(argument) {
