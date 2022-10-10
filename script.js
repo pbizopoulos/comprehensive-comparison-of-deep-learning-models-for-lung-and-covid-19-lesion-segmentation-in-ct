@@ -88,13 +88,13 @@ maskOutputCanvas.onmousedown = function(event) {
 	imageInputContext.drawImage(image, 0, 0, image.width, image.height, -this.width/2, -this.height/2, this.width, this.height);
 	imageInputContext.restore();
 	predictView();
-}
+};
 
 inputFile.onchange = function(event) {
 	const files = event.currentTarget.files;
 	if (files[0]) {
 		imageFileReader.readAsDataURL(files[0]);
 	}
-}
+};
 
 loadModel(predictView);

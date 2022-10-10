@@ -6,11 +6,15 @@ jobs:
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v3
-      - name: Check code.
+      - name: Check code and build binaries for html.
+        run: |
+          make -f Makefile.html check
+          make -f Makefile.html
+      - name: Check code and build binaries for python.
         run: |
           make -C python/ check
-          make check
-      - name: Build binaries.
-        run: |
           make -C python/
+      - name: Check code and build binaries for tex.
+        run: |
+          make check
           make
