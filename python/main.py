@@ -143,7 +143,6 @@ def calculate_metrics(mask, prediction):
 
 
 def main():
-    full = environ['FULL']
     plt.rcParams['image.interpolation'] = 'none'
     plt.rcParams['savefig.format'] = 'pdf'
     plt.rcParams['savefig.bbox'] = 'tight'
@@ -152,7 +151,7 @@ def main():
     range_validation = range(80, 100)
     range_test_volume = range(9)
     encoder_name_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
-    if not full:
+    if environ['debug']:
         epochs_num = 2
         range_training = range(1)
         range_validation = range(2, 4)
@@ -315,16 +314,16 @@ def main():
                                     volume_prediction_array[:, :, slice_volume_index] = predictions[0].float().cpu()
                                 volume_mask_array = volume_mask_array[:, :, ::-1]
                                 if architecture_name == 'Unet':
-                                    save_figure_3d('mask', '', experiment_name, full, volume_mask_array)
+                                    save_figure_3d('mask', '', experiment_name, volume_mask_array)
                                 volume_prediction_array = volume_prediction_array[:, :, ::-1]
-                                save_figure_3d(architecture_name, encoder_weights, experiment_name, full, volume_prediction_array)
+                                save_figure_3d(architecture_name, encoder_weights, experiment_name, volume_prediction_array)
                     model_file_name = f'{experiment_name}.{architecture_name}.{encoder_name}.{encoder_weights}'
                     if model_file_name in ['lesion-segmentation-a.FPN.mobilenet_v2.imagenet', 'lung-segmentation.FPN.mobilenet_v2.imagenet']:
                         save_tfjs_from_torch(dataset_training[0][0].unsqueeze(0), model, model_file_name)
-                        if full:
+                        if not environ['debug']:
                             rmtree(join('dist', model_file_name))
                             move(join('bin', model_file_name), join('dist', model_file_name))
-                    if not full:
+                    if environ['debug']:
                         os.remove(model_file_path)
     for (hist_images, hist_masks, experiment_name) in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
@@ -411,11 +410,11 @@ def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
     return (image, mask_lung, mask_lesion)
 
 
-def save_figure_3d(architecture, encoder_weights, experiment_name, full, volume):
-    if full:
-        step_size = 1
-    else:
+def save_figure_3d(architecture, encoder_weights, experiment_name, volume):
+    if environ['debug']:
         step_size = 10
+    else:
+        step_size = 1
     volume = volume > 0.5
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
