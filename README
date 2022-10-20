@@ -14,6 +14,6 @@ cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion
 sudo systemctl start docker
 
 # Usage
-make help -C python/		# Show help for python.
-make help			# Show help for tex.
-make help -f Makefile.browser	# Show help for browser.
+make help -C docs/	# Show help for browser.
+make help -C python/	# Show help for python.
+make help		# Show help for tex.
