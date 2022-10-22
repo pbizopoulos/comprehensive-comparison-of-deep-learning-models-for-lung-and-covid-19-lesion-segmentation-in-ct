@@ -23,6 +23,6 @@ def segmentation_model(experiment_name='lung-segmentation', architecture_name='U
     if architecture_name == 'PSPNet':
         architecture = _PSPNet
     model = architecture(encoder, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to('cpu')
-    checkpoint = f'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/releases/download/v1/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
+    checkpoint = f'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/releases/download/dist/{experiment_name}-{architecture_name}-{encoder}-{encoder_weights}.pt'
     model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint, map_location='cpu'))
     return model
