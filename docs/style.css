@@ -1,9 +1,9 @@
-#maskOutputCanvas {
-	opacity:0.5;
+#mask-output-canvas {
+	opacity: 0.5;
 }
 
-#modelSelect {
-	width:100%;
+#model-select {
+	width: 100%;
 }
 
 .block {
@@ -14,5 +14,5 @@
 }
 
 canvas {
-	position:absolute;
+	position: absolute;
 }

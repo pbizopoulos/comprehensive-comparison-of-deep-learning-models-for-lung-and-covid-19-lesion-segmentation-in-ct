@@ -3,13 +3,14 @@
 const imageFileReader = new FileReader();
 const imageInputCanvas = document.getElementById('imageInputCanvas');
 const imageInputContext = imageInputCanvas.getContext('2d');
-const maskOutputCanvas = document.getElementById('maskOutputCanvas');
+const maskOutputCanvas = document.getElementById('mask-output-canvas');
 const maskOutputContext = maskOutputCanvas.getContext('2d');
+const modelSelect = document.getElementById('model-select');
 let image = new Image();
 let model;
 
 image.crossOrigin = 'anonymous';
-image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png'
+image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png';
 
 
 function disableUI(argument) {
