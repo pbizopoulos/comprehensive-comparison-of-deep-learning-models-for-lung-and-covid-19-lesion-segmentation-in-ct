@@ -151,7 +151,7 @@ def main():
     range_validation = range(80, 100)
     range_test_volume = range(9)
     encoder_name_list = ['vgg11', 'vgg13', 'vgg19', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'densenet121', 'densenet161', 'densenet169', 'densenet201', 'resnext50_32x4d', 'dpn68', 'dpn98', 'mobilenet_v2', 'xception', 'inceptionv4', 'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3', 'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6']
-    if environ['debug'] == '1':
+    if environ['DEBUG'] == '1':
         epochs_num = 2
         range_training = range(1)
         range_validation = range(2, 4)
@@ -320,10 +320,10 @@ def main():
                     model_file_name = f'{experiment_name}.{architecture_name}.{encoder_name}.{encoder_weights}'
                     if model_file_name in ['lesion-segmentation-a.FPN.mobilenet_v2.imagenet', 'lung-segmentation.FPN.mobilenet_v2.imagenet']:
                         save_tfjs_from_torch(dataset_training[0][0].unsqueeze(0), model, model_file_name)
-                        if environ['debug'] != '1':
+                        if environ['DEBUG'] != '1':
                             rmtree(join('dist', model_file_name))
                             move(join('bin', model_file_name), join('dist', model_file_name))
-                    if environ['debug'] == '1':
+                    if environ['DEBUG'] == '1':
                         os.remove(model_file_path)
     for (hist_images, hist_masks, experiment_name) in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
@@ -411,7 +411,7 @@ def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
 
 
 def save_figure_3d(architecture, encoder_weights, experiment_name, volume):
-    if environ['debug'] == '1':
+    if environ['DEBUG'] == '1':
         step_size = 10
     else:
         step_size = 1
@@ -579,7 +579,9 @@ def save_figure_weights(architecture_name, encoder_weights, experiment_name, mod
 
 def save_tfjs_from_torch(example_input, model, model_file_name):
     model_file_path = join('bin', model_file_name)
-    os.makedirs(model_file_path, exist_ok=True)
+    if os.path.exists(model_file_path):
+        rmtree(model_file_path)
+    os.makedirs(model_file_path)
     torch.onnx.export(model.cpu(), example_input, join(model_file_path, 'model.onnx'), export_params=True, opset_version=11)
     model_onnx = onnx.load(join(model_file_path, 'model.onnx'))
     model_tf = prepare(model_onnx)

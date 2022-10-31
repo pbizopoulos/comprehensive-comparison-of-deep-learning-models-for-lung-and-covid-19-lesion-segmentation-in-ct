@@ -1,10 +1,11 @@
 Jinja2==3.1.2
-gdown==4.5.1
-matplotlib==3.6.0
+fvcore==0.1.5.post20220512
+gdown==4.5.3
+matplotlib==3.6.1
 nibabel==4.0.2
 onnx-tf==1.10.0
-pandas==1.5.0
+pandas==1.5.1
 scikit-image==0.19.3
 segmentation-models-pytorch==0.3.0
 tensorflow-probability==0.18.0
-tensorflowjs==3.20.0
+tensorflowjs==4.0.0
