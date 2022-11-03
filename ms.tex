@@ -178,7 +178,7 @@ The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} c
 Raw data from both datasets contain samples in Hounsfield units~\cite{schneider1996calibration}.
 
 Regarding preprocessing, first the positive classes of the pixels of the images in the first dataset are merged into one, converting the problem to a binary segmentation problem.
-The CT scan images from the second dataset are resized to $512\times 512$, and both datasets are normalized with $\mu=-500$ and $\sigma=500$.
+The CT scan images from the second dataset are resized to $512\times 512$, and for both datasets pixel values are divided with $4095$.
 We use $80$ scans from the first dataset for training the models, $20$ scans for validation and all scans from the second dataset for the testing of the models.
 
 In Fig.~\ref{fig:hist} the histograms of the pixel intensities of all the CT scan images and the target masks in the test dataset after normalization, for each of the three experiments, are depicted.

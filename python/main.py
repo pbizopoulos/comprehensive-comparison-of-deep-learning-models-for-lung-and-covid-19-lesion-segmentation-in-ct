@@ -1,3 +1,4 @@
+from fvcore.nn import FlopCountAnalysis
 from matplotlib import gridspec, pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from onnx_tf.backend import prepare
@@ -183,8 +184,7 @@ def main():
     hist_masks_array = np.zeros_like(hist_images_array)
     loss_training_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_name_list), len(encoder_weights_list), epochs_num))
     loss_validation_array = np.zeros_like(loss_training_array)
-    training_time_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_name_list), len(encoder_weights_list)))
-    validation_time_array = np.zeros_like(training_time_array)
+    flops_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_name_list), len(encoder_weights_list)))
     for (experiment_name_index, experiment_name) in enumerate(experiment_name_list):
         for (architecture_index, (architecture, architecture_name)) in enumerate(zip(architecture_list, architecture_name_list)):
             for (encoder_name_index, encoder_name) in enumerate(encoder_name_list):
@@ -194,6 +194,8 @@ def main():
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float('inf')
                     model_file_path = join('bin', f'{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt')
+                    flops = FlopCountAnalysis(model, dataloader_training.dataset[0][0].unsqueeze(0).to(device))
+                    flops_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] = flops.total()
                     for (epoch_index, epoch) in enumerate(range(epochs_num)):
                         loss_training_sum = 0
                         model.train()
@@ -207,14 +209,7 @@ def main():
                                 masks = mask_lesions
                             images = images.to(device)
                             masks = masks.to(device)
-                            if device == 'cuda':
-                                with torch.autograd.profiler.profile(use_cuda=True) as prof:
-                                    predictions = model(images)
-                                training_time_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] += sum((item.cuda_time for item in prof.function_events))
-                            else:
-                                with torch.autograd.profiler.profile(use_cuda=False) as prof:
-                                    predictions = model(images)
-                                training_time_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] += sum((item.cpu_time for item in prof.function_events))
+                            predictions = model(images)
                             if architecture_name == architecture_name_list[0] and encoder_name == encoder_name_list[0] and (encoder_weights == encoder_weights_list[0]) and (epoch_index == epochs_num - 1):
                                 save_figure_image(experiment_name, images[0, 0])
                                 save_figure_image_masked('mask', 'train', experiment_name, images[0, 0], masks[0, 0], masks[0, 0])
@@ -244,14 +239,7 @@ def main():
                                     masks = mask_lesions
                                 images = images.to(device)
                                 masks = masks.to(device)
-                                if device == 'cuda':
-                                    with torch.autograd.profiler.profile(use_cuda=True) as prof:
-                                        predictions = model(images)
-                                    validation_time_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] += sum((item.cuda_time for item in prof.function_events))
-                                else:
-                                    with torch.autograd.profiler.profile(use_cuda=False) as prof:
-                                        predictions = model(images)
-                                    validation_time_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] += sum((item.cpu_time for item in prof.function_events))
+                                predictions = model(images)
                                 loss = dice_loss(predictions, masks)
                                 loss_validation_sum += loss.item()
                             loss_validation = loss_validation_sum / len(dataloader_validation)
@@ -317,8 +305,8 @@ def main():
                                     save_figure_3d('mask', '', experiment_name, volume_mask_array)
                                 volume_prediction_array = volume_prediction_array[:, :, ::-1]
                                 save_figure_3d(architecture_name, encoder_weights, experiment_name, volume_prediction_array)
-                    model_file_name = f'{experiment_name}.{architecture_name}.{encoder_name}.{encoder_weights}'
-                    if model_file_name in ['lesion-segmentation-a.FPN.mobilenet_v2.imagenet', 'lung-segmentation.FPN.mobilenet_v2.imagenet']:
+                    model_file_name = f'{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}'
+                    if model_file_name in ['lesion-segmentation-a-FPN-mobilenet_v2-imagenet', 'lung-segmentation-FPN-mobilenet_v2-imagenet']:
                         save_tfjs_from_torch(dataset_training[0][0].unsqueeze(0), model, model_file_name)
                         if environ['DEBUG'] != '1':
                             rmtree(join('dist', model_file_name))
@@ -350,24 +338,18 @@ def main():
     parameters_num_array_global_mean = parameters_num_array.mean()
     parameters_num_array_global_std = parameters_num_array.std()
     parameters_num_array = np.concatenate((parameters_num_array, parameters_num_array.mean(1, keepdims=True), parameters_num_array.std(1, keepdims=True)), 1)
-    training_time_array /= epochs_num * 10 ** 6
-    training_time_array = training_time_array.mean(0).mean(-1)
-    training_time_array_global_mean = training_time_array.mean()
-    training_time_array_global_std = training_time_array.std()
-    training_time_array = np.concatenate((training_time_array, training_time_array.mean(1, keepdims=True), training_time_array.std(1, keepdims=True)), 1)
-    validation_time_array /= epochs_num * 10 ** 6
-    validation_time_array = validation_time_array.mean(0).mean(-1)
-    validation_time_array_global_mean = validation_time_array.mean()
-    validation_time_array_global_std = validation_time_array.std()
-    validation_time_array = np.concatenate((validation_time_array, validation_time_array.mean(1, keepdims=True), validation_time_array.std(1, keepdims=True)), 1)
+    flops_array /= 10 ** 9
+    flops_array = flops_array.mean(0).mean(-1)
+    flops_array_global_mean = flops_array.mean()
+    flops_array_global_std = flops_array.std()
+    flops_array = np.concatenate((flops_array, flops_array.mean(1, keepdims=True), flops_array.std(1, keepdims=True)), 1)
     index = pd.MultiIndex.from_product([architecture_name_list, [encoder_name.replace('_', '') for encoder_name in encoder_name_list] + ['Mean', 'Std']])
     multicolumn = pd.MultiIndex.from_product([[str(encoder_weights) for encoder_weights in encoder_weights_list], experiment_list, metric_name_list])
     df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
     df['Performance', 'related', 'Pars(M)'] = parameters_num_array.flatten()
-    df['Performance', 'related', 'Train(s)'] = training_time_array.flatten()
-    df['Performance', 'related', 'Val(s)'] = validation_time_array.flatten()
-    df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, training_time_array_global_mean, validation_time_array_global_mean))
-    df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (parameters_num_array_global_std, training_time_array_global_std, validation_time_array_global_std))
+    df['Performance', 'related', 'FLOPS(B)'] = flops_array.flatten()
+    df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
+    df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (parameters_num_array_global_std, flops_array_global_std))
     df.index.names = ['Architecture', 'Encoder']
     df = df.round(2)
     max_per_column_list = df.max(0)
@@ -375,6 +357,7 @@ def main():
     styler = df.style
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
+    styler.highlight_min(props='bfseries: ;')
     styler.to_latex(join('bin', 'metrics.tex'), hrules=True, multicol_align='c')
     keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for (encoder_weights, stat) in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for (experiment_name, encoder_weights) in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for (experiment_name, architecture_name, encoder_weights) in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, encoder_weights) in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for (experiment, architecture_name, encoder_weights) in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]})
     keys_values_df.to_csv(join('bin', 'keys-values.csv'))
@@ -404,7 +387,7 @@ def preprocess_image(image, mask_lesion, mask_lung, use_transforms):
     image = tf.to_tensor(image)
     mask_lesion = tf.to_tensor(mask_lesion)
     mask_lung = tf.to_tensor(mask_lung)
-    image = tf.normalize(image, -500, 500)
+    image = image / 4095
     mask_lesion = mask_lesion.bool()
     mask_lung = mask_lung.bool()
     return (image, mask_lung, mask_lesion)
