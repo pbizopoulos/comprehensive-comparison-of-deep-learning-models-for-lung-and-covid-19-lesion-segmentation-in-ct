@@ -27,7 +27,10 @@
 						<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json">lung-segmentation.FPN.mobilenet_v2.imagenet</option>
 					</select>
 				</div>
-				<div id="modelDownloadFractionDiv">0%</div>
+				<div id="model-download-div">
+					<label for="model-download-progress">Model download progress:</label>
+					<progress id="model-download-progress" max="1" name="model-download-progress" value="0">0%</progress>
+				</div>
 			</div>
 			<div class="block">
 				<canvas height="256" id="image-input-canvas" width="256"></canvas>

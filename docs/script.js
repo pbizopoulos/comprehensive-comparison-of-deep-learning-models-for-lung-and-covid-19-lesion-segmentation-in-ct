@@ -4,6 +4,8 @@ const imageInputCanvas = document.getElementById('image-input-canvas');
 const imageInputContext = imageInputCanvas.getContext('2d');
 const maskOutputCanvas = document.getElementById('mask-output-canvas');
 const maskOutputContext = maskOutputCanvas.getContext('2d');
+const modelDownloadDiv = document.getElementById('model-download-div');
+const modelDownloadProgress = document.getElementById('model-download-progress');
 const modelSelect = document.getElementById('model-select');
 let image = new Image();
 let model;
@@ -17,12 +19,13 @@ function disableUI(argument) {
 	}
 }
 async function loadModel(predictFunction) {
+	modelDownloadDiv.style.display = '';
 	const loadModelFunction = tf.loadGraphModel;
 	model = await loadModelFunction(modelSelect.value, {
 		onProgress: function(fraction) {
-			document.getElementById('modelDownloadFractionDiv').textContent = `Downloading model, please wait ${Math.round(100*fraction)}%.`;
+			modelDownloadProgress.value = fraction;
 			if (fraction == 1) {
-				document.getElementById('modelDownloadFractionDiv').textContent = 'Model downloaded.';
+				modelDownloadDiv.style.display = 'none';
 			}
 			disableUI(true);
 		}
