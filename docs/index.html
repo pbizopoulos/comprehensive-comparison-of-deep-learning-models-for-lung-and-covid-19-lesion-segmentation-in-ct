@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 	<head>
 		<meta charset="utf-8">
 		<meta content="width=device-width, initial-scale=1" name="viewport">
@@ -9,16 +10,13 @@
 		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 		<script defer src="script.js"></script>
 	</head>
+
 	<body>
 		<nav>
-			<a href="https://pbizopoulos.github.io">Home page</a> |
-			<a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a>
+			<a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a> | <a href="https://pbizopoulos.github.io">Home page</a> / <b>Lung and COVID-19 CT segmentation</b>
 		</nav>
-		<header>
-			<h2>Lung and COVID-19 CT segmentation</h2>
-		</header>
 		<div>
-			<div class="block" id="inputControlDiv">
+			<div class="block" id="input-control-div">
 				<div>NOT FOR MEDICAL USE. Choose a lung CT image (.jpg,.png,.gif) and segment lungs or COVID-19 lesions using DNNs.</div>
 				<div>
 					<input accept="image/*" id="inputFile" type="file">
@@ -32,9 +30,10 @@
 				<div id="modelDownloadFractionDiv">0%</div>
 			</div>
 			<div class="block">
-				<canvas height="256" id="imageInputCanvas" width="256"></canvas>
+				<canvas height="256" id="image-input-canvas" width="256"></canvas>
 				<canvas height="256" id="mask-output-canvas" width="256"></canvas>
 			</div>
 		</div>
 	</body>
+
 </html>
