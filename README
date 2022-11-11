@@ -13,6 +13,6 @@ git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learni
 cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 
 # Usage
-make -C docs/ help	# Show help for browser.
-make -C python/ help	# Show help for python.
+cd docs/ && make help	# Show help for browser.
+cd python/ && make help	# Show help for python.
 make help		# Show help for tex.
