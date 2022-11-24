@@ -8,8 +8,9 @@ Make
 Docker (>= 19.03 for NVIDIA Container Toolkit)
 NVIDIA Container Toolkit (Optional)
 
-# Build
+# Check code and build
 git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
 cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
-cd python/ && make DEBUG=0 && cd .. && make DEBUG=0
-cd docs/ && make DEBUG=0 && cd ..			# Build web application.
+cd docs/ && make check all && cd ..
+cd python/ && make check all && cd ..
+make check all
