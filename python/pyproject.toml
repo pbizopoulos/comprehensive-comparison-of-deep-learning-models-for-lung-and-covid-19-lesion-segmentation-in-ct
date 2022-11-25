@@ -3,14 +3,14 @@ name = "UNKNOWN"
 version = "0.0.0"
 dependencies = [
 	"Jinja2==3.1.2",
-	"fvcore==0.1.5.post20220512",
+	"fvcore==0.1.5.post20221122",
 	"gdown==4.5.3",
-	"matplotlib==3.6.1",
+	"matplotlib==3.6.2",
 	"nibabel==4.0.2",
 	"onnx-tf==1.10.0",
-	"pandas==1.5.1",
+	"pandas==1.5.2",
 	"scikit-image==0.19.3",
 	"segmentation-models-pytorch==0.3.0",
 	"tensorflow-probability==0.18.0",
-	"tensorflowjs==4.0.0",
+	"tensorflowjs==4.1.0",
 ]
