@@ -10,7 +10,7 @@ dependencies = [
 	"onnx-tf==1.10.0",
 	"pandas==1.5.2",
 	"scikit-image==0.19.3",
-	"segmentation-models-pytorch==0.3.0",
+	"segmentation-models-pytorch==0.3.1",
 	"tensorflow-probability==0.18.0",
 	"tensorflowjs==4.1.0",
 ]
