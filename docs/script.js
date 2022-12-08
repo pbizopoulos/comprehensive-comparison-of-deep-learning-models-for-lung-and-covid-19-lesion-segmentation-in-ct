@@ -63,29 +63,6 @@ image.onload = function() {
 imageFileReader.onload = function() {
 	image.src = imageFileReader.result;
 };
-maskOutputCanvas.onmousedown = function(event) {
-	imageInputContext.clearRect(0, 0, this.width, this.height);
-	imageInputContext.save();
-	const rectangular = imageInputCanvas.getBoundingClientRect();
-	const mousedownX = event.clientX - rectangular.left;
-	const mousedownY = event.clientY - rectangular.top;
-	let mousedownDistanceFromCenter = Math.sqrt((mousedownX - this.width / 2) ** 2 + (mousedownY - this.height / 2) ** 2);
-	let rotationDegree = 0;
-	if (mousedownDistanceFromCenter > this.width / 4) {
-		const mousedownXtranslated = (mousedownX - this.width / 2);
-		const mousedownYtranslated = (mousedownY - this.height / 2);
-		const originXtranslated = (this.width / 2 - this.width / 2);
-		const originYtranslated = (0 - this.height / 2);
-		const dot = mousedownXtranslated * originXtranslated + mousedownYtranslated * originYtranslated;
-		const det = mousedownYtranslated * originXtranslated - mousedownXtranslated * originYtranslated;
-		rotationDegree = Math.atan2(det, dot);
-	}
-	imageInputContext.translate(this.width / 2, this.height / 2);
-	imageInputContext.rotate(rotationDegree);
-	imageInputContext.drawImage(image, 0, 0, image.width, image.height, -this.width / 2, -this.height / 2, this.width, this.height);
-	imageInputContext.restore();
-	predictView();
-};
 inputFile.onchange = function(event) {
 	const files = event.currentTarget.files;
 	if (files[0]) {
