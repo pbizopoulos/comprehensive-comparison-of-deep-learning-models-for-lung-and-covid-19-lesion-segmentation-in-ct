@@ -3,7 +3,7 @@ name = "UNKNOWN"
 version = "0.0.0"
 dependencies = [
 	"Jinja2==3.1.2",
-	"fvcore==0.1.5.post20221122",
+	"fvcore==0.1.5.post20221213",
 	"gdown==4.5.4",
 	"matplotlib==3.6.2",
 	"nibabel==4.0.2",
