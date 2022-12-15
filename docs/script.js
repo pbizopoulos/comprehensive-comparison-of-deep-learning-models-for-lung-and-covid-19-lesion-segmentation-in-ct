@@ -18,6 +18,7 @@ function disableUI(argument) {
 		nodes[i].disabled = argument;
 	}
 }
+
 async function loadModel(predictFunction) {
 	modelDownloadDiv.style.display = '';
 	const loadModelFunction = tf.loadGraphModel;
@@ -55,6 +56,7 @@ function predictView() {
 		tf.browser.toPixels(maskToPixels, maskOutputCanvas);
 	});
 }
+
 image.onload = function() {
 	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
 	imageInputContext.drawImage(image, 0, 0, image.width, image.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
