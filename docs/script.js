@@ -10,13 +10,33 @@ const modelSelect = document.getElementById('model-select');
 let image = new Image();
 let model;
 image.crossOrigin = 'anonymous';
+image.onload = imageOnLoad;
 image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png';
+imageFileReader.onload = imageFileReaderOnLoad;
+inputFile.onchange = inputFileOnChange;
 
 function disableUI(argument) {
 	const nodes = document.getElementById('input-control-div').getElementsByTagName('*');
 	for (let i = 0; i < nodes.length; i++) {
 		nodes[i].disabled = argument;
 	}
+}
+
+function inputFileOnChange(event) {
+	const files = event.currentTarget.files;
+	if (files[0]) {
+		imageFileReader.readAsDataURL(files[0]);
+	}
+}
+
+function imageFileReaderOnLoad() {
+	image.src = imageFileReader.result;
+}
+
+function imageOnLoad() {
+	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	imageInputContext.drawImage(image, 0, 0, image.width, image.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
+	predictView();
 }
 
 async function loadModel(predictFunction) {
@@ -57,18 +77,4 @@ function predictView() {
 	});
 }
 
-image.onload = function() {
-	imageInputContext.clearRect(0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	imageInputContext.drawImage(image, 0, 0, image.width, image.height, 0, 0, imageInputCanvas.width, imageInputCanvas.height);
-	predictView();
-};
-imageFileReader.onload = function() {
-	image.src = imageFileReader.result;
-};
-inputFile.onchange = function(event) {
-	const files = event.currentTarget.files;
-	if (files[0]) {
-		imageFileReader.readAsDataURL(files[0]);
-	}
-};
 loadModel(predictView);
