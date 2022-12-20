@@ -43,13 +43,13 @@ async function loadModel(predictFunction) {
 	modelDownloadDiv.style.display = '';
 	const loadModelFunction = tf.loadGraphModel;
 	model = await loadModelFunction(modelSelect.value, {
-		onProgress: function(fraction) {
+		onProgress: (fraction) => {
 			modelDownloadProgress.value = fraction;
-			if (fraction == 1) {
+			if (fraction === 1) {
 				modelDownloadDiv.style.display = 'none';
 			}
 			disableUI(true);
-		}
+		},
 	});
 	predictFunction();
 	disableUI(false);
