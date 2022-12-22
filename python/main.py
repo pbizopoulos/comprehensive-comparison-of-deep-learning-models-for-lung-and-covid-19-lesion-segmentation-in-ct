@@ -1,29 +1,31 @@
-from fvcore.nn import FlopCountAnalysis
-from matplotlib import gridspec, pyplot as plt
-from matplotlib.ticker import MaxNLocator
-from onnx_tf.backend import prepare
+import glob
+import itertools
+import os
 from os import environ
 from os.path import join
+from shutil import move, rmtree
+from zipfile import ZipFile
+
+import gdown
+import nibabel as nib
+import numpy as np
+import onnx
+import pandas as pd
+import requests
+import torch
+from fvcore.nn import FlopCountAnalysis
+from matplotlib import gridspec
+from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from onnx_tf.backend import prepare
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet
 from segmentation_models_pytorch.utils.losses import DiceLoss
-from shutil import move, rmtree
 from skimage.measure import marching_cubes
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from torch import optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
-from zipfile import ZipFile
-import gdown
-import glob
-import itertools
-import nibabel as nib
-import numpy as np
-import onnx
-import os
-import pandas as pd
-import requests
-import torch
 
 
 class CTSegBenchmark(Dataset):
@@ -345,21 +347,21 @@ def main():
     flops_array = np.concatenate((flops_array, flops_array.mean(1, keepdims=True), flops_array.std(1, keepdims=True)), 1)
     index = pd.MultiIndex.from_product([architecture_name_list, [encoder_name.replace('_', '') for encoder_name in encoder_name_list] + ['Mean', 'Std']])
     multicolumn = pd.MultiIndex.from_product([[str(encoder_weights) for encoder_weights in encoder_weights_list], experiment_list, metric_name_list])
-    df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
-    df['Performance', 'related', 'Pars(M)'] = parameters_num_array.flatten()
-    df['Performance', 'related', 'FLOPS(B)'] = flops_array.flatten()
-    df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
-    df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (parameters_num_array_global_std, flops_array_global_std))
-    df.index.names = ['Architecture', 'Encoder']
-    df = df.round(2)
-    max_per_column_list = df.max(0)
-    max_per_column_index_list = df.idxmax(0)
-    styler = df.style
+    metrics_df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
+    metrics_df['Performance', 'related', 'Pars(M)'] = parameters_num_array.flatten()
+    metrics_df['Performance', 'related', 'FLOPS(B)'] = flops_array.flatten()
+    metrics_df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
+    metrics_df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (parameters_num_array_global_std, flops_array_global_std))
+    metrics_df.index.names = ['Architecture', 'Encoder']
+    metrics_df = metrics_df.round(2)
+    max_per_column_list = metrics_df.max(0)
+    max_per_column_index_list = metrics_df.idxmax(0)
+    styler = metrics_df.style
     styler.format(precision=2)
     styler.highlight_max(props='bfseries: ;')
     styler.highlight_min(props='bfseries: ;')
     styler.to_latex(join('bin', 'metrics.tex'), hrules=True, multicol_align='c')
-    keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]})
+    keys_values_df = pd.DataFrame({'key': ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)], 'value': [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [metrics_df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [metrics_df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [metrics_df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [metrics_df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]})
     keys_values_df.to_csv(join('bin', 'keys-values.csv'))
 
 
