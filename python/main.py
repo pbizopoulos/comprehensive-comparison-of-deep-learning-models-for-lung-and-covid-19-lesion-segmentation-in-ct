@@ -38,7 +38,7 @@ class CTSegBenchmark(Dataset):
     def __init__(self, index_range, use_transforms):
         url_list = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_name_list = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
-        for url, file_name in zip(url_list, file_name_list, strict=True):
+        for url, file_name in zip(url_list, file_name_list):
             zip_file_path = join('bin', f'{file_name}.zip')
             if not os.path.isfile(zip_file_path):
                 response = requests.get(url, timeout=5)
@@ -79,7 +79,7 @@ class MedicalSegmentation1(Dataset):
     def __init__(self, index_range, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_name_list = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
-        for url, file_name in zip(url_list, file_name_list, strict=True):
+        for url, file_name in zip(url_list, file_name_list):
             if not os.path.isfile(join('bin', file_name)):
                 gdown.download(url, join('bin', file_name), quiet=False)
         images_file_path = join('bin', 'tr_im.nii.gz')
@@ -106,7 +106,7 @@ class MedicalSegmentation2(Dataset):
     def __init__(self, index_volume, use_transforms):
         url_list = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_name_list = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
-        for url, file_name in zip(url_list, file_name_list, strict=True):
+        for url, file_name in zip(url_list, file_name_list):
             zip_file_path = join('bin', file_name)
             if not os.path.isfile(zip_file_path):
                 gdown.download(url, zip_file_path, quiet=False)
@@ -181,7 +181,7 @@ def main():
     loss_validation_array = np.zeros_like(loss_training_array)
     flops_array = np.zeros((len(experiment_list), len(architecture_list), len(encoder_name_list), len(encoder_weights_list)))
     for experiment_name_index, experiment_name in enumerate(experiment_name_list):
-        for architecture_index, (architecture, architecture_name) in enumerate(zip(architecture_list, architecture_name_list, strict=True)):
+        for architecture_index, (architecture, architecture_name) in enumerate(zip(architecture_list, architecture_name_list)):
             for encoder_name_index, encoder_name in enumerate(encoder_name_list):
                 for encoder_weights_index, encoder_weights in enumerate(encoder_weights_list):
                     model = architecture(encoder_name, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to(device)
@@ -308,43 +308,38 @@ def main():
                             move(join('bin', model_file_name), join('dist', model_file_name))
                     if environ['DEBUG'] == '1':
                         os.remove(model_file_path)
-    for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list, strict=True):
+    for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_name_list):
         save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
-    for experiment_name, loss_training, loss_validation in zip(experiment_name_list, loss_training_array, loss_validation_array, strict=True):
+    for experiment_name, loss_training, loss_validation in zip(experiment_name_list, loss_training_array, loss_validation_array):
         save_figure_loss(architecture_name_list, experiment_name, loss_training, 'Train', [0, 1])
         save_figure_loss(architecture_name_list, experiment_name, loss_validation, 'Validation', [0, 1])
     save_figure_loss(architecture_name_list, experiment_name, loss_training_array[2] - loss_training_array[1], 'Train diff', [-0.4, 0.4])
     save_figure_loss(architecture_name_list, experiment_name, loss_validation_array[2] - loss_validation_array[1], 'Validation diff', [-0.4, 0.4])
     metrics_array = 100 * np.nan_to_num(metrics_array) / slices_test_num
     parameters_num_array = parameters_num_array / 10 ** 6
-    for _experiment, experiment_name, metrics_ in zip(experiment_list, experiment_name_list, metrics_array, strict=True):
+    for experiment_name, metrics_ in zip(experiment_name_list, metrics_array):
         save_figure_architecture_box(architecture_name_list, metrics_[..., -1], experiment_name)
         save_figure_scatter(architecture_name_list, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
     save_figure_scatter(architecture_name_list, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
     save_figure_initialization_box(metrics_array[..., -1], encoder_weights_list)
     encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
-    encoder_weights_std = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).std(0).round(2)
     encoder_mean = metrics_array.transpose([2, 0, 1, 3, 4]).reshape(metrics_array.shape[2], -1).mean(1)
     metrics_array = metrics_array.transpose([1, 2, 3, 0, 4])
     metrics_array_global_mean = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:])).mean(0)
-    metrics_array_global_std = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:])).std(0)
-    metrics_array = np.concatenate((metrics_array, metrics_array.mean(1, keepdims=True), metrics_array.std(1, keepdims=True)), 1)
+    metrics_array = np.concatenate((metrics_array, metrics_array.mean(1, keepdims=True)), 1)
     metrics_array = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:]))
     parameters_num_array_global_mean = parameters_num_array.mean()
-    parameters_num_array_global_std = parameters_num_array.std()
-    parameters_num_array = np.concatenate((parameters_num_array, parameters_num_array.mean(1, keepdims=True), parameters_num_array.std(1, keepdims=True)), 1)
+    parameters_num_array = np.concatenate((parameters_num_array, parameters_num_array.mean(1, keepdims=True)), 1)
     flops_array /= 10 ** 9
     flops_array = flops_array.mean(0).mean(-1)
     flops_array_global_mean = flops_array.mean()
-    flops_array_global_std = flops_array.std()
-    flops_array = np.concatenate((flops_array, flops_array.mean(1, keepdims=True), flops_array.std(1, keepdims=True)), 1)
-    index = pd.MultiIndex.from_product([architecture_name_list, [encoder_name.replace('_', '') for encoder_name in encoder_name_list] + ['Mean', 'Std']])
+    flops_array = np.concatenate((flops_array, flops_array.mean(1, keepdims=True)), 1)
+    index = pd.MultiIndex.from_product([architecture_name_list, [encoder_name.replace('_', '') for encoder_name in encoder_name_list] + ['Mean']])
     multicolumn = pd.MultiIndex.from_product([[str(encoder_weights) for encoder_weights in encoder_weights_list], experiment_list, metric_name_list])
     metrics_df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
     metrics_df['Performance', 'related', 'Pars(M)'] = parameters_num_array.flatten()
     metrics_df['Performance', 'related', 'FLOPS(B)'] = flops_array.flatten()
     metrics_df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
-    metrics_df.loc[('Global', 'Std'), :] = np.append(metrics_array_global_std, (parameters_num_array_global_std, flops_array_global_std))
     metrics_df.index.names = ['Architecture', 'Encoder']
     metrics_df = metrics_df.round(2)
     max_per_column_list = metrics_df.max(0)
@@ -354,8 +349,8 @@ def main():
     styler.highlight_max(props='bfseries: ;')
     styler.highlight_min(props='bfseries: ;')
     styler.to_latex(join('bin', 'metrics.tex'), hrules=True, multicol_align='c')
-    key_list = ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-std' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean', 'std'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-std' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)]
-    value_list = [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [metrics_df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [metrics_df.loc['Global', 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], encoder_weights_std[0], encoder_weights_std[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [metrics_df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)] + [metrics_df.loc[architecture_name, 'Std'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]
+    key_list = ['epochs-num', 'batch-size', 'test-slices-num', 'encoder-best', 'encoder-worst'] + [f'{experiment_name}-{encoder_weights}-mean' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{encoder_weights}-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{encoder_weights}-{stat}' for encoder_weights, stat in itertools.product(encoder_weights_list, ['mean'])] + [f'{experiment_name}-architecture-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-encoder-{encoder_weights}-index-max' for experiment_name, encoder_weights in itertools.product(experiment_name_list, encoder_weights_list)] + [f'{experiment_name}-{architecture_name}-{encoder_weights}-mean' for experiment_name, architecture_name, encoder_weights in itertools.product(experiment_name_list, architecture_name_list, encoder_weights_list)]
+    value_list = [str(int(epochs_num)), str(int(batch_size)), str(int(slices_test_num)), encoder_name_list[encoder_mean.argmax()].replace('_', ''), encoder_name_list[encoder_mean.argmin()].replace('_', '')] + [metrics_df.loc['Global', 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, encoder_weights in itertools.product(experiment_list, encoder_weights_list)] + [max_per_column_list[2], max_per_column_list[11], max_per_column_list[5], max_per_column_list[14], max_per_column_list[8], max_per_column_list[17], encoder_weights_mean[0], encoder_weights_mean[1], max_per_column_index_list[2][0], max_per_column_index_list[2][1], max_per_column_index_list[11][0], max_per_column_index_list[11][1], max_per_column_index_list[5][0], max_per_column_index_list[5][1], max_per_column_index_list[14][0], max_per_column_index_list[14][1], max_per_column_index_list[8][0], max_per_column_index_list[8][1], max_per_column_index_list[17][0], max_per_column_index_list[17][1]] + [metrics_df.loc[architecture_name, 'Mean'][str(encoder_weights), experiment]['Dice'] for experiment, architecture_name, encoder_weights in itertools.product(experiment_list, architecture_name_list, encoder_weights_list)]
     keys_values_df = pd.DataFrame({'key': key_list, 'value': value_list})
     keys_values_df.to_csv(join('bin', 'keys-values.csv'))
 
@@ -491,7 +486,7 @@ def save_figure_loss(architecture_name_list, experiment_name, loss, training_or_
     loss_std_list = loss.std(1)
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(loss_mean_list)]
     _, ax = plt.subplots()
-    for index, (loss_mean, loss_std, color) in enumerate(zip(loss_mean_list, loss_std_list, color_list, strict=True)):
+    for index, (loss_mean, loss_std, color) in enumerate(zip(loss_mean_list, loss_std_list, color_list)):
         ax.fill_between(t_range_array, loss_mean + loss_std, loss_mean - loss_std, facecolor=color, alpha=0.3)
         p1[index] = ax.plot(t_range_array, loss_mean, color=color)
         p2[index] = ax.fill(np.nan, np.nan, color, alpha=0.3)
@@ -512,7 +507,7 @@ def save_figure_scatter(architecture_name_list, dice, experiment_name, parameter
     color_list = plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(parameters_num_array)]
     dice_ = dice.mean(-1)
     _, ax = plt.subplots()
-    for parameters_num, dice_element, architecture_name, color in zip(parameters_num_array, dice_, architecture_name_list, color_list, strict=True):
+    for parameters_num, dice_element, architecture_name, color in zip(parameters_num_array, dice_, architecture_name_list, color_list):
         plt.scatter(parameters_num, dice_element, c=color, label=architecture_name, s=3)
     xmin = 0
     xmax = 80
