@@ -3,7 +3,7 @@ import itertools
 import os
 import ssl
 from os import environ
-from os.path import join
+from os.path import isfile, join
 from shutil import move, rmtree
 from zipfile import ZipFile
 
@@ -40,8 +40,8 @@ class CTSegBenchmark(Dataset):
         file_name_list = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
         for url, file_name in zip(url_list, file_name_list):
             zip_file_path = join('bin', f'{file_name}.zip')
-            if not os.path.isfile(zip_file_path):
-                response = requests.get(url, timeout=5)
+            if not isfile(zip_file_path):
+                response = requests.get(url, timeout=60)
                 with open(zip_file_path, 'wb') as file:
                     file.write(response.content)
                 with ZipFile(zip_file_path, 'r') as zip_file:
@@ -80,7 +80,7 @@ class MedicalSegmentation1(Dataset):
         url_list = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_name_list = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
         for url, file_name in zip(url_list, file_name_list):
-            if not os.path.isfile(join('bin', file_name)):
+            if not isfile(join('bin', file_name)):
                 gdown.download(url, join('bin', file_name), quiet=False)
         images_file_path = join('bin', 'tr_im.nii.gz')
         images = nib.load(images_file_path)
@@ -108,7 +108,7 @@ class MedicalSegmentation2(Dataset):
         file_name_list = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
         for url, file_name in zip(url_list, file_name_list):
             zip_file_path = join('bin', file_name)
-            if not os.path.isfile(zip_file_path):
+            if not isfile(zip_file_path):
                 gdown.download(url, zip_file_path, quiet=False)
                 with ZipFile(zip_file_path, 'r') as zip_file:
                     zip_file.extractall('bin')
