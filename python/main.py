@@ -322,7 +322,7 @@ def main():
         save_figure_scatter(architecture_name_list, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
     save_figure_scatter(architecture_name_list, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
     save_figure_initialization_box(metrics_array[..., -1], encoder_weights_list)
-    encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(2)
+    encoder_weights_mean = metrics_array[..., -1].reshape(-1, len(encoder_weights_list)).mean(0).round(1)
     encoder_mean = metrics_array.transpose([2, 0, 1, 3, 4]).reshape(metrics_array.shape[2], -1).mean(1)
     metrics_array = metrics_array.transpose([1, 2, 3, 0, 4])
     metrics_array_global_mean = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:])).mean(0)
@@ -341,11 +341,11 @@ def main():
     metrics_df['Performance', 'related', 'FLOPS(B)'] = flops_array.flatten()
     metrics_df.loc[('Global', 'Mean'), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
     metrics_df.index.names = ['Architecture', 'Encoder']
-    metrics_df = metrics_df.round(2)
+    metrics_df = metrics_df.round(1)
     max_per_column_list = metrics_df.max(0)
     max_per_column_index_list = metrics_df.idxmax(0)
     styler = metrics_df.style
-    styler.format(precision=2)
+    styler.format(precision=1)
     styler.highlight_max(props='bfseries: ;')
     styler.highlight_min(props='bfseries: ;')
     styler.to_latex(join('bin', 'metrics.tex'), hrules=True, multicol_align='c')
