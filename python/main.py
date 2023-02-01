@@ -185,7 +185,7 @@ def main():
             for encoder_name_index, encoder_name in enumerate(encoder_name_list):
                 for encoder_weights_index, encoder_weights in enumerate(encoder_weights_list):
                     model = architecture(encoder_name, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to(device)
-                    parameters_num_array[architecture_index, encoder_name_index] = sum((parameter.numel() for parameter in model.parameters() if parameter.requires_grad))
+                    parameters_num_array[architecture_index, encoder_name_index] = sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float('inf')
                     model_file_path = join('bin', f'{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt')
