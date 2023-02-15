@@ -81,7 +81,7 @@ class MedicalSegmentation1(Dataset):
         for url, file_name in zip(urls, file_names):
             nifti_file_path = Path('bin') / file_name
             if not nifti_file_path.is_file():
-                gdown.download(url, nifti_file_path, quiet=False)
+                gdown.download(url, nifti_file_path.as_posix(), quiet=False)
         images = nib.load('bin/tr_im.nii.gz')
         self.images = images.get_fdata()[..., index_range]
         mask_lesions = nib.load('bin/tr_mask.nii.gz')
