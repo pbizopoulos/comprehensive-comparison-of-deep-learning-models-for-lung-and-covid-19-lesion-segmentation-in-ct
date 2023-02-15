@@ -4,16 +4,19 @@ version = "0.0.0"
 dependencies = [
 	"Jinja2==3.1.2",
 	"fvcore==0.1.5.post20221221",
-	"gdown==4.6.0",
-	"matplotlib==3.6.3",
-	"nibabel==5.0.0",
+	"gdown==4.6.3",
+	"matplotlib==3.6.2",
+	"nibabel==4.0.2",
 	"onnx-tf==1.10.0",
-	"pandas==1.5.3",
+	"pandas==1.5.2",
 	"scikit-image==0.19.3",
 	"segmentation-models-pytorch==0.3.2",
 	"tensorflow-probability==0.19.0",
-	"tensorflowjs==4.2.0",
+	"tensorflowjs==4.1.0",
 ]
 
 [project.optional-dependencies]
-dev = ["ruff==0.0.243"]
+dev = [
+	"mypy==1.0.0",
+	"ruff==0.0.246",
+]
