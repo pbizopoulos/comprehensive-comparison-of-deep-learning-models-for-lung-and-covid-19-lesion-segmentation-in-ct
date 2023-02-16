@@ -30,11 +30,11 @@ from torchvision.transforms import functional as tf
 
 class CTSegBenchmark(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
+    def __getitem__(self: 'CTSegBenchmark', index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, index_range: range, use_transforms: bool) -> None: # noqa: FBT001
+    def __init__(self: 'CTSegBenchmark', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_names = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
         for url, file_name in zip(urls, file_names):
@@ -65,17 +65,17 @@ class CTSegBenchmark(Dataset): # type: ignore[type-arg]
         self.mask_lungs = mask_lungs[..., index_range]
         self.use_transforms = use_transforms
 
-    def __len__(self) -> int:
+    def __len__(self: 'CTSegBenchmark') -> int:
         return self.images.shape[-1]
 
 
 class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
+    def __getitem__(self: 'MedicalSegmentation1', index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, index_range: range, use_transforms: bool) -> None: # noqa: FBT001
+    def __init__(self: 'MedicalSegmentation1', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_names = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
         for url, file_name in zip(urls, file_names):
@@ -90,17 +90,17 @@ class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
-    def __len__(self) -> int:
+    def __len__(self: 'MedicalSegmentation1') -> int:
         return self.images.shape[-1] # type: ignore[no-any-return]
 
 
 class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
+    def __getitem__(self: 'MedicalSegmentation2', index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
-    def __init__(self, index_volume: int, use_transforms: bool) -> None: # noqa: FBT001
+    def __init__(self: 'MedicalSegmentation2', index_volume: int, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_names = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
         for url, file_name in zip(urls, file_names):
@@ -120,7 +120,7 @@ class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
 
-    def __len__(self) -> int:
+    def __len__(self: 'MedicalSegmentation2') -> int:
         return self.images.shape[-1] # type: ignore[no-any-return]
 
 
