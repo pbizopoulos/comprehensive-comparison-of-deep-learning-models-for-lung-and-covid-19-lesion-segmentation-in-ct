@@ -28,9 +28,9 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
 
-class CTSegBenchmark(Dataset):
+class CTSegBenchmark(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple:
+    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
@@ -45,19 +45,19 @@ class CTSegBenchmark(Dataset):
                     file.write(response.content)
                 with ZipFile(zip_file_path, 'r') as zip_file:
                     zip_file.extractall(f'bin/{file_name}')
-        images: np.ndarray = np.array([]).reshape(512, 512, 0)
+        images: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
         for file_path in glob.glob(f'bin/{file_names[0]}/*.nii.gz'):
             images_ = nib.load(file_path)
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
-        mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)
+        mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
         for file_path in glob.glob(f'bin/{file_names[1]}/*.nii.gz'):
             mask_lesions_ = nib.load(file_path)
             mask_lesions_ = np.resize(mask_lesions_.get_fdata(), (512, 512, mask_lesions_.shape[-1]))
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
-        mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)
+        mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
         for file_path in glob.glob(f'bin/{file_names[2]}/*.nii.gz'):
             mask_lungs_ = nib.load(file_path)
             mask_lungs_ = np.resize(mask_lungs_.get_fdata(), (512, 512, mask_lungs.shape[-1]))
@@ -69,9 +69,9 @@ class CTSegBenchmark(Dataset):
         return self.images.shape[-1]
 
 
-class MedicalSegmentation1(Dataset):
+class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple:
+    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
@@ -91,12 +91,12 @@ class MedicalSegmentation1(Dataset):
         self.use_transforms = use_transforms
 
     def __len__(self) -> int:
-        return self.images.shape[-1]
+        return self.images.shape[-1] # type: ignore[no-any-return]
 
 
-class MedicalSegmentation2(Dataset):
+class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
 
-    def __getitem__(self, index: int) -> tuple:
+    def __getitem__(self, index: int) -> tuple: # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
         return (image, mask_lung, mask_lesion)
 
@@ -121,10 +121,10 @@ class MedicalSegmentation2(Dataset):
         self.use_transforms = use_transforms
 
     def __len__(self) -> int:
-        return self.images.shape[-1]
+        return self.images.shape[-1] # type: ignore[no-any-return]
 
 
-def calculate_metrics(mask: torch.Tensor, prediction: torch.Tensor) -> tuple:
+def calculate_metrics(mask: torch.Tensor, prediction: torch.Tensor) -> tuple[float, float, float]:
     tp, fp, fn, tn = metrics.get_stats(prediction, mask, mode='binary', threshold=0.5)
     f1_score = metrics.f1_score(tp, fp, fn, tn, reduction='micro')
     sensitivity = metrics.sensitivity(tp, fp, fn, tn)
@@ -353,7 +353,7 @@ def main() -> None:
     keys_values_df.to_csv('bin/keys-values.csv')
 
 
-def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.ndarray, use_transforms: bool) -> tuple: # noqa: FBT001
+def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.ndarray, use_transforms: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray]: # type: ignore[type-arg] # noqa: FBT001
     image = tf.to_pil_image(image.astype('float32'))
     mask_lesion = tf.to_pil_image(mask_lesion.astype('uint8'))
     mask_lung = tf.to_pil_image(mask_lung.astype('uint8'))
@@ -380,7 +380,7 @@ def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.n
     return (image, mask_lung, mask_lesion)
 
 
-def save_figure_3d(architecture: str, encoder_weights: str | None, experiment_name: str, step_size: int, volume: np.ndarray) -> None:
+def save_figure_3d(architecture: str, encoder_weights: str | None, experiment_name: str, step_size: int, volume: np.ndarray) -> None: # type: ignore[type-arg]
     volume = volume > 0.5
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
@@ -404,7 +404,7 @@ def save_figure_3d(architecture: str, encoder_weights: str | None, experiment_na
     plt.close()
 
 
-def save_figure_architecture_box(architecture_names: list, dice: np.ndarray, experiment_name: str) -> None:
+def save_figure_architecture_box(architecture_names: list[str], dice: np.ndarray, experiment_name: str) -> None: # type: ignore[type-arg]
     dice_ = dice.reshape(dice.shape[0], -1).T
     plt.subplots()
     plt.boxplot(dice_)
@@ -415,7 +415,7 @@ def save_figure_architecture_box(architecture_names: list, dice: np.ndarray, exp
     plt.close()
 
 
-def save_figure_histogram(experiment_name: str, hist_images: np.ndarray, hist_masks: np.ndarray, hist_range: tuple) -> None:
+def save_figure_histogram(experiment_name: str, hist_images: np.ndarray, hist_masks: np.ndarray, hist_range: tuple[float, float]) -> None: # type: ignore[type-arg]
     t_linspace_array = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
     hist_images = hist_images.reshape(-1, hist_images.shape[-1]).sum(0)
     hist_masks = hist_masks.reshape(-1, hist_masks.shape[-1]).sum(0)
@@ -460,7 +460,7 @@ def save_figure_image_masked(architecture: str, encoder_name: str, experiment_na
     plt.close()
 
 
-def save_figure_initialization_box(dice: np.ndarray, encoders_weights: list) -> None:
+def save_figure_initialization_box(dice: np.ndarray, encoders_weights: list[str | None]) -> None: # type: ignore[type-arg]
     dice_ = dice.reshape(-1, dice.shape[-1])
     plt.subplots()
     plt.boxplot(dice_)
@@ -471,7 +471,7 @@ def save_figure_initialization_box(dice: np.ndarray, encoders_weights: list) -> 
     plt.close()
 
 
-def save_figure_loss(architecture_names: list, experiment_name: str, loss: np.ndarray, training_or_validation: str, ylim: list) -> None:
+def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: np.ndarray, training_or_validation: str, ylim: list[float]) -> None: # type: ignore[type-arg]
     loss = np.nan_to_num(loss)
     p1 = []
     p2 = []
@@ -498,7 +498,7 @@ def save_figure_loss(architecture_names: list, experiment_name: str, loss: np.nd
     plt.close()
 
 
-def save_figure_scatter(architecture_names: list, dice: np.ndarray, experiment_name: str, parameters_num_array: np.ndarray, ylim: list) -> None:
+def save_figure_scatter(architecture_names: list[str], dice: np.ndarray, experiment_name: str, parameters_num_array: np.ndarray, ylim: list[int]) -> None: # type: ignore[type-arg]
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(parameters_num_array)]
     dice_ = dice.mean(-1)
     _, ax = plt.subplots()
