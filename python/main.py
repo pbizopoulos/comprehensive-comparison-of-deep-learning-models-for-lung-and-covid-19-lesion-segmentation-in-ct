@@ -37,7 +37,7 @@ class CTSegBenchmark(Dataset): # type: ignore[type-arg]
     def __init__(self: 'CTSegBenchmark', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_names = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
-        for url, file_name in zip(urls, file_names):
+        for url, file_name in zip(urls, file_names, strict=True):
             zip_file_path = Path('bin') / f'{file_name}.zip'
             if not zip_file_path.is_file():
                 response = requests.get(url, timeout=60)
@@ -78,7 +78,7 @@ class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
     def __init__(self: 'MedicalSegmentation1', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_names = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
-        for url, file_name in zip(urls, file_names):
+        for url, file_name in zip(urls, file_names, strict=True):
             nifti_file_path = Path('bin') / file_name
             if not nifti_file_path.is_file():
                 gdown.download(url, nifti_file_path.as_posix(), quiet=False)
@@ -103,7 +103,7 @@ class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
     def __init__(self: 'MedicalSegmentation2', index_volume: int, use_transforms: bool) -> None: # noqa: FBT001
         urls = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_names = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
-        for url, file_name in zip(urls, file_names):
+        for url, file_name in zip(urls, file_names, strict=True):
             zip_file_path = Path('bin') / file_name
             if not zip_file_path.is_file():
                 gdown.download(url, zip_file_path.as_posix(), quiet=False)
@@ -178,7 +178,7 @@ def main() -> None:
     loss_validation_array = np.zeros_like(loss_training_array)
     flops_array = np.zeros((len(experiments), len(architectures), len(encoder_names), len(encoders_weights)))
     for experiment_name_index, experiment_name in enumerate(experiment_names):
-        for architecture_index, (architecture, architecture_name) in enumerate(zip(architectures, architecture_names)):
+        for architecture_index, (architecture, architecture_name) in enumerate(zip(architectures, architecture_names, strict=True)):
             for encoder_name_index, encoder_name in enumerate(encoder_names):
                 for encoder_weights_index, encoder_weights in enumerate(encoders_weights):
                     model = architecture(encoder_name, encoder_weights=encoder_weights, activation='sigmoid', in_channels=1).to(device)
@@ -306,16 +306,16 @@ def main() -> None:
                             move(f'bin/{model_file_name}', dist_path)
                     if environ['DEBUG'] == '1':
                         model_file_path.unlink()
-    for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_names):
+    for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_names, strict=True):
         save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
-    for experiment_name, loss_training_, loss_validation_ in zip(experiment_names, loss_training_array, loss_validation_array):
+    for experiment_name, loss_training_, loss_validation_ in zip(experiment_names, loss_training_array, loss_validation_array, strict=True):
         save_figure_loss(architecture_names, experiment_name, loss_training_, 'Train', [0, 1])
         save_figure_loss(architecture_names, experiment_name, loss_validation_, 'Validation', [0, 1])
     save_figure_loss(architecture_names, experiment_name, loss_training_array[2] - loss_training_array[1], 'Train diff', [-0.4, 0.4])
     save_figure_loss(architecture_names, experiment_name, loss_validation_array[2] - loss_validation_array[1], 'Validation diff', [-0.4, 0.4])
     metrics_array = 100 * np.nan_to_num(metrics_array) / slices_test_num
     parameters_num_array = parameters_num_array / 10 ** 6
-    for experiment_name, metrics_ in zip(experiment_names, metrics_array):
+    for experiment_name, metrics_ in zip(experiment_names, metrics_array, strict=True):
         save_figure_architecture_box(architecture_names, metrics_[..., -1], experiment_name)
         save_figure_scatter(architecture_names, metrics_[..., -1], experiment_name, parameters_num_array, [70, 100])
     save_figure_scatter(architecture_names, metrics_array[2, ..., -1] - metrics_array[1, ..., -1], 'diff', parameters_num_array, [-15, 15])
@@ -481,7 +481,7 @@ def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: 
     loss_std_list = loss.std(1)
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(loss_mean_list)]
     _, ax = plt.subplots()
-    for _index, (loss_mean, loss_std, color) in enumerate(zip(loss_mean_list, loss_std_list, colors)):
+    for _index, (loss_mean, loss_std, color) in enumerate(zip(loss_mean_list, loss_std_list, colors, strict=True)):
         ax.fill_between(t_range_array, loss_mean + loss_std, loss_mean - loss_std, facecolor=color, alpha=0.3)
         p1.append(ax.plot(t_range_array, loss_mean, color=color))
         p2.append(ax.fill(np.nan, np.nan, color, alpha=0.3))
@@ -502,7 +502,7 @@ def save_figure_scatter(architecture_names: list[str], dice: np.ndarray, experim
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(parameters_num_array)]
     dice_ = dice.mean(-1)
     _, ax = plt.subplots()
-    for parameters_num, dice_element, architecture_name, color in zip(parameters_num_array, dice_, architecture_names, colors):
+    for parameters_num, dice_element, architecture_name, color in zip(parameters_num_array, dice_, architecture_names, colors, strict=True):
         plt.scatter(parameters_num, dice_element, c=color, label=architecture_name, s=3)
     xmin = 0
     xmax = 80
