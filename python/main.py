@@ -91,7 +91,8 @@ class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
         self.use_transforms = use_transforms
 
     def __len__(self: 'MedicalSegmentation1') -> int:
-        return self.images.shape[-1] # type: ignore[no-any-return]
+        output: int = self.images.shape[-1]
+        return output
 
 
 class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
@@ -121,7 +122,8 @@ class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
         self.use_transforms = use_transforms
 
     def __len__(self: 'MedicalSegmentation2') -> int:
-        return self.images.shape[-1] # type: ignore[no-any-return]
+        output: int = self.images.shape[-1]
+        return output
 
 
 def calculate_metrics(mask: torch.Tensor, prediction: torch.Tensor) -> tuple[float, float, float]:
