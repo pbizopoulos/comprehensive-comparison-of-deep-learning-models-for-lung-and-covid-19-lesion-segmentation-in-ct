@@ -31,10 +31,11 @@ from torchvision.transforms import functional as tf
 class CTSegBenchmark(Dataset): # type: ignore[type-arg]
 
     def __getitem__(self: 'CTSegBenchmark', index: int) -> tuple: # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms, self.rng)
         return (image, mask_lung, mask_lesion)
 
     def __init__(self: 'CTSegBenchmark', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
+        self.rng = np.random.default_rng(seed=0)
         urls = ['https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1', 'https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1', 'https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1']
         file_names = ['COVID-19-CT-Seg_20cases', 'Infection_Mask', 'Lung_Mask']
         for url, file_name in zip(urls, file_names, strict=True):
@@ -72,10 +73,11 @@ class CTSegBenchmark(Dataset): # type: ignore[type-arg]
 class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
 
     def __getitem__(self: 'MedicalSegmentation1', index: int) -> tuple: # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms, self.rng)
         return (image, mask_lung, mask_lesion)
 
     def __init__(self: 'MedicalSegmentation1', index_range: range, use_transforms: bool) -> None: # noqa: FBT001
+        self.rng = np.random.default_rng(seed=0)
         urls = ['https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S', 'https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f', 'https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-']
         file_names = ['tr_im.nii.gz', 'tr_mask.nii.gz', 'tr_lungmasks_updated.nii.gz']
         for url, file_name in zip(urls, file_names, strict=True):
@@ -98,10 +100,11 @@ class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
 class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
 
     def __getitem__(self: 'MedicalSegmentation2', index: int) -> tuple: # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms)
+        image, mask_lung, mask_lesion = preprocess_image(self.images[..., index], self.mask_lesions[..., index], self.mask_lungs[..., index], self.use_transforms, self.rng)
         return (image, mask_lung, mask_lesion)
 
     def __init__(self: 'MedicalSegmentation2', index_volume: int, use_transforms: bool) -> None: # noqa: FBT001
+        self.rng = np.random.default_rng(seed=0)
         urls = ['https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m', 'https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp', 'https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH']
         file_names = ['rp_im.zip', 'rp_msk.zip', 'rp_lung_msk.zip']
         for url, file_name in zip(urls, file_names, strict=True):
@@ -152,7 +155,6 @@ def main() -> None:
         range_training = range(1)
         range_validation = range(2, 4)
         step_size = 10
-    np.random.seed(0)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
     torch.cuda.manual_seed_all(0)
@@ -355,7 +357,7 @@ def main() -> None:
     keys_values_df.to_csv('bin/keys-values.csv')
 
 
-def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.ndarray, use_transforms: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray]: # type: ignore[type-arg] # noqa: FBT001
+def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.ndarray, use_transforms: bool, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray, np.ndarray]: # type: ignore[type-arg] # noqa: FBT001
     image = tf.to_pil_image(image.astype('float32'))
     mask_lesion = tf.to_pil_image(mask_lesion.astype('uint8'))
     mask_lung = tf.to_pil_image(mask_lung.astype('uint8'))
@@ -363,16 +365,16 @@ def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.n
     mask_lesion = tf.resize(mask_lesion, [512, 512])
     mask_lung = tf.resize(mask_lung, [512, 512])
     if use_transforms:
-        if np.random.rand() > 0.5:
+        if rng.random() > 0.5:
             image = tf.hflip(image)
             mask_lesion = tf.hflip(mask_lesion)
             mask_lung = tf.hflip(mask_lung)
-        if np.random.rand() > 0.5:
+        if rng.random() > 0.5:
             image = tf.vflip(image)
             mask_lesion = tf.vflip(mask_lesion)
             mask_lung = tf.vflip(mask_lung)
-        scale = np.random.rand() + 0.5
-        rotation = 360 * np.random.rand() - 180
+        scale = rng.random() + 0.5
+        rotation = 360 * rng.random() - 180
         image = tf.affine(image, rotation, [0, 0], scale, 0)
         mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
         mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
