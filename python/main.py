@@ -201,9 +201,9 @@ def main() -> None: # noqa: C901,PLR0912,PLR0915
                             elif experiment_name == experiment_names[1]:
                                 masks = mask_lesions
                             elif experiment_name == experiment_names[2]:
-                                images *= mask_lungs
+                                images *= mask_lungs # noqa: PLW2901
                                 masks = mask_lesions
-                            images = images.to(device)
+                            images = images.to(device) # noqa: PLW2901
                             masks = masks.to(device)
                             predictions = model(images)
                             if architecture_name == architecture_names[0] and encoder_name == encoder_names[0] and (encoder_weights == encoders_weights[0]) and (epoch_index == epochs_num - 1):
@@ -231,9 +231,9 @@ def main() -> None: # noqa: C901,PLR0912,PLR0915
                                 elif experiment_name == experiment_names[1]:
                                     masks = mask_lesions
                                 elif experiment_name == experiment_names[2]:
-                                    images *= mask_lungs
+                                    images *= mask_lungs # noqa: PLW2901
                                     masks = mask_lesions
-                                images = images.to(device)
+                                images = images.to(device) # noqa: PLW2901
                                 masks = masks.to(device)
                                 predictions = model(images)
                                 loss = dice_loss(predictions, masks)
@@ -258,9 +258,9 @@ def main() -> None: # noqa: C901,PLR0912,PLR0915
                                 elif experiment_name == experiment_names[1]:
                                     masks = mask_lesions
                                 elif experiment_name == experiment_names[2]:
-                                    images *= mask_lungs
+                                    images *= mask_lungs # noqa: PLW2901
                                     masks = mask_lesions
-                                images = images.to(device)
+                                images = images.to(device) # noqa: PLW2901
                                 masks = masks.to(device)
                                 predictions = model(images)
                                 if architecture_name == architecture_names[0] and encoder_name == encoder_names[0] and (encoder_weights == encoders_weights[0]):
@@ -291,7 +291,7 @@ def main() -> None: # noqa: C901,PLR0912,PLR0915
                                     elif experiment_name == experiment_names[1]:
                                         masks = mask_lesions
                                     elif experiment_name == experiment_names[2]:
-                                        images *= mask_lungs
+                                        images *= mask_lungs # noqa: PLW2901
                                         masks = mask_lesions
                                     volume_mask_array[:, :, slice_volume_index] = masks[0].float()
                                     predictions = model(images.unsqueeze(0).to(device))
