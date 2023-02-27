@@ -513,7 +513,7 @@ def save_figure_scatter(architecture_names: list[str], dice: np.ndarray, experim
     ymin = ylim[0]
     ymax = ylim[1]
     nbins = 100
-    x_mgrid, y_mgrid = np.mgrid[xmin:xmax:nbins * 1j, ymin:ymax:nbins * 1j] # type: ignore[misc] 
+    x_mgrid, y_mgrid = np.mgrid[xmin:xmax:nbins * 1j, ymin:ymax:nbins * 1j] # type: ignore[misc]
     positions = np.vstack([x_mgrid.ravel(), y_mgrid.ravel()])
     values = np.vstack([parameters_num_array.flatten(), dice_.flatten()])
     kernel = gaussian_kde(values)
