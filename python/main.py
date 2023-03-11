@@ -137,7 +137,7 @@ def calculate_metrics(mask: torch.Tensor, prediction: torch.Tensor) -> tuple[flo
     return (sensitivity.item(), specificity.item(), f1_score.item())
 
 
-def main() -> None: # noqa: C901,PLR0912,PLR0915
+def main() -> None:
     ssl._create_default_https_context = ssl._create_unverified_context # noqa: SLF001
     plt.rcParams['image.interpolation'] = 'none'
     plt.rcParams['savefig.format'] = 'pdf'
@@ -365,11 +365,11 @@ def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.n
     mask_lesion = tf.resize(mask_lesion, [512, 512])
     mask_lung = tf.resize(mask_lung, [512, 512])
     if use_transforms:
-        if rng.random() > 0.5: # noqa: PLR2004
+        if rng.random() > 0.5:
             image = tf.hflip(image)
             mask_lesion = tf.hflip(mask_lesion)
             mask_lung = tf.hflip(mask_lung)
-        if rng.random() > 0.5: # noqa: PLR2004
+        if rng.random() > 0.5:
             image = tf.vflip(image)
             mask_lesion = tf.vflip(mask_lesion)
             mask_lung = tf.vflip(mask_lung)
@@ -385,7 +385,7 @@ def preprocess_image(image: np.ndarray, mask_lesion: np.ndarray, mask_lung: np.n
 
 
 def save_figure_3d(architecture: str, encoder_weights: str | None, experiment_name: str, step_size: int, volume: np.ndarray) -> None: # type: ignore[type-arg]
-    volume = volume > 0.5 # noqa: PLR2004
+    volume = volume > 0.5
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
     verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)
@@ -448,13 +448,13 @@ def save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     plt.close()
 
 
-def save_figure_image_masked(architecture: str, encoder_name: str, experiment_name: str, image: torch.Tensor, mask: torch.Tensor, prediction: torch.Tensor) -> None: # noqa: PLR0913
+def save_figure_image_masked(architecture: str, encoder_name: str, experiment_name: str, image: torch.Tensor, mask: torch.Tensor, prediction: torch.Tensor) -> None:
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
-    prediction = prediction > 0.5 # noqa: PLR2004
+    prediction = prediction > 0.5
     correct = mask * prediction
-    false = np.logical_xor(mask, prediction) > 0.5 # noqa: PLR2004
+    false = np.logical_xor(mask, prediction) > 0.5
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap='gray', vmin=-0.5, vmax=0.5)
