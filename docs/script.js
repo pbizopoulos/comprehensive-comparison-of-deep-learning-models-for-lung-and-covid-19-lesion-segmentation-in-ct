@@ -1,22 +1,22 @@
-'use strict';
+"use strict";
 const imageFileReader = new FileReader();
-const imageInputCanvas = document.getElementById('image-input-canvas');
-const imageInputContext = imageInputCanvas.getContext('2d');
-const maskOutputCanvas = document.getElementById('mask-output-canvas');
-const maskOutputContext = maskOutputCanvas.getContext('2d');
-const modelDownloadDiv = document.getElementById('model-download-div');
-const modelDownloadProgress = document.getElementById('model-download-progress');
-const modelSelect = document.getElementById('model-select');
+const imageInputCanvas = document.getElementById("image-input-canvas");
+const imageInputContext = imageInputCanvas.getContext("2d");
+const maskOutputCanvas = document.getElementById("mask-output-canvas");
+const maskOutputContext = maskOutputCanvas.getContext("2d");
+const modelDownloadDiv = document.getElementById("model-download-div");
+const modelDownloadProgress = document.getElementById("model-download-progress");
+const modelSelect = document.getElementById("model-select");
 let image = new Image();
 let model;
-image.crossOrigin = 'anonymous';
+image.crossOrigin = "anonymous";
 image.onload = imageOnLoad;
-image.src = 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png';
+image.src = "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png";
 imageFileReader.onload = imageFileReaderOnLoad;
 inputFile.onchange = inputFileOnChange;
 
 function disableUI(argument) {
-	const nodes = document.getElementById('input-control-div').getElementsByTagName('*');
+	const nodes = document.getElementById("input-control-div").getElementsByTagName("*");
 	for (let i = 0; i < nodes.length; i++) {
 		nodes[i].disabled = argument;
 	}
@@ -40,13 +40,13 @@ function imageOnLoad() {
 }
 
 async function loadModel(predictFunction) {
-	modelDownloadDiv.style.display = '';
+	modelDownloadDiv.style.display = "";
 	const loadModelFunction = tf.loadGraphModel;
 	model = await loadModelFunction(modelSelect.value, {
 		onProgress: (fraction) => {
 			modelDownloadProgress.value = fraction;
 			if (fraction === 1) {
-				modelDownloadDiv.style.display = 'none';
+				modelDownloadDiv.style.display = "none";
 			}
 			disableUI(true);
 		},
