@@ -94,12 +94,12 @@ The rest of the paper is organized as follows: a detailed description of the mod
 In this Section the problem of segmentation is formalized and the architectures and encoders that are used in this study are presented.
 
 \subsection{Formalization}
-Let $\mathcal{D}$ be a dataset containing images $\bm{X} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y} \in \{0, 1\}^{n_r, n_c}$ the corresponding target mask (in our case $n_r=512$, $n_c=512$).
+Let $\mathcal{D}$ be a dataset containing images $\bm{X} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y} \in \{0, 1\}^{n_r, n_c}$ the corresponding target mask (in our case $n_r=512$, $n_c=512$). % chktex 3
 Let $m_{ex, ar, en, ew}$ be a DL model for segmentation where $ex$ denotes the specific experiment, $ar$ the architecture, $en$ the encoder and $ew$ the encoder weights.
 The `encoder' is defined as the part of the model that performs the feature extraction.
-The model $m_{ex, ar, en, ew}$ is trained on a dataset $\mathcal{D}_{train}\subset\mathcal{D}$ consisting of $\bm{X}_{train} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{train} \in \{0, 1\}^{n_r, n_c}$.
-Moreover a validation dataset is defined as $\mathcal{D}_{val}\subset\mathcal{D}$ where $\mathcal{D}_{val}\cap\mathcal{D}_{train}=\emptyset$ consisting of $\bm{X}_{val} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{val} \in \{0, 1\}^{n_r, n_c}$.
-Therefore, the objective of the experiments conducted in this study can be designed as, finding an optimal point in the parameter space of $m_{ex, ar, en, ew}$ during training such that when presented with an input from $\mathcal{D}$ such as $\bm{X}_{val}$, its prediction $\hat{\bm{Y}}_{val} \in [0, 1]^{n_r, n_c}$ is as near as possible with the target $\bm{Y}_{val}$.
+The model $m_{ex, ar, en, ew}$ is trained on a dataset $\mathcal{D}_{train}\subset\mathcal{D}$ consisting of $\bm{X}_{train} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{train} \in \{0, 1\}^{n_r, n_c}$. % chktex 3
+Moreover a validation dataset is defined as $\mathcal{D}_{val}\subset\mathcal{D}$ where $\mathcal{D}_{val}\cap\mathcal{D}_{train}=\emptyset$ consisting of $\bm{X}_{val} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{val} \in \{0, 1\}^{n_r, n_c}$. % chktex 3
+Therefore, the objective of the experiments conducted in this study can be designed as, finding an optimal point in the parameter space of $m_{ex, ar, en, ew}$ during training such that when presented with an input from $\mathcal{D}$ such as $\bm{X}_{val}$, its prediction $\hat{\bm{Y}}_{val} \in [0, 1]^{n_r, n_c}$ is as near as possible with the target $\bm{Y}_{val}$. % chktex 3
 This is implemented by selecting the model that performs the minimum validation error out of all epochs.
 Subsequently, the selected models are tested on the generalization ability on an unseen $\mathcal{D}_{test}$ with $\mathcal{D}_{test}\cap\mathcal{D}=\emptyset$.
 A high level overview of the training of the models can be seen in Fig.~\ref{fig:highleveloverview}.
@@ -173,7 +173,7 @@ Finally Inception-v4~\cite{szegedy2017inception} combines previous inception arc
 Two public COVID-19 CT scan datasets with lung and lesion masks were used.
 The first dataset\footnote{\url{http://medicalsegmentation.com/covid19/}} consists of $100$ CT axial scans from $<40$ patients with $512\times 512$ size and corresponding lung masks from~\cite{hofmanninger2020automatic} and lesion masks labeled with four classes (none, ground-glass, consolidation, pleural effusion).
 The original dataset, without the annotations, was selected from the Italian Society of Medical and Interventional Radiology\footnote{\url{https://www.sirm.org/category/senza-categoria/covid-19/}}.
-The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} consists of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ images from $9$ CT\@ scan volumes (a set of CT scan images acquired from the same patient at the same moment) with corresponding target masks.
+The second dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}} consists of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ images from $9$ CT\@ scan volumes (a set of CT scan images acquired from the same patient at the same moment) with corresponding target masks. % chktex 8
 373 out of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ were annotated as positive and segmented by a radiologist by the same group as the first dataset.
 Raw data from both datasets contain samples in Hounsfield units~\cite{schneider1996calibration}.
 
@@ -220,7 +220,7 @@ The activation function for all architectures was sigmoid that squashes the outp
 		\textbf{Architecture} & \textbf{\makecell{Encoder\\ depth}}          & \textbf{Batch Norm}                & \textbf{Various}                                                                                             \\
 		Unet    & 5 & Yes (decoder) & \makecell{decoder channel sizes =\\ (256, 128, 64, 32, 16)}                                 \\
 		\midrule
-		Linknet & 5 & Yes (decoder) & -                                                                              \\
+		Linknet & 5 & Yes (decoder) & N/A                                                                              \\
 		\midrule
 		FPN     & 5 & No            & \makecell{pyramid channels=256,\\ segment channels=128,\\ merge policy=add,\\ dropout=0.2} \\
 		\midrule
@@ -259,7 +259,7 @@ When $TP+FP=0$ the model has correctly identified that the input does not have a
 
 We train a total of $600$ different models for the three experiments each one for $\DTLfetch{keys-values}{key}{epochs-num}{value}$ epochs with a batch size of $\DTLfetch{keys-values}{key}{batch-size}{value}$, which was the maximum possible considering the GPU memory restriction.
 We use the optimizer~\cite{kingma2014adam} with the default values of learning rate $0.001$, $\beta_1=0.9$, $\beta_2=0.999$, $\epsilon=10^{-8}$, without weight decay.
-Pytorch~\cite{paszke2019pytorch} and the `Segmentation Models Pytorch' library~\cite{yakubovskiy2019segmentation} were used for implementing the experiments, a GeForce RTX 2080 Ti Graphics Card with 11Gb RAM from NVIDIA and an Intel Core i9-9900K CPU @3.60GHz, on a Linux-based operating system for training the models for two weeks.
+Pytorch~\cite{paszke2019pytorch} and the `Segmentation Models Pytorch' library~\cite{yakubovskiy2019segmentation} were used for implementing the experiments, a GeForce RTX 2080 Ti Graphics Card with 11Gb RAM from NVIDIA and an Intel Core i9-9900K CPU @3.60GHz, on a Linux-based operating system for training the models for two weeks. % chktex 8
 A pseudo-code implementation of the experimental setup is shown in Algorithm~\ref{alg:experimentalsetup}.
 
 \begin{algorithm}[H]
@@ -309,7 +309,7 @@ In this Section the results of the three experimental setups are demonstrated, a
 In Table.~\ref{table:metrics} the resulted metrics of all experiments are presented.
 The best combination of architecture-encoder for each combination of encoder weight initialization, experimental setup and metric are showin in bold.
 The mean Dice results for each experiment are $\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-mean}{value}\%$ for lung segmentation, $\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-mean}{value}\%$, for `lesion segmentation A' and $\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-mean}{value}\%$, for `lesion segmentation B'.
-The best performing models w.r.t.\ Dice for each experiment were the \DTLfetch{keys-values}{key}{lung-segmentation-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lung-segmentation-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-max}{value}\%$) for lung segmentation, \DTLfetch{keys-values}{key}{lesion-segmentation-a-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-a-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-max}{value}\%$) for lesion segmentation A and \DTLfetch{keys-values}{key}{lesion-segmentation-b-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-b-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-max}{value}\%$) for lesion segmentation B.
+The best performing models w.r.t.\ Dice for each experiment were the \DTLfetch{keys-values}{key}{lung-segmentation-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lung-segmentation-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lung-segmentation-imagenet-max}{value}\%$) for lung segmentation, \DTLfetch{keys-values}{key}{lesion-segmentation-a-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-a-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-a-imagenet-max}{value}\%$) for lesion segmentation A and \DTLfetch{keys-values}{key}{lesion-segmentation-b-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-b-encoder-imagenet-index-max}{value} ($\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-max}{value}\%$) for lesion segmentation B. % chktex 35
 In Fig.~\ref{fig:predictedmasks} the predicted masks for $24$ out of the $600$ models are depicted, demonstrating the difference in segmentation quality between the best (\DTLfetch{keys-values}{key}{encoder-best}{value}) and the worst (\DTLfetch{keys-values}{key}{encoder-worst}{value}) performing encoder of the models for each architecture, with randomly initialized weights.
 In Fig.~\ref{fig:dicevsnumparameters} the Dice vs.\ the number of parameters is plotted, demonstrating that there is positive correlation, suggesting that segmentation generally improves when using higher number of parameters.
 However, this is not a significant positive correlation.
@@ -420,20 +420,20 @@ The mean Dice results for PSPNet are $\DTLfetch{keys-values}{key}{lung-segmentat
 In Fig.~\ref{fig:volumes} the predictions as a volume for the three experiments, for the resnet18 encoder are visualized, demonstrating good match with the original masks.
 
 \begin{figure*}[!t]
-	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-mask--volume}}
+	\rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-mask--volume}} % chktex 8
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-Unet-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-Linknet-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-FPN-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lung-segmentation-PSPNet-None-volume}}
 	\\
-	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-mask--volume}}
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation A}\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-mask--volume}} % chktex 8
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-Unet-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-Linknet-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-FPN-None-volume}}
 	\subfloat{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-a-PSPNet-None-volume}}
 	\\
 	\setcounter{subfigure}{0}
-	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-b-mask--volume}}
+	\rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion segmentation B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-b-mask--volume}} % chktex 8
 	\subfloat[Unet]{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-b-Unet-None-volume}}
 	\subfloat[Linknet]{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-b-Linknet-None-volume}}
 	\subfloat[FPN]{\includegraphics[width=0.20\textwidth]{python/bin/lesion-segmentation-b-FPN-None-volume}}

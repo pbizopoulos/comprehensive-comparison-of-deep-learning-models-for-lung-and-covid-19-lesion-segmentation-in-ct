@@ -339,8 +339,8 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
     index = pd.MultiIndex.from_product([architecture_names, [encoder_name.replace("_", "") for encoder_name in encoder_names] + ["Mean"]])
     multicolumn = pd.MultiIndex.from_product([[str(encoder_weights) for encoder_weights in encoders_weights], experiments, metric_names])
     metrics_df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
-    metrics_df["Performance", "related", "Pars(M)"] = parameters_num_array.flatten()
-    metrics_df["Performance", "related", "FLOPS(B)"] = flops_array.flatten()
+    metrics_df["Performance", "related", "Pars (M)"] = parameters_num_array.flatten()
+    metrics_df["Performance", "related", "FLOPS (B)"] = flops_array.flatten()
     metrics_df.loc[("Global", "Mean"), :] = np.append(metrics_array_global_mean, (parameters_num_array_global_mean, flops_array_global_mean))
     metrics_df.index.names = ["Architecture", "Encoder"]
     metrics_df = metrics_df.round(1)
