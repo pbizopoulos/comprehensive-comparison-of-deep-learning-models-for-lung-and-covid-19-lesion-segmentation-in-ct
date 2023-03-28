@@ -5,7 +5,7 @@ https://pbizopoulos.github.io/comprehensive-comparison-of-deep-learning-models-f
 # Requirements
 POSIX Utilities
 Git
-Docker (>= 19.03 for NVIDIA Container Toolkit)
+Docker
 NVIDIA Container Toolkit (Optional)
 
 # Download, check and build
