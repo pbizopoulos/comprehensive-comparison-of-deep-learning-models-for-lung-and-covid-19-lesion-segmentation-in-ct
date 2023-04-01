@@ -7,7 +7,7 @@ const maskOutputContext = maskOutputCanvas.getContext("2d");
 const modelDownloadDiv = document.getElementById("model-download-div");
 const modelDownloadProgress = document.getElementById("model-download-progress");
 const modelSelect = document.getElementById("model-select");
-let image = new Image();
+const image = new Image();
 let model;
 image.crossOrigin = "anonymous";
 image.onload = imageOnLoad;
