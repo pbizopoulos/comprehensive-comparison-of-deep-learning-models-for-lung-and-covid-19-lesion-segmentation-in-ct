@@ -145,14 +145,14 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
     encoder_names = ["vgg11", "vgg13", "vgg19", "resnet18", "resnet34", "resnet50", "resnet101", "resnet152", "densenet121", "densenet161", "densenet169", "densenet201", "resnext50_32x4d", "dpn68", "dpn98", "mobilenet_v2", "xception", "inceptionv4", "efficientnet-b0", "efficientnet-b1", "efficientnet-b2", "efficientnet-b3", "efficientnet-b4", "efficientnet-b5", "efficientnet-b6"]
     epochs_num = 100
     range_test_volume = range(9)
-    range_training = range(80)
+    range_train = range(80)
     range_validation = range(80, 100)
     step_size = 1
     if environ["DEBUG"] == "1":
         encoder_names = ["vgg11", "resnet18", "mobilenet_v2", "efficientnet-b0"]
         epochs_num = 2
         range_test_volume = range(1)
-        range_training = range(1)
+        range_train = range(1)
         range_validation = range(2, 4)
         step_size = 10
     torch.backends.cudnn.benchmark = False
@@ -166,8 +166,8 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
     experiments = ["Lung segmentation", "Lesion segmentation A", "Lesion segmentation B"]
     experiment_names = [experiment.lower().replace(" ", "-") for experiment in experiments]
     encoders_weights = [None, "imagenet"]
-    dataset_training = MedicalSegmentation1(range_training, use_transforms=True)
-    dataloader_training = DataLoader(dataset_training, batch_size=batch_size, shuffle=True)
+    dataset_train = MedicalSegmentation1(range_train, use_transforms=True)
+    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
     dataset_validation = MedicalSegmentation1(range_validation, use_transforms=False)
     dataloader_validation = DataLoader(dataset_validation, batch_size=batch_size)
     dice_loss = DiceLoss()
@@ -178,8 +178,8 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
     hist_range = (-0.5, 0.5)
     hist_images_array = np.zeros((len(experiments), hist_bins))
     hist_masks_array = np.zeros_like(hist_images_array)
-    loss_training_array = np.zeros((len(experiments), len(architectures), len(encoder_names), len(encoders_weights), epochs_num))
-    loss_validation_array = np.zeros_like(loss_training_array)
+    loss_train_array = np.zeros((len(experiments), len(architectures), len(encoder_names), len(encoders_weights), epochs_num))
+    loss_validation_array = np.zeros_like(loss_train_array)
     flops_array = np.zeros((len(experiments), len(architectures), len(encoder_names), len(encoders_weights)))
     for experiment_name_index, experiment_name in enumerate(experiment_names):
         for architecture_index, (architecture, architecture_name) in enumerate(zip(architectures, architecture_names, strict=True)):
@@ -190,12 +190,12 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float("inf")
                     model_file_path = Path("bin") / "{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt"
-                    flops = FlopCountAnalysis(model, dataloader_training.dataset[0][0].unsqueeze(0).to(device))
+                    flops = FlopCountAnalysis(model, dataloader_train.dataset[0][0].unsqueeze(0).to(device))
                     flops_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index] = flops.total()
                     for epoch_index in range(epochs_num):
-                        loss_training_sum = 0
+                        loss_train_sum = 0
                         model.train()
-                        for images, mask_lungs, mask_lesions in dataloader_training:
+                        for images, mask_lungs, mask_lesions in dataloader_train:
                             if experiment_name == experiment_names[0]:
                                 masks = mask_lungs
                             elif experiment_name == experiment_names[1]:
@@ -216,12 +216,12 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
                                 elif epoch_index == epochs_num - 1:
                                     save_figure_weights(architecture_name, f"{encoder_weights}-after", experiment_name, model)
                             loss = dice_loss(predictions, masks)
-                            loss_training_sum += loss.item()
+                            loss_train_sum += loss.item()
                             optimizer.zero_grad()
                             loss.backward()
                             optimizer.step()
-                        loss_training = loss_training_sum / len(dataloader_training)
-                        loss_training_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index, epoch_index] = loss_training
+                        loss_train = loss_train_sum / len(dataloader_train)
+                        loss_train_array[experiment_name_index, architecture_index, encoder_name_index, encoder_weights_index, epoch_index] = loss_train
                         loss_validation_sum = 0
                         model.eval()
                         with torch.no_grad():
@@ -303,7 +303,7 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
                                 save_figure_3d(architecture_name, encoder_weights, experiment_name, step_size, volume_prediction_array)
                     model_file_name = f"{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}"
                     if model_file_name in ["lesion-segmentation-a-FPN-mobilenet_v2-imagenet", "lung-segmentation-FPN-mobilenet_v2-imagenet"]:
-                        save_tfjs_from_torch(dataset_training[0][0].unsqueeze(0), model, model_file_name)
+                        save_tfjs_from_torch(dataset_train[0][0].unsqueeze(0), model, model_file_name)
                         if environ["DEBUG"] != "1":
                             dist_path = Path("dist") / model_file_name
                             rmtree(dist_path)
@@ -312,10 +312,10 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(hist_images_array, hist_masks_array, experiment_names, strict=True):
         save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
-    for experiment_name, loss_training_, loss_validation_ in zip(experiment_names, loss_training_array, loss_validation_array, strict=True):
-        save_figure_loss(architecture_names, experiment_name, loss_training_, "Train", [0, 1])
+    for experiment_name, loss_train_, loss_validation_ in zip(experiment_names, loss_train_array, loss_validation_array, strict=True):
+        save_figure_loss(architecture_names, experiment_name, loss_train_, "Train", [0, 1])
         save_figure_loss(architecture_names, experiment_name, loss_validation_, "Validation", [0, 1])
-    save_figure_loss(architecture_names, experiment_name, loss_training_array[2] - loss_training_array[1], "Train diff", [-0.4, 0.4])
+    save_figure_loss(architecture_names, experiment_name, loss_train_array[2] - loss_train_array[1], "Train diff", [-0.4, 0.4])
     save_figure_loss(architecture_names, experiment_name, loss_validation_array[2] - loss_validation_array[1], "Validation diff", [-0.4, 0.4])
     metrics_array = 100 * np.nan_to_num(metrics_array) / slices_test_num
     parameters_num_array = parameters_num_array / 10 ** 6
@@ -475,7 +475,7 @@ def save_figure_initialization_box(dice: np.ndarray, encoders_weights: list[str 
     plt.close()
 
 
-def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: np.ndarray, training_or_validation: str, ylim: list[float]) -> None: # type: ignore[type-arg]
+def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: np.ndarray, train_or_validation: str, ylim: list[float]) -> None: # type: ignore[type-arg]
     loss = np.nan_to_num(loss)
     p1 = []
     p2 = []
@@ -493,12 +493,12 @@ def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: 
     plt.grid(visible=True)
     plt.autoscale(enable=True, axis="x", tight=True)
     plt.ylim(ylim)
-    if training_or_validation not in ["Train", "Validation"]:
+    if train_or_validation not in ["Train", "Validation"]:
         plt.xlabel("Epochs", fontsize=15)
     ax.tick_params(axis="both", which="major", labelsize="large")
     ax.tick_params(axis="both", which="minor", labelsize="large")
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(f"bin/{experiment_name}-{training_or_validation.lower().replace(' ', '-')}-loss")
+    plt.savefig(f"bin/{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss")
     plt.close()
 
 
