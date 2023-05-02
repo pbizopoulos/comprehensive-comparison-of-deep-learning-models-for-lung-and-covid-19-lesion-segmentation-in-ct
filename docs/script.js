@@ -11,7 +11,7 @@ const image = new Image();
 let model;
 image.crossOrigin = "anonymous";
 image.onload = imageOnLoad;
-image.src = "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/dist/lung-segmentation-example-data.png";
+image.src = "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/assets/lung-segmentation-example-data.png";
 imageFileReader.onload = imageFileReaderOnLoad;
 inputFile.onchange = inputFileOnChange;
 
