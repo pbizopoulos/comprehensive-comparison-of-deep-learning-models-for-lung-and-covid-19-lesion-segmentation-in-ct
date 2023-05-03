@@ -39,27 +39,27 @@ class CTSegBenchmark(Dataset): # type: ignore[type-arg]
         urls = ["https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1", "https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1", "https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1"]
         file_names = ["COVID-19-CT-Seg_20cases", "Infection_Mask", "Lung_Mask"]
         for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_path = Path("bin") / f"{file_name}.zip"
+            zip_file_path = Path("data") / f"{file_name}.zip"
             if not zip_file_path.is_file():
                 response = requests.get(url, timeout=60)
                 with zip_file_path.open("wb") as file:
                     file.write(response.content)
                 with ZipFile(zip_file_path, "r") as zip_file:
-                    zip_file.extractall(f"bin/{file_name}")
+                    zip_file.extractall(f"data/{file_name}")
         images: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
-        for file_path in glob.glob(f"bin/{file_names[0]}/*.nii.gz"):
+        for file_path in glob.glob(f"data/{file_names[0]}/*.nii.gz"):
             images_ = nib.load(file_path) # type: ignore[attr-defined]
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
         mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
-        for file_path in glob.glob(f"bin/{file_names[1]}/*.nii.gz"):
+        for file_path in glob.glob(f"data/{file_names[1]}/*.nii.gz"):
             mask_lesions_ = nib.load(file_path) # type: ignore[attr-defined]
             mask_lesions_ = np.resize(mask_lesions_.get_fdata(), (512, 512, mask_lesions_.shape[-1]))
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
         mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0) # type: ignore[type-arg]
-        for file_path in glob.glob(f"bin/{file_names[2]}/*.nii.gz"):
+        for file_path in glob.glob(f"data/{file_names[2]}/*.nii.gz"):
             mask_lungs_ = nib.load(file_path) # type: ignore[attr-defined]
             mask_lungs_ = np.resize(mask_lungs_.get_fdata(), (512, 512, mask_lungs.shape[-1]))
             mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)
@@ -81,14 +81,14 @@ class MedicalSegmentation1(Dataset): # type: ignore[type-arg]
         urls = ["https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S", "https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f", "https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-"]
         file_names = ["tr_im.nii.gz", "tr_mask.nii.gz", "tr_lungmasks_updated.nii.gz"]
         for url, file_name in zip(urls, file_names, strict=True):
-            nifti_file_path = Path("bin") / file_name
+            nifti_file_path = Path("data") / file_name
             if not nifti_file_path.is_file():
                 gdown.download(url, nifti_file_path.as_posix(), quiet=False)
-        images = nib.load("bin/tr_im.nii.gz") # type: ignore[attr-defined]
+        images = nib.load("data/tr_im.nii.gz") # type: ignore[attr-defined]
         self.images = images.get_fdata()[..., index_range]
-        mask_lesions = nib.load("bin/tr_mask.nii.gz") # type: ignore[attr-defined]
+        mask_lesions = nib.load("data/tr_mask.nii.gz") # type: ignore[attr-defined]
         self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-        mask_lungs = nib.load("bin/tr_lungmasks_updated.nii.gz") # type: ignore[attr-defined]
+        mask_lungs = nib.load("data/tr_lungmasks_updated.nii.gz") # type: ignore[attr-defined]
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
@@ -108,18 +108,18 @@ class MedicalSegmentation2(Dataset): # type: ignore[type-arg]
         urls = ["https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m", "https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp", "https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH"]
         file_names = ["rp_im.zip", "rp_msk.zip", "rp_lung_msk.zip"]
         for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_path = Path("bin") / file_name
+            zip_file_path = Path("data") / file_name
             if not zip_file_path.is_file():
                 gdown.download(url, zip_file_path.as_posix(), quiet=False)
                 with ZipFile(zip_file_path, "r") as zip_file:
-                    zip_file.extractall("bin")
-        image_file_paths = sorted(glob.glob("bin/rp_im/*.nii.gz"))
+                    zip_file.extractall("data")
+        image_file_paths = sorted(glob.glob("data/rp_im/*.nii.gz"))
         images = nib.load(image_file_paths[index_volume]) # type: ignore[attr-defined]
         self.images = images.get_fdata()
-        mask_lesions_file_paths = sorted(glob.glob("bin/rp_msk/*.nii.gz"))
+        mask_lesions_file_paths = sorted(glob.glob("data/rp_msk/*.nii.gz"))
         mask_lesions = nib.load(mask_lesions_file_paths[index_volume]) # type: ignore[attr-defined]
         self.mask_lesions = mask_lesions.get_fdata()
-        mask_lungs_file_paths = sorted(glob.glob("bin/rp_lung_msk/*.nii.gz"))
+        mask_lungs_file_paths = sorted(glob.glob("data/rp_lung_msk/*.nii.gz"))
         mask_lungs = nib.load(mask_lungs_file_paths[index_volume]) # type: ignore[attr-defined]
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
@@ -138,6 +138,12 @@ def calculate_metrics(mask: torch.Tensor, prediction: torch.Tensor) -> tuple[flo
 
 
 def main() -> None: # noqa: C901, PLR0912, PLR0915
+    bin_file_path = Path("bin")
+    if not bin_file_path.exists():
+        bin_file_path.mkdir(parents=True)
+    data_file_path = Path("data")
+    if not data_file_path.exists():
+        data_file_path.mkdir(parents=True)
     ssl._create_default_https_context = ssl._create_unverified_context # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.format"] = "pdf"

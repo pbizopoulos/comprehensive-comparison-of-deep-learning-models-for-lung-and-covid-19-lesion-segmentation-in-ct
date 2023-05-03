@@ -11,6 +11,6 @@ NVIDIA Container Toolkit (Optional)
 # Download, check and build
 git clone https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
 cd comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
-cd docs/ && make clean check all && cd ..
-cd latex/python/ && make clean check all && cd ../..
-cd latex/ && make clean check all && cd ..
+cd docs/ && make mostlyclean clean check all && cd ..
+cd latex/python/ && make mostlyclean clean check all && cd ../..
+cd latex/ && make mostlyclean clean check all && cd ..
