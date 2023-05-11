@@ -146,7 +146,6 @@ def main() -> None: # noqa: C901, PLR0912, PLR0915
         data_file_path.mkdir(parents=True)
     ssl._create_default_https_context = ssl._create_unverified_context # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
-    plt.rcParams["savefig.format"] = "pdf"
     plt.rcParams["savefig.bbox"] = "tight"
     encoder_names = ["vgg11", "vgg13", "vgg19", "resnet18", "resnet34", "resnet50", "resnet101", "resnet152", "densenet121", "densenet161", "densenet169", "densenet201", "resnext50_32x4d", "dpn68", "dpn98", "mobilenet_v2", "xception", "inceptionv4", "efficientnet-b0", "efficientnet-b1", "efficientnet-b2", "efficientnet-b3", "efficientnet-b4", "efficientnet-b5", "efficientnet-b6"]
     epochs_num = 100
@@ -410,7 +409,7 @@ def save_figure_3d(architecture: str, encoder_weights: str | None, experiment_na
         line.set_visible(False) # noqa: FBT003
     for line in ax.zaxis.get_ticklines():
         line.set_visible(False) # noqa: FBT003
-    plt.savefig(f"bin/{experiment_name}-{architecture}-{encoder_weights}-volume")
+    plt.savefig(f"bin/{experiment_name}-{architecture}-{encoder_weights}-volume.png")
     plt.close()
 
 
@@ -421,7 +420,7 @@ def save_figure_architecture_box(architecture_names: list[str], dice: np.ndarray
     plt.grid(visible=True)
     plt.xticks(ticks=np.arange(len(architecture_names)) + 1, labels=architecture_names, fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig(f"bin/{experiment_name}-boxplot-dice")
+    plt.savefig(f"bin/{experiment_name}-boxplot-dice.png")
     plt.close()
 
 
@@ -441,7 +440,7 @@ def save_figure_histogram(experiment_name: str, hist_images: np.ndarray, hist_ma
     plt.grid(visible=True, which="both")
     ax.set_yscale("log")
     ax.legend()
-    plt.savefig(f"bin/{experiment_name}-hist")
+    plt.savefig(f"bin/{experiment_name}-hist.png")
     plt.close()
 
 
@@ -450,7 +449,7 @@ def save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap="gray", vmin=-0.5, vmax=0.5)
-    plt.savefig(f"bin/{experiment_name}-image")
+    plt.savefig(f"bin/{experiment_name}-image.png")
     plt.close()
 
 
@@ -466,7 +465,7 @@ def save_figure_image_masked(architecture: str, encoder_name: str, experiment_na
     plt.imshow(image, cmap="gray", vmin=-0.5, vmax=0.5)
     plt.imshow(correct, cmap="Greens", alpha=0.3)
     plt.imshow(false, cmap="Reds", alpha=0.3)
-    plt.savefig(f"bin/{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image")
+    plt.savefig(f"bin/{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image.png")
     plt.close()
 
 
@@ -477,7 +476,7 @@ def save_figure_initialization_box(dice: np.ndarray, encoders_weights: list[str 
     plt.grid(visible=True)
     plt.xticks(ticks=np.arange(len(encoders_weights)) + 1, labels=[str(encoder_weights) for encoder_weights in encoders_weights], fontsize=15)
     plt.ylim([70, 100])
-    plt.savefig("bin/initialization-boxplot-dice")
+    plt.savefig("bin/initialization-boxplot-dice.png")
     plt.close()
 
 
@@ -504,7 +503,7 @@ def save_figure_loss(architecture_names: list[str], experiment_name: str, loss: 
     ax.tick_params(axis="both", which="major", labelsize="large")
     ax.tick_params(axis="both", which="minor", labelsize="large")
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(f"bin/{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss")
+    plt.savefig(f"bin/{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss.png")
     plt.close()
 
 
@@ -533,7 +532,7 @@ def save_figure_scatter(architecture_names: list[str], dice: np.ndarray, experim
     plt.ylim(ylim)
     ax.legend(loc="lower right")
     ax.set_aspect(aspect="auto")
-    plt.savefig(f"bin/{experiment_name}-scatter-dice-vs-num-parameters")
+    plt.savefig(f"bin/{experiment_name}-scatter-dice-vs-num-parameters.png")
     plt.close()
 
 
@@ -549,7 +548,7 @@ def save_figure_weights(architecture_name: str, encoder_weights: str, experiment
             plt.imshow(weight[0].detach().cpu().numpy(), cmap="gray", vmin=-0.4, vmax=0.4)
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-    plt.savefig(f"bin/{experiment_name}-{architecture_name}-{encoder_weights}-weights")
+    plt.savefig(f"bin/{experiment_name}-{architecture_name}-{encoder_weights}-weights.png")
     plt.close()
 
 
