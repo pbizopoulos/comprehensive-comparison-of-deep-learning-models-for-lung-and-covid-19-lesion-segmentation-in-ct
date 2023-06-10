@@ -1,7 +1,7 @@
 #mask-output-canvas {
-	opacity: 0.5;
+  opacity: 0.5;
 }
 
 canvas {
-	position: absolute;
+  position: absolute;
 }

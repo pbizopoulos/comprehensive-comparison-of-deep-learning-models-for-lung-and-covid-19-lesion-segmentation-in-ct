@@ -1,43 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 
-	<head>
-		<meta charset="utf-8">
-		<meta content="width=device-width, initial-scale=1" name="viewport">
-		<title>Lung and COVID-19 lesion segmentation tool</title>
-		<link href="data:," rel="icon">
-		<link href="style.css" rel="stylesheet">
-		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-		<script defer src="script.js"></script>
-	</head>
+    <head>
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1" name="viewport">
+        <title>Lung and COVID-19 lesion segmentation tool</title>
+        <link href="data:," rel="icon">
+        <link href="style.css" rel="stylesheet">
+        <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+        <script defer src="script.js"></script>
+    </head>
 
-	<body>
-		<nav>
-			<a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a> | <a href="https://pbizopoulos.github.io">Home page</a> / <b>Lung and COVID-19 lesion segmentation tool</b>
-		</nav>
-		<div>
-			<div id="input-control-div">
-				<div>Not intended for clinical use.</div>
-				<div>Choose a lung CT image (.jpg,.png,.gif) and segment the lungs or COVID-19 lesions using DNNs.</div>
-				<div>
-					<input accept="image/*" id="inputFile" type="file">
-				</div>
-				<div>
-					<select id="model-select" onchange="loadModel(predictView);">
-						<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/dist/lesion-segmentation-a-FPN-mobilenet_v2-imagenet/model.json">lesion-segmentation-a-FPN-mobilenet_v2-imagenet</option>
-						<option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/dist/lung-segmentation-FPN-mobilenet_v2-imagenet/model.json">lung-segmentation-FPN-mobilenet_v2-imagenet</option>
-					</select>
-				</div>
-				<div id="model-download-div">
-					<label for="model-download-progress">Model download progress:</label>
-					<progress id="model-download-progress" name="model-download-progress" value="0"></progress>
-				</div>
-			</div>
-			<div>
-				<canvas height="256" id="image-input-canvas" width="256"></canvas>
-				<canvas height="256" id="mask-output-canvas" width="256"></canvas>
-			</div>
-		</div>
-	</body>
+    <body>
+        <nav>
+            <a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a> | <a href="https://pbizopoulos.github.io">Home page</a> / <b>Lung and COVID-19 lesion segmentation tool</b>
+        </nav>
+        <div>
+            <div id="input-control-div">
+                <div>Not intended for clinical use.</div>
+                <div>Choose a lung CT image (.jpg,.png,.gif) and segment the lungs or COVID-19 lesions using DNNs.</div>
+                <div>
+                    <input accept="image/*" id="inputFile" type="file">
+                </div>
+                <div>
+                    <select id="model-select" onchange="loadModel(predictView);">
+                        <option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/dist/lesion-segmentation-a-FPN-mobilenet_v2-imagenet/model.json">lesion-segmentation-a-FPN-mobilenet_v2-imagenet</option>
+                        <option value="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/dist/lung-segmentation-FPN-mobilenet_v2-imagenet/model.json">lung-segmentation-FPN-mobilenet_v2-imagenet</option>
+                    </select>
+                </div>
+                <div id="model-download-div">
+                    <label for="model-download-progress">Model download progress:</label>
+                    <progress id="model-download-progress" name="model-download-progress" value="0"></progress>
+                </div>
+            </div>
+            <div>
+                <canvas height="256" id="image-input-canvas" width="256"></canvas>
+                <canvas height="256" id="mask-output-canvas" width="256"></canvas>
+            </div>
+        </div>
+    </body>
 
 </html>
