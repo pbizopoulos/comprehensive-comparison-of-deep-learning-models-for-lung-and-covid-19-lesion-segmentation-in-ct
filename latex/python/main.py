@@ -75,21 +75,21 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         ]
         file_names = ["COVID-19-CT-Seg_20cases", "Infection_Mask", "Lung_Mask"]
         for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_path = Path("bin") / f"{file_name}.zip"
+            zip_file_path = Path("tmp") / f"{file_name}.zip"
             if not zip_file_path.is_file():
                 response = requests.get(url, timeout=60)
                 with zip_file_path.open("wb") as file:
                     file.write(response.content)
                 with ZipFile(zip_file_path, "r") as zip_file:
-                    zip_file.extractall(f"bin/{file_name}")
+                    zip_file.extractall(f"tmp/{file_name}")
         images: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
-        for file_path in glob.glob(f"bin/{file_names[0]}/*.nii.gz"):
+        for file_path in glob.glob(f"tmp/{file_names[0]}/*.nii.gz"):
             images_ = nib.load(file_path)  # type: ignore[attr-defined]
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
         mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
-        for file_path in glob.glob(f"bin/{file_names[1]}/*.nii.gz"):
+        for file_path in glob.glob(f"tmp/{file_names[1]}/*.nii.gz"):
             mask_lesions_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lesions_ = np.resize(
                 mask_lesions_.get_fdata(),
@@ -98,7 +98,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
         mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
-        for file_path in glob.glob(f"bin/{file_names[2]}/*.nii.gz"):
+        for file_path in glob.glob(f"tmp/{file_names[2]}/*.nii.gz"):
             mask_lungs_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lungs_ = np.resize(
                 mask_lungs_.get_fdata(),
@@ -139,14 +139,14 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         ]
         file_names = ["tr_im.nii.gz", "tr_mask.nii.gz", "tr_lungmasks_updated.nii.gz"]
         for url, file_name in zip(urls, file_names, strict=True):
-            nifti_file_path = Path("bin") / file_name
+            nifti_file_path = Path("tmp") / file_name
             if not nifti_file_path.is_file():
                 gdown.download(url, nifti_file_path.as_posix(), quiet=False)
-        images = nib.load("bin/tr_im.nii.gz")  # type: ignore[attr-defined]
+        images = nib.load("tmp/tr_im.nii.gz")  # type: ignore[attr-defined]
         self.images = images.get_fdata()[..., index_range]
-        mask_lesions = nib.load("bin/tr_mask.nii.gz")  # type: ignore[attr-defined]
+        mask_lesions = nib.load("tmp/tr_mask.nii.gz")  # type: ignore[attr-defined]
         self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-        mask_lungs = nib.load("bin/tr_lungmasks_updated.nii.gz")  # type: ignore[attr-defined] # noqa: E501
+        mask_lungs = nib.load("tmp/tr_lungmasks_updated.nii.gz")  # type: ignore[attr-defined] # noqa: E501
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
@@ -182,18 +182,18 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         ]
         file_names = ["rp_im.zip", "rp_msk.zip", "rp_lung_msk.zip"]
         for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_path = Path("bin") / file_name
+            zip_file_path = Path("tmp") / file_name
             if not zip_file_path.is_file():
                 gdown.download(url, zip_file_path.as_posix(), quiet=False)
                 with ZipFile(zip_file_path, "r") as zip_file:
-                    zip_file.extractall("bin")
-        image_file_paths = sorted(glob.glob("bin/rp_im/*.nii.gz"))
+                    zip_file.extractall("tmp")
+        image_file_paths = sorted(glob.glob("tmp/rp_im/*.nii.gz"))
         images = nib.load(image_file_paths[index_volume])  # type: ignore[attr-defined]
         self.images = images.get_fdata()
-        mask_lesions_file_paths = sorted(glob.glob("bin/rp_msk/*.nii.gz"))
+        mask_lesions_file_paths = sorted(glob.glob("tmp/rp_msk/*.nii.gz"))
         mask_lesions = nib.load(mask_lesions_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
         self.mask_lesions = mask_lesions.get_fdata()
-        mask_lungs_file_paths = sorted(glob.glob("bin/rp_lung_msk/*.nii.gz"))
+        mask_lungs_file_paths = sorted(glob.glob("tmp/rp_lung_msk/*.nii.gz"))
         mask_lungs = nib.load(mask_lungs_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
@@ -260,7 +260,7 @@ def save_figure_3d(
         line.set_visible(False)  # noqa: FBT003
     for line in ax.zaxis.get_ticklines():
         line.set_visible(False)  # noqa: FBT003
-    plt.savefig(f"bin/{experiment_name}-{architecture}-{encoder_weights}-volume.png")
+    plt.savefig(f"tmp/{experiment_name}-{architecture}-{encoder_weights}-volume.png")
     plt.close()
 
 
@@ -279,7 +279,7 @@ def save_figure_architecture_box(
         fontsize=15,
     )
     plt.ylim([70, 100])
-    plt.savefig(f"bin/{experiment_name}-boxplot-dice.png")
+    plt.savefig(f"tmp/{experiment_name}-boxplot-dice.png")
     plt.close()
 
 
@@ -316,7 +316,7 @@ def save_figure_histogram(
     plt.grid(visible=True, which="both")
     ax.set_yscale("log")
     ax.legend()
-    plt.savefig(f"bin/{experiment_name}-hist.png")
+    plt.savefig(f"tmp/{experiment_name}-hist.png")
     plt.close()
 
 
@@ -325,7 +325,7 @@ def save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image, cmap="gray", vmin=-0.5, vmax=0.5)
-    plt.savefig(f"bin/{experiment_name}-image.png")
+    plt.savefig(f"tmp/{experiment_name}-image.png")
     plt.close()
 
 
@@ -349,7 +349,7 @@ def save_figure_image_masked(  # noqa: PLR0913
     plt.imshow(correct, cmap="Greens", alpha=0.3)
     plt.imshow(false, cmap="Reds", alpha=0.3)
     plt.savefig(
-        f"bin/{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image.png",  # noqa: E501
+        f"tmp/{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image.png",  # noqa: E501
     )
     plt.close()
 
@@ -368,7 +368,7 @@ def save_figure_initialization_box(
         fontsize=15,
     )
     plt.ylim([70, 100])
-    plt.savefig("bin/initialization-boxplot-dice.png")
+    plt.savefig("tmp/initialization-boxplot-dice.png")
     plt.close()
 
 
@@ -419,7 +419,7 @@ def save_figure_loss(
     ax.tick_params(axis="both", which="minor", labelsize="large")
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.savefig(
-        f"bin/{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss.png",  # noqa: E501
+        f"tmp/{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss.png",  # noqa: E501
     )
     plt.close()
 
@@ -468,7 +468,7 @@ def save_figure_scatter(
     plt.ylim(ylim)
     ax.legend(loc="lower right")
     ax.set_aspect(aspect="auto")
-    plt.savefig(f"bin/{experiment_name}-scatter-dice-vs-num-parameters.png")
+    plt.savefig(f"tmp/{experiment_name}-scatter-dice-vs-num-parameters.png")
     plt.close()
 
 
@@ -495,7 +495,7 @@ def save_figure_weights(
             ax.set_xticklabels([])
             ax.set_yticklabels([])
     plt.savefig(
-        f"bin/{experiment_name}-{architecture_name}-{encoder_weights}-weights.png",
+        f"tmp/{experiment_name}-{architecture_name}-{encoder_weights}-weights.png",
     )
     plt.close()
 
@@ -505,7 +505,7 @@ def save_tfjs_from_torch(
     model: nn.Module,
     model_file_name: str,
 ) -> None:
-    model_file_path = Path("bin") / model_file_name
+    model_file_path = Path("tmp") / model_file_name
     if model_file_path.exists():
         rmtree(model_file_path)
     model_file_path.mkdir()
@@ -648,7 +648,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float("inf")
                     model_file_path = (
-                        Path("bin")
+                        Path("tmp")
                         / "{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt"  # noqa: E501
                     )
                     flops = FlopCountAnalysis(
@@ -905,7 +905,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                         if environ["DEBUG"] != "1":
                             dist_path = Path("dist") / model_file_name
                             rmtree(dist_path)
-                            move(f"bin/{model_file_name}", dist_path)
+                            move(f"tmp/{model_file_name}", dist_path)
                     if environ["DEBUG"] == "1":
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
@@ -1028,7 +1028,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     styler.format(precision=1)
     styler.highlight_max(props="bfseries: ;")
     styler.highlight_min(props="bfseries: ;")
-    styler.to_latex("bin/metrics.tex", hrules=True, multicol_align="c")
+    styler.to_latex("tmp/metrics.tex", hrules=True, multicol_align="c")
     keys = (
         ["epochs-num", "batch-size", "test-slices-num", "encoder-best", "encoder-worst"]
         + [
@@ -1121,7 +1121,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         ]
     )
     keys_values_df = pd.DataFrame({"key": keys, "value": values})
-    keys_values_df.to_csv("bin/keys-values.csv")
+    keys_values_df.to_csv("tmp/keys-values.csv")
 
 
 if __name__ == "__main__":
