@@ -1,7 +1,6 @@
 import glob
 import itertools
 import ssl
-from os import environ
 from pathlib import Path
 from shutil import move, rmtree
 from zipfile import ZipFile
@@ -564,7 +563,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     range_train = range(80)
     range_validation = range(80, 100)
     step_size = 1
-    if environ["DEBUG"] == "1":
+    if __debug__:
         encoder_names = ["vgg11", "resnet18", "mobilenet_v2", "efficientnet-b0"]
         epochs_num = 2
         range_test_volume = range(1)
@@ -902,11 +901,11 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                             model,
                             model_file_name,
                         )
-                        if environ["DEBUG"] != "1":
+                        if not __debug__:
                             dist_path = Path("dist") / model_file_name
                             rmtree(dist_path)
                             move(f"tmp/{model_file_name}", dist_path)
-                    if environ["DEBUG"] == "1":
+                    if __debug__:
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
