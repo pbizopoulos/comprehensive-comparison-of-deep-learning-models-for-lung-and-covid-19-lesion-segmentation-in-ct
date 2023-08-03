@@ -1,4 +1,3 @@
-import glob
 import itertools
 import ssl
 from pathlib import Path
@@ -82,13 +81,13 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
                 with ZipFile(zip_file_path, "r") as zip_file:
                     zip_file.extractall(f"tmp/{file_name}")
         images: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
-        for file_path in glob.glob(f"tmp/{file_names[0]}/*.nii.gz"):
+        for file_path in Path(f"tmp/{file_names[0]}/").glob("*.nii.gz"):
             images_ = nib.load(file_path)  # type: ignore[attr-defined]
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
         mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
-        for file_path in glob.glob(f"tmp/{file_names[1]}/*.nii.gz"):
+        for file_path in Path(f"tmp/{file_names[1]}").glob("/*.nii.gz"):
             mask_lesions_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lesions_ = np.resize(
                 mask_lesions_.get_fdata(),
@@ -97,7 +96,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
         mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
-        for file_path in glob.glob(f"tmp/{file_names[2]}/*.nii.gz"):
+        for file_path in Path(f"tmp/{file_names[2]}").glob("/*.nii.gz"):
             mask_lungs_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lungs_ = np.resize(
                 mask_lungs_.get_fdata(),
@@ -186,13 +185,13 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
                 gdown.download(url, zip_file_path.as_posix(), quiet=False)
                 with ZipFile(zip_file_path, "r") as zip_file:
                     zip_file.extractall("tmp")
-        image_file_paths = sorted(glob.glob("tmp/rp_im/*.nii.gz"))
+        image_file_paths = sorted(Path("tmp/rp_im/").glob("*.nii.gz"))
         images = nib.load(image_file_paths[index_volume])  # type: ignore[attr-defined]
         self.images = images.get_fdata()
-        mask_lesions_file_paths = sorted(glob.glob("tmp/rp_msk/*.nii.gz"))
+        mask_lesions_file_paths = sorted(Path("tmp/rp_msk/").glob("*.nii.gz"))
         mask_lesions = nib.load(mask_lesions_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
         self.mask_lesions = mask_lesions.get_fdata()
-        mask_lungs_file_paths = sorted(glob.glob("tmp/rp_lung_msk/*.nii.gz"))
+        mask_lungs_file_paths = sorted(Path("tmp/rp_lung_msk/").glob("*.nii.gz"))
         mask_lungs = nib.load(mask_lungs_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
