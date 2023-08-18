@@ -563,7 +563,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     range_validation = range(80, 100)
     step_size = 1
     if __debug__:
-        encoder_names = ["vgg11", "resnet18", "mobilenet_v2", "efficientnet-b0"]
+        encoder_names = ["resnet18", "mobilenet_v2", "efficientnet-b0"]
         epochs_num = 2
         range_test_volume = range(1)
         range_train = range(1)
