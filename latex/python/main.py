@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import ssl
 from pathlib import Path
@@ -61,7 +63,7 @@ def preprocess_image(
 
 class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: "CTSegBenchmark",
+        self: CTSegBenchmark,
         index_range: range,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -107,7 +109,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         self.use_transforms = use_transforms
 
     def __getitem__(
-        self: "CTSegBenchmark",
+        self: CTSegBenchmark,
         index: int,
     ) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
@@ -119,13 +121,13 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: "CTSegBenchmark") -> int:
+    def __len__(self: CTSegBenchmark) -> int:
         return self.images.shape[-1]
 
 
 class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: "MedicalSegmentation1",
+        self: MedicalSegmentation1,
         index_range: range,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -149,7 +151,7 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         self.use_transforms = use_transforms
 
     def __getitem__(
-        self: "MedicalSegmentation1",
+        self: MedicalSegmentation1,
         index: int,
     ) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
@@ -161,14 +163,14 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: "MedicalSegmentation1") -> int:
+    def __len__(self: MedicalSegmentation1) -> int:
         output: int = self.images.shape[-1]
         return output
 
 
 class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: "MedicalSegmentation2",
+        self: MedicalSegmentation2,
         index_volume: int,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -197,7 +199,7 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         self.use_transforms = use_transforms
 
     def __getitem__(
-        self: "MedicalSegmentation2",
+        self: MedicalSegmentation2,
         index: int,
     ) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
@@ -209,7 +211,7 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: "MedicalSegmentation2") -> int:
+    def __len__(self: MedicalSegmentation2) -> int:
         output: int = self.images.shape[-1]
         return output
 
