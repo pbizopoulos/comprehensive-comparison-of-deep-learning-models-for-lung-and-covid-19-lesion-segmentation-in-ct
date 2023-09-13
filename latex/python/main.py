@@ -903,9 +903,9 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                             model_file_name,
                         )
                         if not __debug__:
-                            dist_path = Path("dist") / model_file_name
-                            rmtree(dist_path)
-                            move(f"tmp/{model_file_name}", dist_path)
+                            output_path = Path("prod") / model_file_name
+                            rmtree(output_path)
+                            move(f"tmp/{model_file_name}", output_path)
                     if __debug__:
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
