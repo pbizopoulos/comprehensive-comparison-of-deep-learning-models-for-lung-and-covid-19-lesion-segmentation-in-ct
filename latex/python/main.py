@@ -240,7 +240,7 @@ def save_figure_3d(
     verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.plot_trisurf(
+    ax.plot_trisurf(  # type: ignore[attr-defined]
         verts[:, 0],
         verts[:, 1],
         faces,
@@ -248,17 +248,17 @@ def save_figure_3d(
         alpha=0.5,
         rasterized=True,
     )
-    ax.set_xlim([1, volume.shape[0]])
-    ax.set_ylim([1, volume.shape[1]])
-    ax.set_zlim([1, volume.shape[2]])
+    ax.set_xlim([1, volume.shape[0]])  # type: ignore[arg-type]
+    ax.set_ylim([1, volume.shape[1]])  # type: ignore[arg-type]
+    ax.set_zlim([1, volume.shape[2]])  # type: ignore[attr-defined]
     ax.xaxis.set_ticklabels([])
     ax.yaxis.set_ticklabels([])
-    ax.zaxis.set_ticklabels([])
+    ax.zaxis.set_ticklabels([])  # type: ignore[attr-defined]
     for line in ax.xaxis.get_ticklines():
         line.set_visible(False)  # noqa: FBT003
     for line in ax.yaxis.get_ticklines():
         line.set_visible(False)  # noqa: FBT003
-    for line in ax.zaxis.get_ticklines():
+    for line in ax.zaxis.get_ticklines():  # type: ignore[attr-defined]
         line.set_visible(False)  # noqa: FBT003
     plt.savefig(f"tmp/{experiment_name}-{architecture}-{encoder_weights}-volume.png")
     plt.close()
@@ -484,7 +484,9 @@ def save_figure_weights(
     gs = gridspec.GridSpec(rows, columns, wspace=0.0, hspace=0.0, left=0)
     for rows_index in range(rows):
         for columns_index in range(columns):
-            weight = next(model.children()).conv1.weight[rows_index * rows + columns_index]  # type: ignore[index, union-attr] # noqa: E501
+            weight = next(model.children()).conv1.weight[
+                rows_index * rows + columns_index
+            ]
             ax = plt.subplot(gs[rows_index, columns_index])
             plt.imshow(
                 weight[0].detach().cpu().numpy(),
