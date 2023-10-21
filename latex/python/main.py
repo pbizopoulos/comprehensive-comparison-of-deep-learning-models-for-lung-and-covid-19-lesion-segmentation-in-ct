@@ -905,7 +905,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                             model_file_name,
                         )
                         if not __debug__:
-                            output_path = Path("prod") / model_file_name
+                            output_path = Path("prm") / model_file_name
                             rmtree(output_path)
                             move(f"tmp/{model_file_name}", output_path)
                     if __debug__:
