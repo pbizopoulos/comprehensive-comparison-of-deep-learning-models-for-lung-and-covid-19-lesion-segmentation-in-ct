@@ -88,7 +88,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
             images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
             images = np.concatenate((images, images_), 2)
         self.images = images[..., index_range]
-        mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
+        mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
         for file_path in Path(f"tmp/{file_names[1]}").glob("/*.nii.gz"):
             mask_lesions_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lesions_ = np.resize(
@@ -97,7 +97,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
             )
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
         self.mask_lesions = mask_lesions[..., index_range]
-        mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg] # noqa: E501
+        mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
         for file_path in Path(f"tmp/{file_names[2]}").glob("/*.nii.gz"):
             mask_lungs_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lungs_ = np.resize(
@@ -146,7 +146,7 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         self.images = images.get_fdata()[..., index_range]
         mask_lesions = nib.load("tmp/tr_mask.nii.gz")  # type: ignore[attr-defined]
         self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-        mask_lungs = nib.load("tmp/tr_lungmasks_updated.nii.gz")  # type: ignore[attr-defined] # noqa: E501
+        mask_lungs = nib.load("tmp/tr_lungmasks_updated.nii.gz")  # type: ignore[attr-defined]
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
@@ -191,10 +191,10 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         images = nib.load(image_file_paths[index_volume])  # type: ignore[attr-defined]
         self.images = images.get_fdata()
         mask_lesions_file_paths = sorted(Path("tmp/rp_msk/").glob("*.nii.gz"))
-        mask_lesions = nib.load(mask_lesions_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
+        mask_lesions = nib.load(mask_lesions_file_paths[index_volume])  # type: ignore[attr-defined]
         self.mask_lesions = mask_lesions.get_fdata()
         mask_lungs_file_paths = sorted(Path("tmp/rp_lung_msk/").glob("*.nii.gz"))
-        mask_lungs = nib.load(mask_lungs_file_paths[index_volume])  # type: ignore[attr-defined] # noqa: E501
+        mask_lungs = nib.load(mask_lungs_file_paths[index_volume])  # type: ignore[attr-defined]
         self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
 
@@ -449,7 +449,7 @@ def save_figure_scatter(
     ymin = ylim[0]
     ymax = ylim[1]
     nbins = 100
-    x_mgrid, y_mgrid = np.mgrid[xmin : xmax : nbins * 1j, ymin : ymax : nbins * 1j]  # type: ignore[misc] # noqa: E501
+    x_mgrid, y_mgrid = np.mgrid[xmin : xmax : nbins * 1j, ymin : ymax : nbins * 1j]  # type: ignore[misc]
     positions = np.vstack([x_mgrid.ravel(), y_mgrid.ravel()])
     values = np.vstack([parameters_num_array.flatten(), dice_.flatten()])
     kernel = gaussian_kde(values)
@@ -803,18 +803,14 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                                         images.cpu(),
                                         hist_bins,
                                         hist_range,
-                                    )[
-                                        0
-                                    ]
+                                    )[0]
                                     hist_masks_array[
                                         experiment_name_index
                                     ] += np.histogram(
                                         images.cpu() * masks.cpu(),
                                         hist_bins,
                                         hist_range,
-                                    )[
-                                        0
-                                    ]
+                                    )[0]
                                 metrics_values = calculate_metrics(masks, predictions)
                                 metrics_array[
                                     experiment_name_index,
@@ -854,7 +850,11 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                                 volume_prediction_array = np.zeros(
                                     (512, 512, len(dataset_test)),
                                 )
-                                for slice_volume_index, (images, mask_lungs, mask_lesions) in enumerate(dataset_test):  # type: ignore[arg-type, misc] # noqa: E501
+                                for slice_volume_index, (  # type: ignore[misc]
+                                    images,
+                                    mask_lungs,
+                                    mask_lesions,
+                                ) in enumerate(dataset_test):  # type: ignore[arg-type]
                                     if experiment_name == experiment_names[0]:
                                         masks = mask_lungs
                                     elif experiment_name == experiment_names[1]:
@@ -870,9 +870,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                                         :,
                                         :,
                                         slice_volume_index,
-                                    ] = (
-                                        predictions[0].float().cpu()
-                                    )
+                                    ] = predictions[0].float().cpu()
                                 volume_mask_array = volume_mask_array[:, :, ::-1]
                                 if architecture_name == "Unet":
                                     save_figure_3d(
