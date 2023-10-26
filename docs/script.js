@@ -1,4 +1,3 @@
-"use strict";
 const imageFileReader = new FileReader();
 const imageInputCanvas = document.getElementById("image-input-canvas");
 const imageInputContext = imageInputCanvas.getContext("2d");
