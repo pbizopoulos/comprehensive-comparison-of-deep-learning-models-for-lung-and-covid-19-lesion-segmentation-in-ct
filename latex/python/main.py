@@ -8,21 +8,21 @@ from zipfile import ZipFile
 
 import gdown
 import nibabel as nib
+import nobuco
 import numpy as np
-import onnx
 import pandas as pd
 import requests
+import tensorflowjs as tfjs
 import torch
 from fvcore.nn import FlopCountAnalysis
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
-from onnx_tf.backend import prepare
+from nobuco import ChannelOrder
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics
 from segmentation_models_pytorch.utils.losses import DiceLoss
 from skimage.measure import marching_cubes
-from tensorflowjs.converters import tf_saved_model_conversion_v2
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
@@ -510,24 +510,14 @@ def save_tfjs_from_torch(
     model_file_path = Path("tmp") / model_file_name
     if model_file_path.exists():
         rmtree(model_file_path)
-    model_file_path.mkdir()
-    torch.onnx.export(
-        model.cpu(),
-        example_input,
-        model_file_path / "model.onnx",
-        export_params=True,
-        opset_version=11,
+    model_tf = nobuco.pytorch_to_keras(
+        model.eval().cpu(),
+        args=[example_input],
+        kwargs=None,
+        inputs_channel_order=ChannelOrder.TENSORFLOW,
+        outputs_channel_order=ChannelOrder.TENSORFLOW,
     )
-    model_onnx = onnx.load(model_file_path / "model.onnx")
-    model_tf = prepare(model_onnx)
-    model_tf.export_graph(model_file_path / "model")
-    tf_saved_model_conversion_v2.convert_tf_saved_model(
-        (model_file_path / "model").as_posix(),
-        model_file_path,
-        skip_op_check=True,
-    )
-    rmtree(model_file_path / "model")
-    (model_file_path / "model.onnx").unlink()
+    tfjs.converters.save_keras_model(model_tf, model_file_path)
 
 
 def main() -> None:  # noqa: C901, PLR0912, PLR0915
