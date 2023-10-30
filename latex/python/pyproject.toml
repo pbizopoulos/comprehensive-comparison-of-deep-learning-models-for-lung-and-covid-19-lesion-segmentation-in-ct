@@ -1,6 +1,5 @@
 [project]
 dependencies = [
-  "Jinja2==3.1.2",
   "fvcore==0.1.5.post20221221",
   "gdown==4.7.1",
   "matplotlib==3.8.0",
