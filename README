@@ -18,6 +18,6 @@ cd latex/python/ && make clean check all && cd ../..
 cd latex/ && make clean check all && cd ..
 
 # Staging
-cd latex/python/ && make DEBUG=0 && cd .. && make && cd ..
-cd docs/ && make DEBUG=0
+cd latex/python/ && make STAGING=1 && cd .. && make && cd ..
+cd docs/ && make STAGING=1
 

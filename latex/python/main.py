@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import ssl
+from os import getenv
 from pathlib import Path
 from shutil import move, rmtree
 from zipfile import ZipFile
@@ -534,39 +535,40 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    encoder_names = [
-        "vgg11",
-        "vgg13",
-        "vgg19",
-        "resnet18",
-        "resnet34",
-        "resnet50",
-        "resnet101",
-        "resnet152",
-        "densenet121",
-        "densenet161",
-        "densenet169",
-        "densenet201",
-        "resnext50_32x4d",
-        "dpn68",
-        "dpn98",
-        "mobilenet_v2",
-        "xception",
-        "inceptionv4",
-        "efficientnet-b0",
-        "efficientnet-b1",
-        "efficientnet-b2",
-        "efficientnet-b3",
-        "efficientnet-b4",
-        "efficientnet-b5",
-        "efficientnet-b6",
-    ]
-    epochs_num = 100
-    range_test_volume = range(9)
-    range_train = range(80)
-    range_validation = range(80, 100)
-    step_size = 1
-    if __debug__:
+    if getenv("STAGING"):
+        encoder_names = [
+            "vgg11",
+            "vgg13",
+            "vgg19",
+            "resnet18",
+            "resnet34",
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "densenet121",
+            "densenet161",
+            "densenet169",
+            "densenet201",
+            "resnext50_32x4d",
+            "dpn68",
+            "dpn98",
+            "mobilenet_v2",
+            "xception",
+            "inceptionv4",
+            "efficientnet-b0",
+            "efficientnet-b1",
+            "efficientnet-b2",
+            "efficientnet-b3",
+            "efficientnet-b4",
+            "efficientnet-b5",
+            "efficientnet-b6",
+        ]
+        epochs_num = 100
+        range_test_volume = range(9)
+        range_train = range(80)
+        range_validation = range(80, 100)
+        step_size = 1
+    else:
         encoder_names = ["resnet18", "mobilenet_v2", "efficientnet-b0"]
         epochs_num = 2
         range_test_volume = range(1)
@@ -902,11 +904,11 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                             model,
                             model_file_name,
                         )
-                        if not __debug__:
+                        if getenv("STAGING"):
                             output_path = Path("prm") / model_file_name
                             rmtree(output_path)
                             move(f"tmp/{model_file_name}", output_path)
-                    if __debug__:
+                    if not getenv("STAGING"):
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
