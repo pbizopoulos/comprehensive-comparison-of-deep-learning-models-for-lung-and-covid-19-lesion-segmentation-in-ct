@@ -86,26 +86,26 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         images: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
         for file_path in Path(f"tmp/{file_names[0]}/").glob("*.nii.gz"):
             images_ = nib.load(file_path)  # type: ignore[attr-defined]
-            images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
-            images = np.concatenate((images, images_), 2)
+            images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))  # type: ignore[assignment,attr-defined]
+            images = np.concatenate((images, images_), 2)  # type: ignore[arg-type]
         self.images = images[..., index_range]
         mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
         for file_path in Path(f"tmp/{file_names[1]}").glob("/*.nii.gz"):
             mask_lesions_ = nib.load(file_path)  # type: ignore[attr-defined]
-            mask_lesions_ = np.resize(
-                mask_lesions_.get_fdata(),
-                (512, 512, mask_lesions_.shape[-1]),
+            mask_lesions_ = np.resize(  # type: ignore[assignment]
+                mask_lesions_.get_fdata(),  # type: ignore[attr-defined]
+                (512, 512, mask_lesions_.shape[-1]),  # type: ignore[attr-defined]
             )
-            mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
+            mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)  # type: ignore[arg-type]
         self.mask_lesions = mask_lesions[..., index_range]
         mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
         for file_path in Path(f"tmp/{file_names[2]}").glob("/*.nii.gz"):
             mask_lungs_ = nib.load(file_path)  # type: ignore[attr-defined]
-            mask_lungs_ = np.resize(
-                mask_lungs_.get_fdata(),
+            mask_lungs_ = np.resize(  # type: ignore[assignment]
+                mask_lungs_.get_fdata(),  # type: ignore[attr-defined]
                 (512, 512, mask_lungs.shape[-1]),
             )
-            mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)
+            mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)  # type: ignore[arg-type]
         self.mask_lungs = mask_lungs[..., index_range]
         self.use_transforms = use_transforms
 
@@ -144,11 +144,11 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
             if not nifti_file_path.is_file():
                 gdown.download(url, nifti_file_path.as_posix(), quiet=False)
         images = nib.load("tmp/tr_im.nii.gz")  # type: ignore[attr-defined]
-        self.images = images.get_fdata()[..., index_range]
+        self.images = images.get_fdata()[..., index_range]  # type: ignore[attr-defined]
         mask_lesions = nib.load("tmp/tr_mask.nii.gz")  # type: ignore[attr-defined]
-        self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
+        self.mask_lesions = mask_lesions.get_fdata()[..., index_range]  # type: ignore[attr-defined]
         mask_lungs = nib.load("tmp/tr_lungmasks_updated.nii.gz")  # type: ignore[attr-defined]
-        self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
+        self.mask_lungs = mask_lungs.get_fdata()[..., index_range]  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
     def __getitem__(
@@ -190,13 +190,13 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
                     zip_file.extractall("tmp")
         image_file_paths = sorted(Path("tmp/rp_im/").glob("*.nii.gz"))
         images = nib.load(image_file_paths[index_volume])  # type: ignore[attr-defined]
-        self.images = images.get_fdata()
+        self.images = images.get_fdata()  # type: ignore[attr-defined]
         mask_lesions_file_paths = sorted(Path("tmp/rp_msk/").glob("*.nii.gz"))
         mask_lesions = nib.load(mask_lesions_file_paths[index_volume])  # type: ignore[attr-defined]
-        self.mask_lesions = mask_lesions.get_fdata()
+        self.mask_lesions = mask_lesions.get_fdata()  # type: ignore[attr-defined]
         mask_lungs_file_paths = sorted(Path("tmp/rp_lung_msk/").glob("*.nii.gz"))
         mask_lungs = nib.load(mask_lungs_file_paths[index_volume])  # type: ignore[attr-defined]
-        self.mask_lungs = mask_lungs.get_fdata()
+        self.mask_lungs = mask_lungs.get_fdata()  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
     def __getitem__(
@@ -341,7 +341,7 @@ def save_figure_image_masked(  # noqa: PLR0913
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
-    prediction = prediction > 0.5  # noqa: PLR2004
+    prediction = prediction > 0.5  # type: ignore[assignment] # noqa: PLR2004
     correct = mask * prediction
     false = np.logical_xor(mask, prediction) > 0.5  # noqa: PLR2004
     _, ax = plt.subplots()
