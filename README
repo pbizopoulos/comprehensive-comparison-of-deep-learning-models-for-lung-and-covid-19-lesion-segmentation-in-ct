@@ -3,7 +3,7 @@ https://arxiv.org/abs/2009.06412
 https://pbizopoulos.github.io/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 
 # Requirements
-POSIX Utilities
+POSIX Shell & Utilities
 Git
 Docker
 NVIDIA Container Toolkit (Optional)
