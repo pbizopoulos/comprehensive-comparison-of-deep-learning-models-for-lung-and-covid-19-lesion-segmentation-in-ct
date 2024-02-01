@@ -256,11 +256,11 @@ def save_figure_3d(
     ax.yaxis.set_ticklabels([])
     ax.zaxis.set_ticklabels([])  # type: ignore[attr-defined]
     for line in ax.xaxis.get_ticklines():
-        line.set_visible(False)  # noqa: FBT003
+        line.set_visible(False)
     for line in ax.yaxis.get_ticklines():
-        line.set_visible(False)  # noqa: FBT003
+        line.set_visible(False)
     for line in ax.zaxis.get_ticklines():  # type: ignore[attr-defined]
-        line.set_visible(False)  # noqa: FBT003
+        line.set_visible(False)
     plt.savefig(f"tmp/{experiment_name}-{architecture}-{encoder_weights}-volume.png")
     plt.close()
 
@@ -341,7 +341,8 @@ def save_figure_image_masked(  # noqa: PLR0913
     image = image.cpu().numpy()
     mask = mask.cpu().numpy()
     prediction = prediction.cpu().detach().numpy()
-    prediction = prediction > 0.5  # type: ignore[assignment] # noqa: PLR2004
+    prediction_threshold = 0.5
+    prediction = prediction > prediction_threshold
     correct = mask * prediction
     false = np.logical_xor(mask, prediction) > 0.5  # noqa: PLR2004
     _, ax = plt.subplots()
