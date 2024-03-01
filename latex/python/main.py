@@ -800,20 +800,20 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                                     and encoder_name == encoder_names[0]
                                     and (encoder_weights == encoders_weights[0])
                                 ):
-                                    hist_images_array[
-                                        experiment_name_index
-                                    ] += np.histogram(
-                                        images.cpu(),
-                                        hist_bins,
-                                        hist_range,
-                                    )[0]
-                                    hist_masks_array[
-                                        experiment_name_index
-                                    ] += np.histogram(
-                                        images.cpu() * masks.cpu(),
-                                        hist_bins,
-                                        hist_range,
-                                    )[0]
+                                    hist_images_array[experiment_name_index] += (
+                                        np.histogram(
+                                            images.cpu(),
+                                            hist_bins,
+                                            hist_range,
+                                        )[0]
+                                    )
+                                    hist_masks_array[experiment_name_index] += (
+                                        np.histogram(
+                                            images.cpu() * masks.cpu(),
+                                            hist_bins,
+                                            hist_range,
+                                        )[0]
+                                    )
                                 metrics_values = calculate_metrics(masks, predictions)
                                 metrics_array[
                                     experiment_name_index,
