@@ -4,13 +4,11 @@ import itertools
 import ssl
 from os import getenv
 from pathlib import Path
-from shutil import move, rmtree
 from zipfile import ZipFile
 
 import gdown
 import nibabel as nib
 import numpy as np
-import onnx
 import pandas as pd
 import requests
 import torch
@@ -18,12 +16,10 @@ from fvcore.nn import FlopCountAnalysis
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
-from onnx_tf.backend import prepare
 from scipy.stats import gaussian_kde
 from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics
 from segmentation_models_pytorch.utils.losses import DiceLoss
 from skimage.measure import marching_cubes
-from tensorflowjs.converters import tf_saved_model_conversion_v2
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
@@ -36,6 +32,8 @@ def preprocess_image(
     use_transforms: bool,  # noqa: FBT001
     rng: np.random.Generator,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:  # type: ignore[type-arg]
+    image -= image.min()
+    image /= image.max()
     image = tf.to_pil_image(image.astype("float32"))
     mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
     mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
@@ -56,7 +54,7 @@ def preprocess_image(
         image = tf.affine(image, rotation, [0, 0], scale, 0)
         mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
         mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
-    image = tf.to_tensor(image) / 4095
+    image = tf.to_tensor(image)
     mask_lesion = tf.to_tensor(mask_lesion).bool()
     mask_lung = tf.to_tensor(mask_lung).bool()
     return (image, mask_lung, mask_lesion)
@@ -238,7 +236,7 @@ def save_figure_3d(
     volume = volume > 0.5  # noqa: PLR2004
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
-    verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)
+    verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)  # type: ignore[no-untyped-call]
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.plot_trisurf(  # type: ignore[attr-defined]
@@ -502,34 +500,6 @@ def save_figure_weights(
         f"tmp/{experiment_name}-{architecture_name}-{encoder_weights}-weights.png",
     )
     plt.close()
-
-
-def save_tfjs_from_torch(
-    example_input: torch.Tensor,
-    model: nn.Module,
-    model_file_name: str,
-) -> None:
-    model_file_path = Path("tmp") / model_file_name
-    if model_file_path.exists():
-        rmtree(model_file_path)
-    model_file_path.mkdir()
-    torch.onnx.export(
-        model.cpu(),
-        example_input,
-        model_file_path / "model.onnx",
-        export_params=True,
-        opset_version=11,
-    )
-    model_onnx = onnx.load(model_file_path / "model.onnx")
-    model_tf = prepare(model_onnx)
-    model_tf.export_graph(model_file_path / "model")
-    tf_saved_model_conversion_v2.convert_tf_saved_model(
-        (model_file_path / "model").as_posix(),
-        model_file_path,
-        skip_op_check=True,
-    )
-    rmtree(model_file_path / "model")
-    (model_file_path / "model.onnx").unlink()
 
 
 def main() -> None:  # noqa: C901, PLR0912, PLR0915
@@ -900,15 +870,13 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                         "lesion-segmentation-a-FPN-mobilenet_v2-imagenet",
                         "lung-segmentation-FPN-mobilenet_v2-imagenet",
                     ]:
-                        save_tfjs_from_torch(
-                            dataset_train[0][0].unsqueeze(0),
-                            model,
-                            model_file_name,
+                        example_input = dataset_train[0][0].unsqueeze(0)
+                        torch.onnx.export(
+                            model.cpu(),
+                            example_input,
+                            f"tmp/model-{model_file_name}.onnx",
+                            export_params=True,
                         )
-                        if getenv("STAGING"):
-                            output_path = Path("prm") / model_file_name
-                            rmtree(output_path)
-                            move(f"tmp/{model_file_name}", output_path)
                     if not getenv("STAGING"):
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
