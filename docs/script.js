@@ -1,10 +1,12 @@
+const image = new Image();
 const imageFileReader = new FileReader();
 const imageInputCanvas = document.getElementById("image-input-canvas");
 const imageInputContext = imageInputCanvas.getContext("2d");
+const inputFile = document.getElementById("image-file");
+const loadingDialog = document.getElementById("loading-dialog");
 const maskOutputCanvas = document.getElementById("mask-output-canvas");
 const maskOutputContext = maskOutputCanvas.getContext("2d");
 const modelSelect = document.getElementById("model-select");
-const image = new Image();
 let session;
 image.crossOrigin = "anonymous";
 image.onload = imageOnLoad;
@@ -55,7 +57,9 @@ function imageOnLoad() {
 }
 
 async function loadModel(predictFunction) {
+	loadingDialog.showModal();
 	session = await ort.InferenceSession.create(modelSelect.value);
+	loadingDialog.close();
 	predictFunction();
 	disableUI(false);
 }
