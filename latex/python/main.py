@@ -9,6 +9,7 @@ from zipfile import ZipFile
 import gdown
 import nibabel as nib
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import requests
 import torch
@@ -26,12 +27,12 @@ from torchvision.transforms import functional as tf
 
 
 def preprocess_image(
-    image: np.ndarray,  # type: ignore[type-arg]
-    mask_lesion: np.ndarray,  # type: ignore[type-arg]
-    mask_lung: np.ndarray,  # type: ignore[type-arg]
+    image: npt.NDArray[np.float64],
+    mask_lesion: npt.NDArray[np.float64],
+    mask_lung: npt.NDArray[np.float64],
     use_transforms: bool,  # noqa: FBT001
     rng: np.random.Generator,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:  # type: ignore[type-arg]
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     image -= image.min()
     image /= image.max()
     image = tf.to_pil_image(image.astype("float32"))
@@ -96,7 +97,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
             )
             mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)  # type: ignore[arg-type]
         self.mask_lesions = mask_lesions[..., index_range]
-        mask_lungs: np.ndarray = np.array([]).reshape(512, 512, 0)  # type: ignore[type-arg]
+        mask_lungs: npt.NDArray[np.float64] = np.array([]).reshape(512, 512, 0)
         for file_path in Path(f"tmp/{file_names[2]}").glob("/*.nii.gz"):
             mask_lungs_ = nib.load(file_path)  # type: ignore[attr-defined]
             mask_lungs_ = np.resize(  # type: ignore[assignment]
@@ -107,10 +108,7 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs[..., index_range]
         self.use_transforms = use_transforms
 
-    def __getitem__(
-        self: CTSegBenchmark,
-        index: int,
-    ) -> tuple:  # type: ignore[type-arg]
+    def __getitem__(self: CTSegBenchmark, index: int) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
@@ -149,10 +147,7 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
-    def __getitem__(
-        self: MedicalSegmentation1,
-        index: int,
-    ) -> tuple:  # type: ignore[type-arg]
+    def __getitem__(self: MedicalSegmentation1, index: int) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
@@ -197,10 +192,7 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
-    def __getitem__(
-        self: MedicalSegmentation2,
-        index: int,
-    ) -> tuple:  # type: ignore[type-arg]
+    def __getitem__(self: MedicalSegmentation2, index: int) -> tuple:  # type: ignore[type-arg]
         image, mask_lung, mask_lesion = preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
@@ -231,9 +223,9 @@ def save_figure_3d(
     encoder_weights: str | None,
     experiment_name: str,
     step_size: int,
-    volume: np.ndarray,  # type: ignore[type-arg]
+    volume: npt.NDArray[np.float64],
 ) -> None:
-    volume = volume > 0.5  # noqa: PLR2004
+    volume = volume > 0.5  # type: ignore[assignment] # noqa: PLR2004
     volume[0, 0, 0:10] = 0
     volume[0, 0, 10:20] = 1
     verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)  # type: ignore[no-untyped-call]
@@ -265,7 +257,7 @@ def save_figure_3d(
 
 def save_figure_architecture_box(
     architecture_names: list[str],
-    dice: np.ndarray,  # type: ignore[type-arg]
+    dice: npt.NDArray[np.float64],
     experiment_name: str,
 ) -> None:
     dice_ = dice.reshape(dice.shape[0], -1).T
@@ -284,8 +276,8 @@ def save_figure_architecture_box(
 
 def save_figure_histogram(
     experiment_name: str,
-    hist_images: np.ndarray,  # type: ignore[type-arg]
-    hist_masks: np.ndarray,  # type: ignore[type-arg]
+    hist_images: npt.NDArray[np.float64],
+    hist_masks: npt.NDArray[np.float64],
     hist_range: tuple[float, float],
 ) -> None:
     t_linspace_array = np.linspace(hist_range[0], hist_range[1], hist_masks.shape[-1])
@@ -355,7 +347,7 @@ def save_figure_image_masked(  # noqa: PLR0913
 
 
 def save_figure_initialization_box(
-    dice: np.ndarray,  # type: ignore[type-arg]
+    dice: npt.NDArray[np.float64],
     encoders_weights: list[str | None],
 ) -> None:
     dice_ = dice.reshape(-1, dice.shape[-1])
@@ -375,7 +367,7 @@ def save_figure_initialization_box(
 def save_figure_loss(
     architecture_names: list[str],
     experiment_name: str,
-    loss: np.ndarray,  # type: ignore[type-arg]
+    loss: npt.NDArray[np.float64],
     train_or_validation: str,
     ylim: list[float],
 ) -> None:
@@ -426,9 +418,9 @@ def save_figure_loss(
 
 def save_figure_scatter(
     architecture_names: list[str],
-    dice: np.ndarray,  # type: ignore[type-arg]
+    dice: npt.NDArray[np.float64],
     experiment_name: str,
-    parameters_num_array: np.ndarray,  # type: ignore[type-arg]
+    parameters_num_array: npt.NDArray[np.float64],
     ylim: list[int],
 ) -> None:
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][
@@ -502,7 +494,7 @@ def save_figure_weights(
     plt.close()
 
 
-def main() -> None:  # noqa: C901, PLR0912, PLR0915
+def main() -> None:  # noqa: C901,PLR0912,PLR0915
     ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
