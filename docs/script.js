@@ -15,15 +15,6 @@ image.src =
 imageFileReader.onload = imageFileReaderOnLoad;
 inputFile.onchange = inputFileOnChange;
 
-function disableUI(argument) {
-	const nodes = document
-		.getElementById("input-control-div")
-		.getElementsByTagName("*");
-	for (let i = 0; i < nodes.length; i++) {
-		nodes[i].disabled = argument;
-	}
-}
-
 function inputFileOnChange(event) {
 	const files = event.currentTarget.files;
 	if (files[0]) {
@@ -61,7 +52,6 @@ async function loadModel(predictFunction) {
 	session = await ort.InferenceSession.create(modelSelect.value);
 	loadingDialog.close();
 	predictFunction();
-	disableUI(false);
 }
 
 async function predictView() {
