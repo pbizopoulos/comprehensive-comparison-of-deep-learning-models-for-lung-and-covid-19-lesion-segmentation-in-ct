@@ -1,24 +1,24 @@
-const image = new Image();
-const imageFileReader = new FileReader();
+const helpButton = document.getElementById("help-button");
+const helpDialog = document.getElementById("help-dialog");
 const imageInputCanvas = document.getElementById("image-input-canvas");
 const imageInputContext = imageInputCanvas.getContext("2d");
-const informationButton = document.getElementById("information-button");
-const informationDialog = document.getElementById("information-dialog");
 const inputFile = document.getElementById("input-file");
 const loadingDialog = document.getElementById("loading-dialog");
 const maskOutputCanvas = document.getElementById("mask-output-canvas");
 const maskOutputContext = maskOutputCanvas.getContext("2d");
 const modelSelect = document.getElementById("model-select");
 let session;
+const image = new Image();
 image.crossOrigin = "anonymous";
 image.onload = imageOnLoad;
 image.src =
 	"https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/prm/lung-segmentation-example-data.png";
+const imageFileReader = new FileReader();
 imageFileReader.onload = imageFileReaderOnLoad;
 inputFile.onchange = inputFileOnChange;
 
-informationButton.addEventListener("click", () => {
-	informationDialog.showModal();
+helpButton.addEventListener("click", () => {
+	helpDialog.showModal();
 });
 
 function inputFileOnChange(event) {

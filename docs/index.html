@@ -16,7 +16,7 @@
         <dialog id="loading-dialog">Loading...</dialog>
         <nav>
             <a href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct">Source code</a>|<a href="https://pbizopoulos.github.io">Home page</a>/<b>Lung and COVID-19 lesion segmentation tool</b>
-            <button type="button" id="information-button" class="element-right">Information</button>
+            <button type="button" id="help-button" class="element-right">Help</button>
         </nav>
         <div class="container">
             <div class="column">
@@ -35,7 +35,7 @@
                 <canvas height="256" id="mask-output-canvas" width="256"></canvas>
             </div>
         </div>
-        <dialog id="information-dialog" onmousedown="event.target==this && this.close()">
+        <dialog id="help-dialog" onmousedown="event.target==this && this.close()">
             <div>Not intended for clinical use.</div>
             <div>Usage:</div>
             <ol>
