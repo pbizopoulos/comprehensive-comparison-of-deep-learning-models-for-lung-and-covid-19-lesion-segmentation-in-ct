@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import itertools
+import os
 import ssl
-from os import getenv
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -498,7 +498,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    if getenv("STAGING"):
+    if os.getenv("STAGING"):
         encoder_names = [
             "vgg11",
             "vgg13",
@@ -869,7 +869,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             f"tmp/model-{model_file_name}.onnx",
                             export_params=True,
                         )
-                    if not getenv("STAGING"):
+                    if not os.getenv("STAGING"):
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
