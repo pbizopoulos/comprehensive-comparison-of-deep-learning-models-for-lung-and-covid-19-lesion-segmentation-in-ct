@@ -420,22 +420,22 @@ def save_figure_scatter(
     architecture_names: list[str],
     dice: npt.NDArray[np.float64],
     experiment_name: str,
-    parameters_num_array: npt.NDArray[np.float64],
+    num_parameters_array: npt.NDArray[np.float64],
     ylim: list[int],
 ) -> None:
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][
-        : len(parameters_num_array)
+        : len(num_parameters_array)
     ]
     dice_ = dice.mean(-1)
     _, ax = plt.subplots()
-    for parameters_num, dice_element, architecture_name, color in zip(
-        parameters_num_array,
+    for num_parameters, dice_element, architecture_name, color in zip(
+        num_parameters_array,
         dice_,
         architecture_names,
         colors,
         strict=True,
     ):
-        plt.scatter(parameters_num, dice_element, c=color, label=architecture_name, s=3)
+        plt.scatter(num_parameters, dice_element, c=color, label=architecture_name, s=3)
     xmin = 0
     xmax = 80
     ymin = ylim[0]
@@ -443,7 +443,7 @@ def save_figure_scatter(
     nbins = 100
     x_mgrid, y_mgrid = np.mgrid[xmin : xmax : nbins * 1j, ymin : ymax : nbins * 1j]  # type: ignore[misc]
     positions = np.vstack([x_mgrid.ravel(), y_mgrid.ravel()])
-    values = np.vstack([parameters_num_array.flatten(), dice_.flatten()])
+    values = np.vstack([num_parameters_array.flatten(), dice_.flatten()])
     kernel = gaussian_kde(values)
     z_grid = np.reshape(kernel(positions).T, x_mgrid.shape)
     ax.imshow(
@@ -526,14 +526,14 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             "efficientnet-b5",
             "efficientnet-b6",
         ]
-        epochs_num = 100
+        num_epochs = 100
         range_test_volume = range(9)
         range_train = range(80)
         range_validation = range(80, 100)
         step_size = 1
     else:
         encoder_names = ["resnet18", "mobilenet_v2", "efficientnet-b0"]
-        epochs_num = 2
+        num_epochs = 2
         range_test_volume = range(1)
         range_train = range(1)
         range_validation = range(2, 4)
@@ -570,7 +570,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             len(metric_names),
         ),
     )
-    parameters_num_array = np.zeros((len(architectures), len(encoder_names)))
+    num_parameters_array = np.zeros((len(architectures), len(encoder_names)))
     hist_bins = 100
     hist_range = (-0.5, 0.5)
     hist_images_array = np.zeros((len(experiments), hist_bins))
@@ -581,7 +581,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             len(architectures),
             len(encoder_names),
             len(encoders_weights),
-            epochs_num,
+            num_epochs,
         ),
     )
     loss_validation_array = np.zeros_like(loss_train_array)
@@ -607,7 +607,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         activation="sigmoid",
                         in_channels=1,
                     ).to(device)
-                    parameters_num_array[architecture_index, encoder_name_index] = sum(
+                    num_parameters_array[architecture_index, encoder_name_index] = sum(
                         parameter.numel()
                         for parameter in model.parameters()
                         if parameter.requires_grad
@@ -628,7 +628,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         encoder_name_index,
                         encoder_weights_index,
                     ] = flops.total()
-                    for epoch_index in range(epochs_num):
+                    for epoch_index in range(num_epochs):
                         loss_train_sum = 0
                         model.train()
                         for images, mask_lungs, mask_lesions in dataloader_train:
@@ -646,7 +646,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                 architecture_name == architecture_names[0]
                                 and encoder_name == encoder_names[0]
                                 and (encoder_weights == encoders_weights[0])
-                                and (epoch_index == epochs_num - 1)
+                                and (epoch_index == num_epochs - 1)
                             ):
                                 save_figure_image(experiment_name, images[0, 0])
                                 save_figure_image_masked(
@@ -676,7 +676,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                         experiment_name,
                                         model,
                                     )
-                                elif epoch_index == epochs_num - 1:
+                                elif epoch_index == num_epochs - 1:
                                     save_figure_weights(
                                         architecture_name,
                                         f"{encoder_weights}-after",
@@ -736,14 +736,14 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         in_channels=1,
                     ).to(device)
                     model.load_state_dict(torch.load(model_file_path))
-                    slices_test_num = 0
+                    num_slices_test = 0
                     for index_test_volume in range_test_volume:
                         dataset_test = MedicalSegmentation2(
                             index_test_volume,
                             use_transforms=False,
                         )
                         dataloader_test = DataLoader(dataset_test)
-                        slices_test_num += len(dataloader_test)
+                        num_slices_test += len(dataloader_test)
                         model.eval()
                         with torch.no_grad():
                             for images, mask_lungs, mask_lesions in dataloader_test:
@@ -912,8 +912,8 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         "Validation diff",
         [-0.4, 0.4],
     )
-    metrics_array = 100 * np.nan_to_num(metrics_array) / slices_test_num
-    parameters_num_array = parameters_num_array / 10**6
+    metrics_array = 100 * np.nan_to_num(metrics_array) / num_slices_test
+    num_parameters_array = num_parameters_array / 10**6
     for experiment_name, metrics_ in zip(experiment_names, metrics_array, strict=True):
         save_figure_architecture_box(
             architecture_names,
@@ -924,14 +924,14 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             architecture_names,
             metrics_[..., -1],
             experiment_name,
-            parameters_num_array,
+            num_parameters_array,
             [70, 100],
         )
     save_figure_scatter(
         architecture_names,
         metrics_array[2, ..., -1] - metrics_array[1, ..., -1],
         "diff",
-        parameters_num_array,
+        num_parameters_array,
         [-15, 15],
     )
     save_figure_initialization_box(metrics_array[..., -1], encoders_weights)
@@ -953,9 +953,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         1,
     )
     metrics_array = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:]))
-    parameters_num_array_global_mean = parameters_num_array.mean()
-    parameters_num_array = np.concatenate(
-        (parameters_num_array, parameters_num_array.mean(1, keepdims=True)),
+    num_parameters_array_global_mean = num_parameters_array.mean()
+    num_parameters_array = np.concatenate(
+        (num_parameters_array, num_parameters_array.mean(1, keepdims=True)),
         1,
     )
     flops_array /= 10**9
@@ -977,11 +977,11 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         ],
     )
     metrics_df = pd.DataFrame(metrics_array, index=index, columns=multicolumn)
-    metrics_df["Performance", "related", "Pars (M)"] = parameters_num_array.flatten()
+    metrics_df["Performance", "related", "Pars (M)"] = num_parameters_array.flatten()
     metrics_df["Performance", "related", "FLOPS (B)"] = flops_array.flatten()
     metrics_df.loc[("Global", "Mean"), :] = np.append(
         metrics_array_global_mean,
-        (parameters_num_array_global_mean, flops_array_global_mean),
+        (num_parameters_array_global_mean, flops_array_global_mean),
     )
     metrics_df.index.names = ["Architecture", "Encoder"]
     metrics_df = metrics_df.round(1)
@@ -1037,9 +1037,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     )
     values = (
         [
-            str(int(epochs_num)),
+            str(int(num_epochs)),
             str(int(batch_size)),
-            str(int(slices_test_num)),
+            str(int(num_slices_test)),
             encoder_names[encoder_mean.argmax()].replace("_", ""),
             encoder_names[encoder_mean.argmin()].replace("_", ""),
         ]
@@ -1051,26 +1051,26 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             )
         ]
         + [
-            maxs_per_column[2],
-            maxs_per_column[11],
-            maxs_per_column[5],
-            maxs_per_column[14],
-            maxs_per_column[8],
-            maxs_per_column[17],
+            maxs_per_column.iloc[2],
+            maxs_per_column.iloc[11],
+            maxs_per_column.iloc[5],
+            maxs_per_column.iloc[14],
+            maxs_per_column.iloc[8],
+            maxs_per_column.iloc[17],
             encoder_weights_mean[0],
             encoder_weights_mean[1],
-            maxs_per_column_index[2][0],
-            maxs_per_column_index[2][1],
-            maxs_per_column_index[11][0],
-            maxs_per_column_index[11][1],
-            maxs_per_column_index[5][0],
-            maxs_per_column_index[5][1],
-            maxs_per_column_index[14][0],
-            maxs_per_column_index[14][1],
-            maxs_per_column_index[8][0],
-            maxs_per_column_index[8][1],
-            maxs_per_column_index[17][0],
-            maxs_per_column_index[17][1],
+            maxs_per_column_index.iloc[2][0],
+            maxs_per_column_index.iloc[2][1],
+            maxs_per_column_index.iloc[11][0],
+            maxs_per_column_index.iloc[11][1],
+            maxs_per_column_index.iloc[5][0],
+            maxs_per_column_index.iloc[5][1],
+            maxs_per_column_index.iloc[14][0],
+            maxs_per_column_index.iloc[14][1],
+            maxs_per_column_index.iloc[8][0],
+            maxs_per_column_index.iloc[8][1],
+            maxs_per_column_index.iloc[17][0],
+            maxs_per_column_index.iloc[17][1],
         ]
         + [
             metrics_df.loc[architecture_name, "Mean"][str(encoder_weights), experiment][
