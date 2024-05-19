@@ -1,3 +1,5 @@
+"""Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT."""  # noqa: E501
+
 from __future__ import annotations
 
 import itertools
@@ -26,7 +28,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
 
-def preprocess_image(
+def _preprocess_image(
     image: npt.NDArray[np.float64],
     mask_lesion: npt.NDArray[np.float64],
     mask_lung: npt.NDArray[np.float64],
@@ -61,9 +63,9 @@ def preprocess_image(
     return (image, mask_lung, mask_lesion)
 
 
-class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
+class _CTSegBenchmark(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: CTSegBenchmark,
+        self: _CTSegBenchmark,
         index_range: range,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -108,8 +110,8 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs[..., index_range]
         self.use_transforms = use_transforms
 
-    def __getitem__(self: CTSegBenchmark, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(
+    def __getitem__(self: _CTSegBenchmark, index: int) -> tuple:  # type: ignore[type-arg]
+        image, mask_lung, mask_lesion = _preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
             self.mask_lungs[..., index],
@@ -118,13 +120,13 @@ class CTSegBenchmark(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: CTSegBenchmark) -> int:
+    def __len__(self: _CTSegBenchmark) -> int:
         return self.images.shape[-1]
 
 
-class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
+class _MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: MedicalSegmentation1,
+        self: _MedicalSegmentation1,
         index_range: range,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -147,8 +149,8 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()[..., index_range]  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
-    def __getitem__(self: MedicalSegmentation1, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(
+    def __getitem__(self: _MedicalSegmentation1, index: int) -> tuple:  # type: ignore[type-arg]
+        image, mask_lung, mask_lesion = _preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
             self.mask_lungs[..., index],
@@ -157,14 +159,14 @@ class MedicalSegmentation1(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: MedicalSegmentation1) -> int:
+    def __len__(self: _MedicalSegmentation1) -> int:
         output: int = self.images.shape[-1]
         return output
 
 
-class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
+class _MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
     def __init__(
-        self: MedicalSegmentation2,
+        self: _MedicalSegmentation2,
         index_volume: int,
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
@@ -192,8 +194,8 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         self.mask_lungs = mask_lungs.get_fdata()  # type: ignore[attr-defined]
         self.use_transforms = use_transforms
 
-    def __getitem__(self: MedicalSegmentation2, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = preprocess_image(
+    def __getitem__(self: _MedicalSegmentation2, index: int) -> tuple:  # type: ignore[type-arg]
+        image, mask_lung, mask_lesion = _preprocess_image(
             self.images[..., index],
             self.mask_lesions[..., index],
             self.mask_lungs[..., index],
@@ -202,12 +204,12 @@ class MedicalSegmentation2(Dataset):  # type: ignore[type-arg]
         )
         return (image, mask_lung, mask_lesion)
 
-    def __len__(self: MedicalSegmentation2) -> int:
+    def __len__(self: _MedicalSegmentation2) -> int:
         output: int = self.images.shape[-1]
         return output
 
 
-def calculate_metrics(
+def _calculate_metrics(
     mask: torch.Tensor,
     prediction: torch.Tensor,
 ) -> tuple[float, float, float]:
@@ -218,7 +220,7 @@ def calculate_metrics(
     return (sensitivity.item(), specificity.item(), f1_score.item())
 
 
-def save_figure_3d(
+def _save_figure_3d(
     architecture: str,
     encoder_weights: str | None,
     experiment_name: str,
@@ -255,7 +257,7 @@ def save_figure_3d(
     plt.close()
 
 
-def save_figure_architecture_box(
+def _save_figure_architecture_box(
     architecture_names: list[str],
     dice: npt.NDArray[np.float64],
     experiment_name: str,
@@ -274,7 +276,7 @@ def save_figure_architecture_box(
     plt.close()
 
 
-def save_figure_histogram(
+def _save_figure_histogram(
     experiment_name: str,
     hist_images: npt.NDArray[np.float64],
     hist_masks: npt.NDArray[np.float64],
@@ -311,7 +313,7 @@ def save_figure_histogram(
     plt.close()
 
 
-def save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
+def _save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     image = image.cpu().numpy()
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
@@ -320,7 +322,7 @@ def save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     plt.close()
 
 
-def save_figure_image_masked(  # noqa: PLR0913
+def _save_figure_image_masked(  # noqa: PLR0913
     architecture: str,
     encoder_name: str,
     experiment_name: str,
@@ -346,7 +348,7 @@ def save_figure_image_masked(  # noqa: PLR0913
     plt.close()
 
 
-def save_figure_initialization_box(
+def _save_figure_initialization_box(
     dice: npt.NDArray[np.float64],
     encoders_weights: list[str | None],
 ) -> None:
@@ -364,7 +366,7 @@ def save_figure_initialization_box(
     plt.close()
 
 
-def save_figure_loss(
+def _save_figure_loss(
     architecture_names: list[str],
     experiment_name: str,
     loss: npt.NDArray[np.float64],
@@ -416,7 +418,7 @@ def save_figure_loss(
     plt.close()
 
 
-def save_figure_scatter(
+def _save_figure_scatter(
     architecture_names: list[str],
     dice: npt.NDArray[np.float64],
     experiment_name: str,
@@ -464,7 +466,7 @@ def save_figure_scatter(
     plt.close()
 
 
-def save_figure_weights(
+def _save_figure_weights(
     architecture_name: str,
     encoder_weights: str,
     experiment_name: str,
@@ -494,7 +496,7 @@ def save_figure_weights(
     plt.close()
 
 
-def main() -> None:  # noqa: C901,PLR0912,PLR0915
+def _main() -> None:  # noqa: C901,PLR0912,PLR0915
     ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
@@ -555,9 +557,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         experiment.lower().replace(" ", "-") for experiment in experiments
     ]
     encoders_weights = [None, "imagenet"]
-    dataset_train = MedicalSegmentation1(range_train, use_transforms=True)
+    dataset_train = _MedicalSegmentation1(range_train, use_transforms=True)
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
-    dataset_validation = MedicalSegmentation1(range_validation, use_transforms=False)
+    dataset_validation = _MedicalSegmentation1(range_validation, use_transforms=False)
     dataloader_validation = DataLoader(dataset_validation, batch_size=batch_size)
     dice_loss = DiceLoss()
     metric_names = ["Sens", "Spec", "Dice"]
@@ -648,8 +650,8 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                 and (encoder_weights == encoders_weights[0])
                                 and (epoch_index == num_epochs - 1)
                             ):
-                                save_figure_image(experiment_name, images[0, 0])
-                                save_figure_image_masked(
+                                _save_figure_image(experiment_name, images[0, 0])
+                                _save_figure_image_masked(
                                     "mask",
                                     "train",
                                     experiment_name,
@@ -657,7 +659,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     masks[0, 0],
                                     masks[0, 0],
                                 )
-                                save_figure_image_masked(
+                                _save_figure_image_masked(
                                     "prediction",
                                     "train",
                                     experiment_name,
@@ -670,14 +672,14 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                 and encoder_name == "resnet18"
                             ):
                                 if epoch_index == 0:
-                                    save_figure_weights(
+                                    _save_figure_weights(
                                         architecture_name,
                                         f"{encoder_weights}-before",
                                         experiment_name,
                                         model,
                                     )
                                 elif epoch_index == num_epochs - 1:
-                                    save_figure_weights(
+                                    _save_figure_weights(
                                         architecture_name,
                                         f"{encoder_weights}-after",
                                         experiment_name,
@@ -738,7 +740,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                     model.load_state_dict(torch.load(model_file_path))
                     num_slices_test = 0
                     for index_test_volume in range_test_volume:
-                        dataset_test = MedicalSegmentation2(
+                        dataset_test = _MedicalSegmentation2(
                             index_test_volume,
                             use_transforms=False,
                         )
@@ -776,7 +778,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                             hist_range,
                                         )[0]
                                     )
-                                metrics_values = calculate_metrics(masks, predictions)
+                                metrics_values = _calculate_metrics(masks, predictions)
                                 metrics_array[
                                     experiment_name_index,
                                     architecture_index,
@@ -796,7 +798,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     images *= mask_lungs
                                     masks = mask_lesions
                                 predictions = model(images.unsqueeze(0).to(device))
-                                save_figure_image_masked(
+                                _save_figure_image_masked(
                                     architecture_name,
                                     encoder_name,
                                     experiment_name,
@@ -838,7 +840,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     ] = predictions[0].float().cpu()
                                 volume_mask_array = volume_mask_array[:, :, ::-1]
                                 if architecture_name == "Unet":
-                                    save_figure_3d(
+                                    _save_figure_3d(
                                         "mask",
                                         "",
                                         experiment_name,
@@ -850,7 +852,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     :,
                                     ::-1,
                                 ]
-                                save_figure_3d(
+                                _save_figure_3d(
                                     architecture_name,
                                     encoder_weights,
                                     experiment_name,
@@ -877,35 +879,35 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         experiment_names,
         strict=True,
     ):
-        save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
+        _save_figure_histogram(experiment_name, hist_images, hist_masks, hist_range)
     for experiment_name, loss_train_, loss_validation_ in zip(
         experiment_names,
         loss_train_array,
         loss_validation_array,
         strict=True,
     ):
-        save_figure_loss(
+        _save_figure_loss(
             architecture_names,
             experiment_name,
             loss_train_,
             "Train",
             [0, 1],
         )
-        save_figure_loss(
+        _save_figure_loss(
             architecture_names,
             experiment_name,
             loss_validation_,
             "Validation",
             [0, 1],
         )
-    save_figure_loss(
+    _save_figure_loss(
         architecture_names,
         experiment_name,
         loss_train_array[2] - loss_train_array[1],
         "Train diff",
         [-0.4, 0.4],
     )
-    save_figure_loss(
+    _save_figure_loss(
         architecture_names,
         experiment_name,
         loss_validation_array[2] - loss_validation_array[1],
@@ -915,26 +917,26 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     metrics_array = 100 * np.nan_to_num(metrics_array) / num_slices_test
     num_parameters_array = num_parameters_array / 10**6
     for experiment_name, metrics_ in zip(experiment_names, metrics_array, strict=True):
-        save_figure_architecture_box(
+        _save_figure_architecture_box(
             architecture_names,
             metrics_[..., -1],
             experiment_name,
         )
-        save_figure_scatter(
+        _save_figure_scatter(
             architecture_names,
             metrics_[..., -1],
             experiment_name,
             num_parameters_array,
             [70, 100],
         )
-    save_figure_scatter(
+    _save_figure_scatter(
         architecture_names,
         metrics_array[2, ..., -1] - metrics_array[1, ..., -1],
         "diff",
         num_parameters_array,
         [-15, 15],
     )
-    save_figure_initialization_box(metrics_array[..., -1], encoders_weights)
+    _save_figure_initialization_box(metrics_array[..., -1], encoders_weights)
     encoder_weights_mean = (
         metrics_array[..., -1].reshape(-1, len(encoders_weights)).mean(0).round(1)
     )
@@ -1088,4 +1090,4 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
 
 
 if __name__ == "__main__":
-    main()
+    _main()
