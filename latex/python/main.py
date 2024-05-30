@@ -500,7 +500,7 @@ def _main() -> None:  # noqa: C901,PLR0912,PLR0915
     ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    if os.getenv("STAGING"):
+    if os.getenv("STAGE"):
         encoder_names = [
             "vgg11",
             "vgg13",
@@ -871,7 +871,7 @@ def _main() -> None:  # noqa: C901,PLR0912,PLR0915
                             f"tmp/model-{model_file_name}.onnx",
                             export_params=True,
                         )
-                    if not os.getenv("STAGING"):
+                    if not os.getenv("STAGE"):
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
