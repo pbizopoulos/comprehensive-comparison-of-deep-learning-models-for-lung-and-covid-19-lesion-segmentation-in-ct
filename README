@@ -11,14 +11,14 @@
 # Download
 git clone git@github.com:pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct ~/github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct
 
-# Development
+# Develop
 cd ~/github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
 cd docs/ && make clean check all && cd ..
 cd latex/python/ && make clean check all && cd ../..
 cd latex/ && make clean check all && cd ..
 
-# Staging
+# Stage
 cd ~/github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/
-cd latex/python/ && make STAGING=1 && cd .. && make && cd ..
-cd docs/ && make STAGING=1
+cd latex/python/ && make STAGE=1 && cd .. && make && cd ..
+cd docs/ && make STAGE=1
 
