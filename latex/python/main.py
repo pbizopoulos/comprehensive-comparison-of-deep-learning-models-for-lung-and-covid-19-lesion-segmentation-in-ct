@@ -28,41 +28,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
 
-def _preprocess_image(
-    image: npt.NDArray[np.float64],
-    mask_lesion: npt.NDArray[np.float64],
-    mask_lung: npt.NDArray[np.float64],
-    use_transforms: bool,  # noqa: FBT001
-    rng: np.random.Generator,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-    image -= image.min()
-    image /= image.max()
-    image = tf.to_pil_image(image.astype("float32"))
-    mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
-    mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
-    image = tf.resize(image, [512, 512])
-    mask_lesion = tf.resize(mask_lesion, [512, 512])
-    mask_lung = tf.resize(mask_lung, [512, 512])
-    if use_transforms:
-        if rng.random() > 0.5:  # noqa: PLR2004
-            image = tf.hflip(image)
-            mask_lesion = tf.hflip(mask_lesion)
-            mask_lung = tf.hflip(mask_lung)
-        if rng.random() > 0.5:  # noqa: PLR2004
-            image = tf.vflip(image)
-            mask_lesion = tf.vflip(mask_lesion)
-            mask_lung = tf.vflip(mask_lung)
-        scale = rng.random() + 0.5
-        rotation = 360 * rng.random() - 180
-        image = tf.affine(image, rotation, [0, 0], scale, 0)
-        mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
-        mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
-    image = tf.to_tensor(image)
-    mask_lesion = tf.to_tensor(mask_lesion).bool()
-    mask_lung = tf.to_tensor(mask_lung).bool()
-    return (image, mask_lung, mask_lesion)
-
-
 class _CTSegBenchmark(Dataset):  # type: ignore[type-arg]
     def __init__(
         self: _CTSegBenchmark,
@@ -218,6 +183,41 @@ def _calculate_metrics(
     sensitivity = metrics.sensitivity(tp, fp, fn, tn)
     specificity = metrics.specificity(tp, fp, fn, tn)
     return (sensitivity.item(), specificity.item(), f1_score.item())
+
+
+def _preprocess_image(
+    image: npt.NDArray[np.float64],
+    mask_lesion: npt.NDArray[np.float64],
+    mask_lung: npt.NDArray[np.float64],
+    use_transforms: bool,  # noqa: FBT001
+    rng: np.random.Generator,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    image -= image.min()
+    image /= image.max()
+    image = tf.to_pil_image(image.astype("float32"))
+    mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
+    mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
+    image = tf.resize(image, [512, 512])
+    mask_lesion = tf.resize(mask_lesion, [512, 512])
+    mask_lung = tf.resize(mask_lung, [512, 512])
+    if use_transforms:
+        if rng.random() > 0.5:  # noqa: PLR2004
+            image = tf.hflip(image)
+            mask_lesion = tf.hflip(mask_lesion)
+            mask_lung = tf.hflip(mask_lung)
+        if rng.random() > 0.5:  # noqa: PLR2004
+            image = tf.vflip(image)
+            mask_lesion = tf.vflip(mask_lesion)
+            mask_lung = tf.vflip(mask_lung)
+        scale = rng.random() + 0.5
+        rotation = 360 * rng.random() - 180
+        image = tf.affine(image, rotation, [0, 0], scale, 0)
+        mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
+        mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
+    image = tf.to_tensor(image)
+    mask_lesion = tf.to_tensor(mask_lesion).bool()
+    mask_lung = tf.to_tensor(mask_lung).bool()
+    return (image, mask_lung, mask_lesion)
 
 
 def _save_figure_3d(
