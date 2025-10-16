@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <title>
+      Comprehensive Comparison of Deep Learning Models for Lung and COVID-19
+      Lesion Segmentation in CT
+    </title>
+    <link href="data:," rel="icon" />
+    <script
+      type="module"
+      crossorigin
+      src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
+    />
+  </head>
+
+  <body>
+    <nav>
+      <a href="https://pbizopoulos.github.io">~</a>/github.com/pbizopoulos/<a
+        href="https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct"
+        >comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct</a
+      >
+    </nav>
+    <gradio-lite>
+      <gradio-requirements> opencv-python </gradio-requirements>
+      <gradio-file
+        name="pyscript.py"
+        url="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/packages/html/prm/pyscript.py"
+        entrypoint
+      />
+      <gradio-file
+        name="lesion-segmentation-example-data.jpg"
+        url="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/packages/html/prm/lesion-segmentation-example-data.jpg"
+      />
+      <gradio-file
+        name="lung-segmentation-example-data.png"
+        url="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/packages/html/prm/lung-segmentation-example-data.png"
+      />
+      <gradio-file
+        name="model-lesion-segmentation-a-FPN-mobilenet_v2-imagenet.onnx"
+        url="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/packages/html/prm/model-lesion-segmentation-a-FPN-mobilenet_v2-imagenet.onnx"
+      />
+      <gradio-file
+        name="model-lung-segmentation-FPN-mobilenet_v2-imagenet.onnx"
+        url="https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/packages/html/prm/model-lung-segmentation-FPN-mobilenet_v2-imagenet.onnx"
+      />
+    </gradio-lite>
+  </body>
+</html>
