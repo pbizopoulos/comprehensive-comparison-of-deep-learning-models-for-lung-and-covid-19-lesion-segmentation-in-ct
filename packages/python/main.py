@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT."""  # noqa: E501
+
 from __future__ import annotations
 
 import itertools
