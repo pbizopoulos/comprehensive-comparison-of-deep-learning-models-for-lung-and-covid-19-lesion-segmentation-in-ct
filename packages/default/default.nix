@@ -2,16 +2,45 @@
   inputs,
   pkgs ? import <nixpkgs> { },
 }:
-pkgs.writeShellApplication {
-  name = builtins.baseNameOf ./.;
-  runtimeInputs = [
-    inputs.self.packages.${pkgs.stdenv.system}.python
+let
+  pythonEnv = pkgs.python312.withPackages (_ps: [
+    inputs.self.packages.${pkgs.stdenv.system}.onnxscript
+    inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
+    pkgs.python312Packages.fvcore
+    pkgs.python312Packages.gdown
+    pkgs.python312Packages.matplotlib
+    (pkgs.python312Packages.nibabel.overridePythonAttrs (_oldAttrs: {
+      doCheck = false;
+      doInstallCheck = false;
+      pytestCheckPhase = "";
+    }))
+    pkgs.python312Packages.onnx
+    pkgs.python312Packages.pandas
+    pkgs.python312Packages.scikit-image
+    pkgs.python312Packages.torch-bin
+    pkgs.python312Packages.torchvision-bin
+  ]);
+in
+pkgs.stdenv.mkDerivation rec {
+  buildInputs = [
     pkgs.texlive.combined.scheme-full
+    pythonEnv
   ];
-  text = ''
-    python
-    cd ${../latex}
-    latexmk -outdir="$HOME"/github.com/pbizopoulos/signal2image-modules-in-deep-neural-networks-for-eeg-classification/packages/latex/tmp/ -pdf ms.tex
-    xdg-open "$HOME"/github.com/pbizopoulos/signal2image-modules-in-deep-neural-networks-for-eeg-classification/packages/latex/tmp/ms.pdf
+  installPhase = ''
+    mkdir -p $out/bin
+    echo '#!/usr/bin/env bash
+      set -e
+      package_dir=$HOME/github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default
+      tmp_dir=$(mktemp -d)
+      cp -r ${src}/* "$tmp_dir"
+      cd "$tmp_dir"
+      ${pythonEnv}/bin/python ./main.py
+      ${pkgs.texlive.combined.scheme-full}/bin/latexmk -outdir=$package_dir/tmp -pdf ./ms.tex
+      ' > $out/bin/${pname}
+    chmod +x $out/bin/${pname}
   '';
+  meta.mainProgram = pname;
+  pname = builtins.baseNameOf src;
+  src = ./.;
+  version = "0.0.0";
 }
