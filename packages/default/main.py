@@ -28,15 +28,10 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
-_PACKAGE_PATH = (
+_OUT_PATH = (
     Path.home()
-    / "github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/python/"  # noqa: E501
-)
-if Path(__file__).resolve().as_posix().startswith("/nix/store/"):
-    _PARENT_PATH = Path(__file__).resolve().parent
-else:
-    _PARENT_PATH = _PACKAGE_PATH
-_OUT_PATH = _PACKAGE_PATH / "tmp"
+    / "github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default/tmp/"
+)  # noqa: E501
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
 
 

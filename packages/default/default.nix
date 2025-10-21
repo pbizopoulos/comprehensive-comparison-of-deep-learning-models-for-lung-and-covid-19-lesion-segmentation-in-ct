@@ -4,7 +4,6 @@
 }:
 let
   pythonEnv = pkgs.python312.withPackages (_ps: [
-    inputs.self.packages.${pkgs.stdenv.system}.onnxscript
     inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
     pkgs.python312Packages.fvcore
     pkgs.python312Packages.gdown
