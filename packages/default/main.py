@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import itertools
 import os
-import ssl
-import urllib
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -30,68 +28,9 @@ from torchvision.transforms import functional as tf
 
 _OUT_PATH = (
     Path.home()
-    / "github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default/tmp/"
-)  # noqa: E501
+    / "github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default/tmp/"  # noqa: E501
+)
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
-
-
-class _CTSegBenchmark(Dataset):  # type: ignore[misc]
-    def __init__(
-        self: _CTSegBenchmark,
-        index_range: range,
-        use_transforms: bool,  # noqa: FBT001
-    ) -> None:
-        self.rng = np.random.default_rng(seed=0)
-        urls = [
-            "https://zenodo.org/record/3757476/files/COVID-19-CT-Seg_20cases.zip?download=1",
-            "https://zenodo.org/record/3757476/files/Infection_Mask.zip?download=1",
-            "https://zenodo.org/record/3757476/files/Lung_Mask.zip?download=1",
-        ]
-        file_names = ["COVID-19-CT-Seg_20cases", "Infection_Mask", "Lung_Mask"]
-        for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_name_path = _OUT_PATH / f"{file_name}.zip"
-            if not zip_file_name_path.is_file():
-                urllib.request.urlretrieve(url, zip_file_name_path)  # type: ignore[attr-defined] # noqa: S310
-                with ZipFile(zip_file_name_path, "r") as zip_file:
-                    zip_file.extractall(_OUT_PATH / "{file_name}")
-        images: np.ndarray = np.array([]).reshape(512, 512, 0)
-        for file_path in (_OUT_PATH / f"{file_names[0]}/").glob("*.nii.gz"):
-            images_ = nib.load(file_path)
-            images_ = np.resize(images_.get_fdata(), (512, 512, images_.shape[-1]))
-            images = np.concatenate((images, images_), 2)
-        self.images = images[..., index_range]
-        mask_lesions: np.ndarray = np.array([]).reshape(512, 512, 0)
-        for file_path in (_OUT_PATH / f"{file_names[1]}").glob("/*.nii.gz"):
-            mask_lesions_ = nib.load(file_path)
-            mask_lesions_ = np.resize(
-                mask_lesions_.get_fdata(),
-                (512, 512, mask_lesions_.shape[-1]),
-            )
-            mask_lesions = np.concatenate((mask_lesions, mask_lesions_), 2)
-        self.mask_lesions = mask_lesions[..., index_range]
-        mask_lungs: npt.NDArray[np.float64] = np.array([]).reshape(512, 512, 0)
-        for file_path in (_OUT_PATH / f"{file_names[2]}").glob("/*.nii.gz"):
-            mask_lungs_ = nib.load(file_path)
-            mask_lungs_ = np.resize(
-                mask_lungs_.get_fdata(),
-                (512, 512, mask_lungs.shape[-1]),
-            )
-            mask_lungs = np.concatenate((mask_lungs, mask_lungs_), 2)
-        self.mask_lungs = mask_lungs[..., index_range]
-        self.use_transforms = use_transforms
-
-    def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = _preprocess_image(
-            self.images[..., index],
-            self.mask_lesions[..., index],
-            self.mask_lungs[..., index],
-            self.use_transforms,
-            self.rng,
-        )
-        return (image, mask_lung, mask_lesion)
-
-    def __len__(self) -> int:
-        return self.images.shape[-1]  # type: ignore[no-any-return]
 
 
 class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
@@ -101,22 +40,31 @@ class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        urls = [
-            "https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S",
-            "https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f",
-            "https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-",
-        ]
-        file_names = ["tr_im.nii.gz", "tr_mask.nii.gz", "tr_lungmasks_updated.nii.gz"]
-        for url, file_name in zip(urls, file_names, strict=True):
-            nifti_file_path = _OUT_PATH / file_name
-            if not nifti_file_path.is_file():
-                gdown.download(url, nifti_file_path.as_posix(), quiet=False)
-        images = nib.load(_OUT_PATH / "tr_im.nii.gz")
-        self.images = images.get_fdata()[..., index_range]
-        mask_lesions = nib.load(_OUT_PATH / "tr_mask.nii.gz")
-        self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-        mask_lungs = nib.load(_OUT_PATH / "tr_lungmasks_updated.nii.gz")
-        self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
+        if os.getenv("DEBUG"):
+            self.images = np.random.randn(512, 512, 1)  # noqa: NPY002
+            self.mask_lesions = np.random.randn(512, 512, 1)  # noqa: NPY002
+            self.mask_lungs = np.random.randn(512, 512, 1)  # noqa: NPY002
+        else:
+            urls = [
+                "https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S",
+                "https://drive.google.com/uc?id=1MEqpbpwXjrLrH42DqDygWeSkDq0bi92f",
+                "https://drive.google.com/uc?id=1zj4N_KV0LBko1VSQ7FPZ38eaEGNU0K6-",
+            ]
+            file_names = [
+                "tr_im.nii.gz",
+                "tr_mask.nii.gz",
+                "tr_lungmasks_updated.nii.gz",
+            ]
+            for url, file_name in zip(urls, file_names, strict=True):
+                nifti_file_path = _OUT_PATH / file_name
+                if not nifti_file_path.is_file():
+                    gdown.download(url, nifti_file_path.as_posix(), quiet=False)
+            images = nib.load(_OUT_PATH / "tr_im.nii.gz")
+            self.images = images.get_fdata()[..., index_range]
+            mask_lesions = nib.load(_OUT_PATH / "tr_mask.nii.gz")
+            self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
+            mask_lungs = nib.load(_OUT_PATH / "tr_lungmasks_updated.nii.gz")
+            self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
         self.use_transforms = use_transforms
 
     def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
@@ -141,31 +89,36 @@ class _MedicalSegmentation2(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        urls = [
-            "https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m",
-            "https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp",
-            "https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH",
-        ]
-        file_names = ["rp_im.zip", "rp_msk.zip", "rp_lung_msk.zip"]
-        for url, file_name in zip(urls, file_names, strict=True):
-            zip_file_name_path = _OUT_PATH / file_name
-            if not zip_file_name_path.is_file():
-                gdown.download(url, zip_file_name_path.as_posix(), quiet=False)
-                with ZipFile(zip_file_name_path, "r") as zip_file:
-                    zip_file.extractall(_OUT_PATH)
-        image_file_paths = sorted((_OUT_PATH / "rp_im/").glob("*.nii.gz"))
-        images = nib.load(image_file_paths[index_volume])
-        self.images = images.get_fdata()
-        mask_lesions_file_paths = sorted(
-            (_OUT_PATH / "rp_msk/").glob("*.nii.gz"),
-        )
-        mask_lesions = nib.load(mask_lesions_file_paths[index_volume])
-        self.mask_lesions = mask_lesions.get_fdata()
-        mask_lungs_file_paths = sorted(
-            (_OUT_PATH / "rp_lung_msk/").glob("*.nii.gz"),
-        )
-        mask_lungs = nib.load(mask_lungs_file_paths[index_volume])
-        self.mask_lungs = mask_lungs.get_fdata()
+        if os.getenv("DEBUG"):
+            self.images = np.random.randn(630, 630, 45)  # noqa: NPY002
+            self.mask_lesions = np.random.randn(630, 630, 45)  # noqa: NPY002
+            self.mask_lungs = np.random.randn(630, 630, 45)  # noqa: NPY002
+        else:
+            urls = [
+                "https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m",
+                "https://drive.google.com/uc?id=1gVuDwFeAGa6jIVX9MeJV5ByIHFpOo5Bp",
+                "https://drive.google.com/uc?id=1MIp89YhuAKh4as2v_5DUoExgt6-y3AnH",
+            ]
+            file_names = ["rp_im.zip", "rp_msk.zip", "rp_lung_msk.zip"]
+            for url, file_name in zip(urls, file_names, strict=True):
+                zip_file_name_path = _OUT_PATH / file_name
+                if not zip_file_name_path.is_file():
+                    gdown.download(url, zip_file_name_path.as_posix(), quiet=False)
+                    with ZipFile(zip_file_name_path, "r") as zip_file:
+                        zip_file.extractall(_OUT_PATH)
+            image_file_paths = sorted((_OUT_PATH / "rp_im/").glob("*.nii.gz"))
+            images = nib.load(image_file_paths[index_volume])
+            self.images = images.get_fdata()
+            mask_lesions_file_paths = sorted(
+                (_OUT_PATH / "rp_msk/").glob("*.nii.gz"),
+            )
+            mask_lesions = nib.load(mask_lesions_file_paths[index_volume])
+            self.mask_lesions = mask_lesions.get_fdata()
+            mask_lungs_file_paths = sorted(
+                (_OUT_PATH / "rp_lung_msk/").glob("*.nii.gz"),
+            )
+            mask_lungs = nib.load(mask_lungs_file_paths[index_volume])
+            self.mask_lungs = mask_lungs.get_fdata()
         self.use_transforms = use_transforms
 
     def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
@@ -514,7 +467,6 @@ def _save_figure_weights(
 
 def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
-    ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SLF001
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
     if os.getenv("DEBUG"):
@@ -620,12 +572,20 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                 for encoder_weights_index, encoder_weights in enumerate(
                     encoders_weights,
                 ):
-                    model = architecture(
-                        encoder_name,
-                        encoder_weights=encoder_weights,
-                        activation="sigmoid",
-                        in_channels=1,
-                    ).to(device)
+                    if os.getenv("DEBUG") and encoder_weights == "imagenet":
+                        model = architecture(
+                            encoder_name,
+                            encoder_weights=None,
+                            activation="sigmoid",
+                            in_channels=1,
+                        ).to(device)
+                    else:
+                        model = architecture(
+                            encoder_name,
+                            encoder_weights=encoder_weights,
+                            activation="sigmoid",
+                            in_channels=1,
+                        ).to(device)
                     num_parameters_array[architecture_index, encoder_name_index] = sum(
                         parameter.numel()
                         for parameter in model.parameters()
@@ -748,12 +708,20 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             if loss_validation < loss_validation_best:
                                 loss_validation_best = loss_validation
                                 torch.save(model.state_dict(), model_file_path)
-                    model = architecture(
-                        encoder_name,
-                        encoder_weights=encoder_weights,
-                        activation="sigmoid",
-                        in_channels=1,
-                    ).to(device)
+                    if os.getenv("DEBUG") and encoder_weights == "imagenet":
+                        model = architecture(
+                            encoder_name,
+                            encoder_weights=None,
+                            activation="sigmoid",
+                            in_channels=1,
+                        ).to(device)
+                    else:
+                        model = architecture(
+                            encoder_name,
+                            encoder_weights=encoder_weights,
+                            activation="sigmoid",
+                            in_channels=1,
+                        ).to(device)
                     model.load_state_dict(
                         torch.load(model_file_path, weights_only=True),
                     )
@@ -1012,11 +980,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     styler.format(precision=1)
     styler.highlight_max(props="bfseries: ;")
     styler.highlight_min(props="bfseries: ;")
-    styler.to_latex(
-        _OUT_PATH / "metrics.tex",
-        hrules=True,
-        multicol_align="c",
-    )
+    styler.to_latex(_OUT_PATH / "metrics.tex", hrules=True, multicol_align="c")
     keys = (
         ["epochs-num", "batch-size", "test-slices-num", "encoder-best", "encoder-worst"]
         + [
