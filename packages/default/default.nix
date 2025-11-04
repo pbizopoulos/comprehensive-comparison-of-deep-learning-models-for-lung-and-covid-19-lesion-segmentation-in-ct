@@ -3,8 +3,42 @@
   pkgs ? import <nixpkgs> { },
 }:
 let
+  onnx-ir = pkgs.python312Packages.buildPythonPackage rec {
+    format = "wheel";
+    pname = "onnx_ir";
+    propagatedBuildInputs = [
+      pkgs.python312Packages.ml-dtypes
+      pkgs.python312Packages.onnx
+    ];
+    pythonImportsCheck = [ pname ];
+    src = pkgs.python312Packages.fetchPypi rec {
+      inherit pname version format;
+      dist = python;
+      python = "py3";
+      sha256 = "F/hvr4pTuXlDC94bxgIsehYrDRU0VQ3bF6HTfrmT52U=";
+    };
+    version = "0.1.12";
+  };
+  onnxscript = pkgs.python312Packages.buildPythonPackage rec {
+    format = "wheel";
+    pname = "onnxscript";
+    propagatedBuildInputs = [
+      onnx-ir
+      pkgs.python312Packages.packaging
+      pkgs.python312Packages.typing-extensions
+    ];
+    pythonImportsCheck = [ pname ];
+    src = pkgs.python312Packages.fetchPypi rec {
+      inherit pname version format;
+      dist = python;
+      python = "py3";
+      sha256 = "sMM1X+o+7KuMopHai3ev3cqs062l7lkpQ5CgSeoSOTg=";
+    };
+    version = "0.5.6";
+  };
   pythonEnv = pkgs.python312.withPackages (_ps: [
     inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
+    onnxscript
     pkgs.python312Packages.fvcore
     pkgs.python312Packages.gdown
     pkgs.python312Packages.matplotlib
