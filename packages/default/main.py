@@ -846,18 +846,6 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     step_size,
                                     volume_prediction_array,
                                 )
-                    model_file_name = f"{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}"  # noqa: E501
-                    if model_file_name in [
-                        "lesion-segmentation-a-FPN-mobilenet_v2-imagenet",
-                        "lung-segmentation-FPN-mobilenet_v2-imagenet",
-                    ]:
-                        example_input = dataset_train[0][0].unsqueeze(0)
-                        torch.onnx.export(
-                            model.cpu(),
-                            example_input,
-                            _OUT_PATH / f"model-{model_file_name}.onnx",
-                            export_params=True,
-                        )
                     if os.getenv("DEBUG"):
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
