@@ -1,44 +1,43 @@
-{
-  inputs,
-  pkgs ? import <nixpkgs> { },
-}:
+{ inputs, pkgs, ... }:
 let
-  pythonEnv = pkgs.python312.withPackages (_ps: [
-    inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
-    pkgs.python312Packages.fvcore
-    pkgs.python312Packages.gdown
-    pkgs.python312Packages.matplotlib
-    (pkgs.python312Packages.nibabel.overridePythonAttrs (_oldAttrs: {
+  nativeDeps = [ ];
+  pname = baseNameOf ./.;
+  python = pkgs.python3;
+  pythonDeps = [
+    (python.pkgs.nibabel.overridePythonAttrs (_oldAttrs: {
       doCheck = false;
       doInstallCheck = false;
       pytestCheckPhase = "";
     }))
-    pkgs.python312Packages.pandas
-    pkgs.python312Packages.scikit-image
-    pkgs.python312Packages.torch-bin
-    pkgs.python312Packages.torchvision-bin
-  ]);
-in
-pkgs.stdenv.mkDerivation rec {
-  buildInputs = [
+    inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
     pkgs.texlive.combined.scheme-full
-    pythonEnv
+    python.pkgs.fvcore
+    python.pkgs.gdown
+    python.pkgs.matplotlib
+    python.pkgs.pandas
+    python.pkgs.scikit-image
+    python.pkgs.torch-bin
+    python.pkgs.torchvision-bin
   ];
+  shellHook = "";
+in
+python.pkgs.buildPythonPackage {
+  inherit pname;
+  inherit shellHook;
   installPhase = ''
-    mkdir -p $out/bin
-    echo '#!/usr/bin/env bash
-      set -e
-      package_dir=$HOME/github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default
-      tmp_dir=$(mktemp -d)
-      cp -r ${src}/* "$tmp_dir"
-      cd "$tmp_dir"
-      ${pythonEnv}/bin/python ./main.py
-      ${pkgs.texlive.combined.scheme-full}/bin/latexmk -outdir=$package_dir/tmp -pdf ./ms.tex
-      ' > $out/bin/${pname}
-    chmod +x $out/bin/${pname}
+    install -Dm644 main.py "$out/${python.sitePackages}/$pname.py"
+    install -Dm755 main.py "$out/bin/$pname"
+    if [ -d prm ]; then
+      cp -R prm/ "$out/${python.sitePackages}/"
+      cp -R prm/ "$out/bin/"
+    fi
   '';
   meta.mainProgram = pname;
-  pname = builtins.baseNameOf src;
+  nativeBuildInputs = nativeDeps;
+  passthru.python = python;
+  propagatedBuildInputs = pythonDeps;
+  pyproject = false;
   src = ./.;
+  strictDeps = true;
   version = "0.0.0";
 }

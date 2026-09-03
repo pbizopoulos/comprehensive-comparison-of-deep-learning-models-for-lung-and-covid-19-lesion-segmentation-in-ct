@@ -2,12 +2,12 @@
   pkgs ? import <nixpkgs> { },
 }:
 let
-  efficientnet-pytorch = pkgs.python312Packages.buildPythonPackage rec {
+  efficientnet-pytorch = python.pkgs.buildPythonPackage rec {
     format = "pyproject";
     pname = "efficientnet_pytorch";
     propagatedBuildInputs = [
-      pkgs.python312Packages.setuptools
-      pkgs.python312Packages.torch-bin
+      python.pkgs.setuptools
+      python.pkgs.torch-bin
     ];
     pythonImportsCheck = [ pname ];
     src = fetchTarball rec {
@@ -16,15 +16,15 @@ let
     };
     version = "0.7.1";
   };
-  pretrainedmodels = pkgs.python312Packages.buildPythonPackage rec {
+  pretrainedmodels = python.pkgs.buildPythonPackage rec {
     format = "pyproject";
     pname = "pretrainedmodels";
     propagatedBuildInputs = [
-      pkgs.python312Packages.munch
-      pkgs.python312Packages.setuptools
-      pkgs.python312Packages.six
-      pkgs.python312Packages.torchvision-bin
-      pkgs.python312Packages.tqdm
+      python.pkgs.munch
+      python.pkgs.setuptools
+      python.pkgs.six
+      python.pkgs.torchvision-bin
+      python.pkgs.tqdm
     ];
     pythonImportsCheck = [ pname ];
     src = fetchTarball rec {
@@ -33,25 +33,26 @@ let
     };
     version = "0.7.4";
   };
-  timmWithTorch = pkgs.python312Packages.timm.override {
-    torch = pkgs.python312Packages.torch-bin;
-    torchvision = pkgs.python312Packages.torchvision-bin;
+  python = pkgs.python3;
+  timmWithTorch = python.pkgs.timm.override {
+    torch = python.pkgs.torch-bin;
+    torchvision = python.pkgs.torchvision-bin;
   };
 in
-pkgs.python312Packages.buildPythonPackage rec {
+python.pkgs.buildPythonPackage rec {
   format = "wheel";
   pname = builtins.baseNameOf ./.;
   propagatedBuildInputs = [
-    efficientnet-pytorch
-    pretrainedmodels
     (timmWithTorch.overrideAttrs (_old: {
       doCheck = false;
       doInstallCheck = false;
       pytestCheckPhase = "";
     }))
+    efficientnet-pytorch
+    pretrainedmodels
   ];
   pythonImportsCheck = [ pname ];
-  src = pkgs.python312Packages.fetchPypi rec {
+  src = python.pkgs.fetchPypi rec {
     inherit pname version format;
     dist = python;
     python = "py3";

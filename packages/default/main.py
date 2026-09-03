@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) 2024 Panagiotis Bizopoulos
 """Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT."""  # noqa: E501
 
 from __future__ import annotations
 
 import itertools
-import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -26,10 +29,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
-_OUT_PATH = (
-    Path.home()
-    / "github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/packages/default/tmp/"  # noqa: E501
-)
+_OUT_PATH = Path.cwd() / "tmp"
+_RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
@@ -40,7 +41,7 @@ class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        if os.getenv("DEBUG"):
+        if "pytest" in sys.modules:
             self.images = np.random.randn(512, 512, 1)  # noqa: NPY002
             self.mask_lesions = np.random.randn(512, 512, 1)  # noqa: NPY002
             self.mask_lungs = np.random.randn(512, 512, 1)  # noqa: NPY002
@@ -89,10 +90,10 @@ class _MedicalSegmentation2(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        if os.getenv("DEBUG"):
-            self.images = np.random.randn(630, 630, 45)  # noqa: NPY002
-            self.mask_lesions = np.random.randn(630, 630, 45)  # noqa: NPY002
-            self.mask_lungs = np.random.randn(630, 630, 45)  # noqa: NPY002
+        if "pytest" in sys.modules:
+            self.images = np.random.randn(64, 64, 13)  # noqa: NPY002
+            self.mask_lesions = np.random.randn(64, 64, 13)  # noqa: NPY002
+            self.mask_lungs = np.random.randn(64, 64, 13)  # noqa: NPY002
         else:
             urls = [
                 "https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m",
@@ -159,9 +160,10 @@ def _preprocess_image(
     image = tf.to_pil_image(image.astype("float32"))
     mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
     mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
-    image = tf.resize(image, [512, 512])
-    mask_lesion = tf.resize(mask_lesion, [512, 512])
-    mask_lung = tf.resize(mask_lung, [512, 512])
+    image_size = 64 if "pytest" in sys.modules else 512
+    image = tf.resize(image, [image_size, image_size])
+    mask_lesion = tf.resize(mask_lesion, [image_size, image_size])
+    mask_lung = tf.resize(mask_lung, [image_size, image_size])
     if use_transforms:
         if rng.random() > 0.5:  # noqa: PLR2004
             image = tf.hflip(image)
@@ -287,6 +289,7 @@ def _save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
 
 
 def _save_figure_image_masked(  # noqa: PLR0913
+    *,
     architecture: str,
     encoder_name: str,
     experiment_name: str,
@@ -360,12 +363,7 @@ def _save_figure_loss(
         p1.append(ax.plot(t_range_array, loss_mean, color=color))
         p2.append(ax.fill(np.nan, np.nan, color, alpha=0.3))
     ax.legend(
-        [
-            (p2[0][0], p1[0][0]),
-            (p2[1][0], p1[1][0]),
-            (p2[2][0], p1[2][0]),
-            (p2[3][0], p1[3][0]),
-        ],
+        [(p2[index][0], p1[index][0]) for index in range(len(p1))],
         architecture_names,
         loc="upper right",
     )
@@ -409,17 +407,22 @@ def _save_figure_scatter(
     ymin = ylim[0]
     ymax = ylim[1]
     nbins = 100
-    x_mgrid, y_mgrid = np.mgrid[xmin : xmax : nbins * 1j, ymin : ymax : nbins * 1j]  # type: ignore[misc]
+    x_mgrid, y_mgrid = np.meshgrid(
+        np.linspace(xmin, xmax, nbins),
+        np.linspace(ymin, ymax, nbins),
+        indexing="ij",
+    )
     positions = np.vstack([x_mgrid.ravel(), y_mgrid.ravel()])
     values = np.vstack([num_parameters_array.flatten(), dice_.flatten()])
-    kernel = gaussian_kde(values)
-    z_grid = np.reshape(kernel(positions).T, x_mgrid.shape)
-    ax.imshow(
-        np.rot90(z_grid),
-        cmap="Greens",
-        extent=[xmin, xmax, ymin, ymax],
-        alpha=0.5,
-    )
+    if values.shape[1] > values.shape[0]:
+        kernel = gaussian_kde(values)
+        z_grid = np.reshape(kernel(positions).T, x_mgrid.shape)
+        ax.imshow(
+            np.rot90(z_grid),
+            cmap="Greens",
+            extent=[xmin, xmax, ymin, ymax],
+            alpha=0.5,
+        )
     plt.grid(visible=True)
     plt.xlabel("Number of parameters ($10^6$)", fontsize=15)
     ax.tick_params(axis="both", which="major", labelsize="large")
@@ -465,17 +468,33 @@ def _save_figure_weights(
     plt.close()
 
 
+def _compile_manuscript() -> None:
+    """Copy and compile the manuscript after generating its artifacts."""
+    for filename in ("ms.tex", "ms.bib"):
+        shutil.copy2(_RESOURCE_PATH / filename, _OUT_PATH / filename)
+    latexmk = shutil.which("latexmk")
+    if latexmk is None:
+        message = "latexmk is required to compile the manuscript"
+        raise RuntimeError(message)
+    subprocess.run(  # noqa: S603
+        [latexmk, "-pdf", "ms.tex"],
+        cwd=_OUT_PATH,
+        check=True,
+    )
+
+
 def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    if os.getenv("DEBUG"):
-        encoder_names = ["resnet18", "mobilenet_v2", "efficientnet-b0"]
-        num_epochs = 2
+    if "pytest" in sys.modules:
+        encoder_names = ["resnet18"]
+        num_epochs = 1
         range_test_volume = range(1)
         range_train = range(1)
         range_validation = range(2, 4)
         step_size = 10
+        architectures = [Unet, Linknet, FPN, PSPNet]
     else:
         encoder_names = [
             "vgg11",
@@ -509,13 +528,13 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         range_train = range(80)
         range_validation = range(80, 100)
         step_size = 1
+        architectures = [Unet, Linknet, FPN, PSPNet]
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
     torch.cuda.manual_seed_all(0)
     torch.manual_seed(0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     batch_size = 2
-    architectures = [Unet, Linknet, FPN, PSPNet]
     architecture_names = [architecture.__name__ for architecture in architectures]
     experiments = [
         "Lung segmentation",
@@ -572,7 +591,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                 for encoder_weights_index, encoder_weights in enumerate(
                     encoders_weights,
                 ):
-                    if os.getenv("DEBUG") and encoder_weights == "imagenet":
+                    if "pytest" in sys.modules and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -629,20 +648,20 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             ):
                                 _save_figure_image(experiment_name, images[0, 0])
                                 _save_figure_image_masked(
-                                    "mask",
-                                    "train",
-                                    experiment_name,
-                                    images[0, 0],
-                                    masks[0, 0],
-                                    masks[0, 0],
+                                    architecture="mask",
+                                    encoder_name="train",
+                                    experiment_name=experiment_name,
+                                    image=images[0, 0],
+                                    mask=masks[0, 0],
+                                    prediction=masks[0, 0],
                                 )
                                 _save_figure_image_masked(
-                                    "prediction",
-                                    "train",
-                                    experiment_name,
-                                    images[0, 0],
-                                    masks[0, 0],
-                                    predictions[0, 0],
+                                    architecture="prediction",
+                                    encoder_name="train",
+                                    experiment_name=experiment_name,
+                                    image=images[0, 0],
+                                    mask=masks[0, 0],
+                                    prediction=predictions[0, 0],
                                 )
                             if (
                                 architecture_name == architecture_names[0]
@@ -655,7 +674,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                         experiment_name,
                                         model,
                                     )
-                                elif epoch_index == num_epochs - 1:
+                                if epoch_index == num_epochs - 1:
                                     _save_figure_weights(
                                         architecture_name,
                                         f"{encoder_weights}-after",
@@ -708,7 +727,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             if loss_validation < loss_validation_best:
                                 loss_validation_best = loss_validation
                                 torch.save(model.state_dict(), model_file_path)
-                    if os.getenv("DEBUG") and encoder_weights == "imagenet":
+                    if "pytest" in sys.modules and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -786,23 +805,24 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     masks = mask_lesions
                                 predictions = model(images.unsqueeze(0).to(device))
                                 _save_figure_image_masked(
-                                    architecture_name,
-                                    encoder_name,
-                                    experiment_name,
-                                    images[0],
-                                    masks[0],
-                                    predictions[0, 0],
+                                    architecture=architecture_name,
+                                    encoder_name=encoder_name,
+                                    experiment_name=experiment_name,
+                                    image=images[0],
+                                    mask=masks[0],
+                                    prediction=predictions[0, 0],
                                 )
                             if (
                                 index_test_volume == 0
                                 and encoder_name == "resnet18"
                                 and (encoder_weights is None)
                             ):
+                                image_shape = dataset_test[0][0].shape[-2:]
                                 volume_mask_array = np.zeros(
-                                    (512, 512, len(dataset_test)),
+                                    (*image_shape, len(dataset_test)),
                                 )
                                 volume_prediction_array = np.zeros(
-                                    (512, 512, len(dataset_test)),
+                                    (*image_shape, len(dataset_test)),
                                 )
                                 for slice_volume_index, (
                                     images,
@@ -846,7 +866,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     step_size,
                                     volume_prediction_array,
                                 )
-                    if os.getenv("DEBUG"):
+                    if "pytest" in sys.modules:
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
@@ -1062,6 +1082,14 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     )
     keys_values_df = pd.DataFrame({"key": keys, "value": values})
     keys_values_df.to_csv(_OUT_PATH / "keys-values.csv")
+    _compile_manuscript()
+
+
+def test_main() -> None:
+    """Generate the test artifacts and compile the manuscript."""
+    main()
+    assert (_OUT_PATH / "keys-values.csv").is_file()  # noqa: S101
+    assert (_OUT_PATH / "ms.pdf").is_file()  # noqa: S101
 
 
 if __name__ == "__main__":
