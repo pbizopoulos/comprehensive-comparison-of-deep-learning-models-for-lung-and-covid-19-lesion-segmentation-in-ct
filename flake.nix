@@ -11,7 +11,10 @@
     inputs:
     inputs.canonicalization.blueprint {
       inherit inputs;
-      nixpkgs.config.allowUnfree = true;
+      nixpkgs.config = {
+        allowUnfree = true;
+        cudaSupport = true;
+      };
     }
     // {
       inherit (inputs.canonicalization) formatter;
