@@ -1,6 +1,6 @@
 { inputs, pkgs, ... }:
 let
-  nativeDeps = [ ];
+  nativeDeps = [ pkgs.texlive.combined.scheme-full ];
   pname = baseNameOf ./.;
   python = pkgs.python3;
   pythonDeps = [
@@ -10,7 +10,6 @@ let
       pytestCheckPhase = "";
     }))
     inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
-    pkgs.texlive.combined.scheme-full
     python.pkgs.fvcore
     python.pkgs.gdown
     python.pkgs.matplotlib

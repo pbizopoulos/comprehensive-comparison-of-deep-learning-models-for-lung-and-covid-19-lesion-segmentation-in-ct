@@ -1,6 +1,14 @@
 { inputs, pkgs, ... }:
 let
   checkName = baseNameOf ./.;
+  dependencyInputs = builtins.concatLists [
+    (packageDrv.buildInputs or [ ])
+    (packageDrv.checkInputs or [ ])
+    (packageDrv.nativeBuildInputs or [ ])
+    (packageDrv.nativeCheckInputs or [ ])
+    (packageDrv.propagatedBuildInputs or [ ])
+    (packageDrv.propagatedNativeBuildInputs or [ ])
+  ];
   packageDrv = inputs.self.packages.${pkgs.stdenv.system}.${packageName};
   packageName = pkgs.lib.removeSuffix "_coverage" checkName;
   pythonEnv = packageDrv.python.withPackages (
@@ -14,8 +22,7 @@ let
 in
 pkgs.runCommand checkName
   {
-    nativeBuildInputs =
-      packageDrv.nativeBuildInputs ++ packageDrv.propagatedBuildInputs ++ [ pythonEnv ];
+    nativeBuildInputs = dependencyInputs ++ [ pythonEnv ];
     src = ../.. + "/packages/${packageName}";
   }
   ''

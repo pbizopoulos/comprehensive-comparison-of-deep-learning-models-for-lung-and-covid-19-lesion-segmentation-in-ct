@@ -6,8 +6,6 @@
 !/LICENSE
 !/README
 !/checks/
-!/checks/default/
-!/checks/default/default.nix
 !/checks/default_coverage/
 !/checks/default_coverage/default.nix
 !/flake.lock
