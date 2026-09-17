@@ -16,5 +16,6 @@
 !/packages/default/main.py
 !/packages/default/prm/
 !/packages/default/prm/**
+!/packages/default/test_main.py
 !/packages/segmentation_models_pytorch/
 !/packages/segmentation_models_pytorch/default.nix

@@ -34,7 +34,9 @@ pkgs.runCommand checkName
   }
   ''
     export HOME="$(mktemp -d)"
-    mkdir -p "$out/html"
+    mkdir -p "$out/html" packages
+    ln -s "$src" "packages/${packageName}"
+    export PYTHONPATH="$PWD:$PYTHONPATH"
     cd "$out"
-    PACKAGE_E2E_EXECUTABLE="${packageDrv}/bin/${packageName}" python -m pytest -p no:cacheprovider --cov="$src" --cov-report "html:$out/html" "$src/main.py"
+    PACKAGE_E2E_EXECUTABLE="${packageDrv}/bin/${packageName}" python -m pytest -p no:cacheprovider --import-mode=importlib --cov="packages.${packageName}.main" --cov-report "html:$out/html" "$src/test_main.py"
   ''

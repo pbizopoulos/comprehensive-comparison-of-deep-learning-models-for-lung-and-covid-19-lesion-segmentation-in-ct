@@ -1085,12 +1085,5 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     _compile_manuscript()
 
 
-def test_main() -> None:
-    """Generate the test artifacts and compile the manuscript."""
-    main()
-    assert (_OUT_PATH / "keys-values.csv").is_file()  # noqa: S101
-    assert (_OUT_PATH / "ms.pdf").is_file()  # noqa: S101
-
-
 if __name__ == "__main__":
     main()
