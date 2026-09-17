@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2024 Panagiotis Bizopoulos
+# Copyright (c) 2024 Paschalis Bizopoulos
 """Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT."""  # noqa: E501
 
 from __future__ import annotations

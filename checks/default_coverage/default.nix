@@ -1,36 +1,30 @@
 { inputs, pkgs, ... }:
 let
   checkName = baseNameOf ./.;
-  dependencyInputs = builtins.concatLists (
-    builtins.attrValues (
-      pkgs.lib.filterAttrs (
-        name: _:
-        builtins.elem name [
-          "buildInputs"
-          "checkInputs"
-          "nativeBuildInputs"
-          "nativeCheckInputs"
-          "propagatedBuildInputs"
-          "propagatedNativeBuildInputs"
-        ]
-      ) packageDrv
-    )
-  );
+  dependencyInputs = pkgs.lib.concatMap (name: packageDrv.${name} or [ ]) [
+    "buildInputs"
+    "checkInputs"
+    "nativeBuildInputs"
+    "nativeCheckInputs"
+    "propagatedBuildInputs"
+    "propagatedNativeBuildInputs"
+  ];
   packageDrv = inputs.self.packages.${pkgs.stdenv.system}.${packageName};
   packageName = pkgs.lib.removeSuffix "_coverage" checkName;
   pythonEnv = packageDrv.python.withPackages (
-    _:
+    ps:
     packageDrv.propagatedBuildInputs
     ++ [
-      packageDrv.python.pkgs.pytest
-      packageDrv.python.pkgs.pytest-cov
+      ps.hypothesis
+      ps.pytest
+      ps.pytest-cov
     ]
   );
 in
 pkgs.runCommand checkName
   {
+    inherit (packageDrv) src;
     nativeBuildInputs = dependencyInputs ++ [ pythonEnv ];
-    src = ../.. + "/packages/${packageName}";
   }
   ''
     export HOME="$(mktemp -d)"
@@ -38,5 +32,5 @@ pkgs.runCommand checkName
     ln -s "$src" "packages/${packageName}"
     export PYTHONPATH="$PWD:$PYTHONPATH"
     cd "$out"
-    PACKAGE_E2E_EXECUTABLE="${packageDrv}/bin/${packageName}" python -m pytest -p no:cacheprovider --import-mode=importlib --cov="packages.${packageName}.main" --cov-report "html:$out/html" "$src/test_main.py"
+    PACKAGE_E2E_EXECUTABLE="${packageDrv}/bin/${packageName}" python -c 'import sys; from hypothesis import Phase, settings; settings.register_profile("coverage", phases=[Phase.explicit]); settings.load_profile("coverage"); import pytest; sys.exit(pytest.main(sys.argv[1:]))' -p no:cacheprovider --import-mode=importlib --cov="packages.${packageName}.main" --cov-report "html:$out/html" "$src/test_main.py"
   ''
