@@ -4,11 +4,12 @@
 
 from __future__ import annotations
 
+import argparse
 import itertools
 import shutil
 import subprocess
-import sys
 from pathlib import Path
+from types import SimpleNamespace
 from zipfile import ZipFile
 
 import gdown
@@ -29,6 +30,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
+_RUNTIME = SimpleNamespace(smoke=False)
 _OUT_PATH = Path.cwd() / "tmp"
 _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
@@ -41,7 +43,7 @@ class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        if "pytest" in sys.modules:
+        if _RUNTIME.smoke:
             self.images = np.random.randn(512, 512, 1)  # noqa: NPY002
             self.mask_lesions = np.random.randn(512, 512, 1)  # noqa: NPY002
             self.mask_lungs = np.random.randn(512, 512, 1)  # noqa: NPY002
@@ -90,7 +92,7 @@ class _MedicalSegmentation2(Dataset):  # type: ignore[misc]
         use_transforms: bool,  # noqa: FBT001
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
-        if "pytest" in sys.modules:
+        if _RUNTIME.smoke:
             self.images = np.random.randn(64, 64, 13)  # noqa: NPY002
             self.mask_lesions = np.random.randn(64, 64, 13)  # noqa: NPY002
             self.mask_lungs = np.random.randn(64, 64, 13)  # noqa: NPY002
@@ -160,7 +162,7 @@ def _preprocess_image(
     image = tf.to_pil_image(image.astype("float32"))
     mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
     mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
-    image_size = 64 if "pytest" in sys.modules else 512
+    image_size = 64 if _RUNTIME.smoke else 512
     image = tf.resize(image, [image_size, image_size])
     mask_lesion = tf.resize(mask_lesion, [image_size, image_size])
     mask_lung = tf.resize(mask_lung, [image_size, image_size])
@@ -485,9 +487,16 @@ def _compile_manuscript() -> None:
 
 def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Generate results and a manuscript using a small synthetic dataset.",
+    )
+    _RUNTIME.smoke = parser.parse_args().smoke
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    if "pytest" in sys.modules:
+    if _RUNTIME.smoke:
         encoder_names = ["resnet18"]
         num_epochs = 1
         range_test_volume = range(1)
@@ -591,7 +600,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                 for encoder_weights_index, encoder_weights in enumerate(
                     encoders_weights,
                 ):
-                    if "pytest" in sys.modules and encoder_weights == "imagenet":
+                    if _RUNTIME.smoke and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -727,7 +736,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             if loss_validation < loss_validation_best:
                                 loss_validation_best = loss_validation
                                 torch.save(model.state_dict(), model_file_path)
-                    if "pytest" in sys.modules and encoder_weights == "imagenet":
+                    if _RUNTIME.smoke and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -866,7 +875,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     step_size,
                                     volume_prediction_array,
                                 )
-                    if "pytest" in sys.modules:
+                    if _RUNTIME.smoke:
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
