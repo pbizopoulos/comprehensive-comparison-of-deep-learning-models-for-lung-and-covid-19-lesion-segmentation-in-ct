@@ -32,5 +32,5 @@ pkgs.runCommand checkName
     ln -s "$src" "packages/${packageName}"
     export PYTHONPATH="$PWD:$PYTHONPATH"
     cd "$out"
-    PACKAGE_E2E_EXECUTABLE="${packageDrv}/bin/${packageName}" python -c 'import sys; from hypothesis import Phase, settings; settings.register_profile("coverage", phases=[Phase.explicit]); settings.load_profile("coverage"); import pytest; sys.exit(pytest.main(sys.argv[1:]))' -p no:cacheprovider --import-mode=importlib --cov="packages.${packageName}.main" --cov-report "html:$out/html" "$src/test_main.py"
+    PACKAGE_E2E_EXECUTABLE="${pkgs.lib.getExe packageDrv}" python -c 'import sys; from hypothesis import Phase, settings; settings.register_profile("coverage", phases=[Phase.explicit]); settings.load_profile("coverage"); import pytest; sys.exit(pytest.main(sys.argv[1:]))' -p no:cacheprovider --import-mode=importlib --cov="packages.${packageName}.main" --cov-report "html:$out/html" "$src/test_main.py"
   ''

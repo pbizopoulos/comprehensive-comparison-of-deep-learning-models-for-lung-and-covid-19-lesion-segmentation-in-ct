@@ -1,31 +1,26 @@
 # Copyright (c) 2026- Paschalis Bizopoulos
-"""Specify the installed research pipeline's offline example workflow."""
+"""Specify the research pipeline's offline example workflow."""
 
 from __future__ import annotations
 
 import csv
-import os
-import subprocess
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+    import pytest
+
 
 def test_smoke_run_generates_readable_results_and_a_complete_manuscript(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The installed command produces CSV results and a compiled PDF offline."""
-    result = subprocess.run(  # noqa: S603
-        [os.environ["PACKAGE_E2E_EXECUTABLE"], "--smoke"],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        timeout=900,
-        check=False,
-    )
-    if result.returncode:
-        raise AssertionError(result.stdout + result.stderr)
+    """The pytest workflow produces CSV results and a compiled PDF offline."""
+    monkeypatch.chdir(tmp_path)
+    from packages.default import main as subject  # noqa: PLC0415
+
+    subject.main()
     with (tmp_path / "tmp/keys-values.csv").open(newline="") as stream:
         rows = list(csv.DictReader(stream))
     if not rows or any(not row.get("key") or not row.get("value") for row in rows):

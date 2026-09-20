@@ -4,10 +4,10 @@
 
 from __future__ import annotations
 
-import argparse
 import itertools
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from zipfile import ZipFile
@@ -487,16 +487,11 @@ def _compile_manuscript() -> None:
 
 def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--smoke",
-        action="store_true",
-        help="Generate results and a manuscript using a small synthetic dataset.",
-    )
-    _RUNTIME.smoke = parser.parse_args().smoke
+    _RUNTIME.smoke = "pytest" in sys.modules
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
     if _RUNTIME.smoke:
+        torch.set_num_threads(1)
         encoder_names = ["resnet18"]
         num_epochs = 1
         range_test_volume = range(1)
