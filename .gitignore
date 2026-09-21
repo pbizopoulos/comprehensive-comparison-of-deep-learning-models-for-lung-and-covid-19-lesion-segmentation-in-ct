@@ -6,8 +6,8 @@
 !/LICENSE
 !/README
 !/checks/
-!/checks/default_coverage/
-!/checks/default_coverage/default.nix
+!/checks/default/
+!/checks/default/default.nix
 !/flake.lock
 !/flake.nix
 !/packages/
