@@ -1,6 +1,6 @@
 { inputs, pkgs, ... }:
 let
-  nativeDeps = [ pkgs.texlive.combined.scheme-full ];
+  nativeDeps = [ pkgs.texliveFull ];
   pname = baseNameOf ./.;
   python = pkgs.python3;
   pythonDeps = [
@@ -15,8 +15,6 @@ let
     python.pkgs.matplotlib
     python.pkgs.pandas
     python.pkgs.scikit-image
-    python.pkgs.torch-bin
-    python.pkgs.torchvision-bin
   ];
   shellHook = "";
 in

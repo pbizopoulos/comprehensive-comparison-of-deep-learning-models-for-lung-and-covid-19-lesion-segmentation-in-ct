@@ -7,7 +7,7 @@ let
     pname = "efficientnet_pytorch";
     propagatedBuildInputs = [
       python.pkgs.setuptools
-      python.pkgs.torch-bin
+      python.pkgs.torch
     ];
     pythonImportsCheck = [ pname ];
     src = fetchTarball rec {
@@ -23,7 +23,7 @@ let
       python.pkgs.munch
       python.pkgs.setuptools
       python.pkgs.six
-      python.pkgs.torchvision-bin
+      python.pkgs.torchvision
       python.pkgs.tqdm
     ];
     pythonImportsCheck = [ pname ];
@@ -34,22 +34,14 @@ let
     version = "0.7.4";
   };
   python = pkgs.python3;
-  timmWithTorch = python.pkgs.timm.override {
-    torch = python.pkgs.torch-bin;
-    torchvision = python.pkgs.torchvision-bin;
-  };
 in
 python.pkgs.buildPythonPackage rec {
   format = "wheel";
   pname = builtins.baseNameOf ./.;
   propagatedBuildInputs = [
-    (timmWithTorch.overrideAttrs (_old: {
-      doCheck = false;
-      doInstallCheck = false;
-      pytestCheckPhase = "";
-    }))
     efficientnet-pytorch
     pretrainedmodels
+    python.pkgs.timm
   ];
   pythonImportsCheck = [ pname ];
   src = python.pkgs.fetchPypi rec {

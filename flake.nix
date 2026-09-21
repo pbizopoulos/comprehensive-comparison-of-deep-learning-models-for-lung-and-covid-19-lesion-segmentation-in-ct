@@ -1,11 +1,7 @@
 {
   inputs = {
     canonical.url = "github:pbizopoulos/canonical";
-    nixpkgs.url = "github:NixOS/nixpkgs/9ae611a455b90cf061d8f332b977e387bda8e1ca";
-    treefmt-nix = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:numtide/treefmt-nix";
-    };
+    nixpkgs.follows = "canonical/nixpkgs";
   };
   outputs =
     inputs:
