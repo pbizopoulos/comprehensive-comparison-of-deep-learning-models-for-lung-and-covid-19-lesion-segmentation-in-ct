@@ -20,7 +20,7 @@ def test_smoke_run_generates_readable_results_and_a_complete_manuscript(
     monkeypatch.chdir(tmp_path)
     from packages.default import main as subject  # noqa: PLC0415
 
-    subject.main()
+    subject.main([])
     with (tmp_path / "tmp/keys-values.csv").open(newline="") as stream:
         rows = list(csv.DictReader(stream))
     if not rows or any(not row.get("key") or not row.get("value") for row in rows):
