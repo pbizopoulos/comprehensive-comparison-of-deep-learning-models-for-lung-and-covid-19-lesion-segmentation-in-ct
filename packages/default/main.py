@@ -6,11 +6,13 @@ from __future__ import annotations
 
 import argparse
 import itertools
+import math
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
 import gdown
@@ -31,6 +33,15 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    type _MarchingCubesResult = tuple[
+        npt.NDArray[np.float32],
+        npt.NDArray[np.int32],
+        npt.NDArray[np.float32],
+        npt.NDArray[np.float32],
+    ]
 _RUNTIME = SimpleNamespace(smoke=False)
 _OUT_PATH = Path.cwd() / "tmp"
 _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
@@ -63,12 +74,27 @@ class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
                 nifti_file_path = _OUT_PATH / file_name
                 if not nifti_file_path.is_file():
                     gdown.download(url, nifti_file_path.as_posix(), quiet=False)
-            images = nib.load(_OUT_PATH / "tr_im.nii.gz")
-            self.images = images.get_fdata()[..., index_range]
-            mask_lesions = nib.load(_OUT_PATH / "tr_mask.nii.gz")
-            self.mask_lesions = mask_lesions.get_fdata()[..., index_range]
-            mask_lungs = nib.load(_OUT_PATH / "tr_lungmasks_updated.nii.gz")
-            self.mask_lungs = mask_lungs.get_fdata()[..., index_range]
+            images = cast("nib.Nifti1Image", nib.load(_OUT_PATH / "tr_im.nii.gz"))
+            self.images = cast("npt.NDArray[np.float64]", images.get_fdata())[
+                ...,
+                index_range,
+            ]
+            mask_lesions = cast(
+                "nib.Nifti1Image",
+                nib.load(_OUT_PATH / "tr_mask.nii.gz"),
+            )
+            self.mask_lesions = cast(
+                "npt.NDArray[np.float64]",
+                mask_lesions.get_fdata(),
+            )[..., index_range]
+            mask_lungs = cast(
+                "nib.Nifti1Image",
+                nib.load(_OUT_PATH / "tr_lungmasks_updated.nii.gz"),
+            )
+            self.mask_lungs = cast("npt.NDArray[np.float64]", mask_lungs.get_fdata())[
+                ...,
+                index_range,
+            ]
         self.use_transforms = use_transforms
 
     def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
@@ -111,18 +137,27 @@ class _MedicalSegmentation2(Dataset):  # type: ignore[misc]
                     with ZipFile(zip_file_name_path, "r") as zip_file:
                         zip_file.extractall(_OUT_PATH)
             image_file_paths = sorted((_OUT_PATH / "rp_im/").glob("*.nii.gz"))
-            images = nib.load(image_file_paths[index_volume])
-            self.images = images.get_fdata()
+            images = cast("nib.Nifti1Image", nib.load(image_file_paths[index_volume]))
+            self.images = cast("npt.NDArray[np.float64]", images.get_fdata())
             mask_lesions_file_paths = sorted(
                 (_OUT_PATH / "rp_msk/").glob("*.nii.gz"),
             )
-            mask_lesions = nib.load(mask_lesions_file_paths[index_volume])
-            self.mask_lesions = mask_lesions.get_fdata()
+            mask_lesions = cast(
+                "nib.Nifti1Image",
+                nib.load(mask_lesions_file_paths[index_volume]),
+            )
+            self.mask_lesions = cast(
+                "npt.NDArray[np.float64]",
+                mask_lesions.get_fdata(),
+            )
             mask_lungs_file_paths = sorted(
                 (_OUT_PATH / "rp_lung_msk/").glob("*.nii.gz"),
             )
-            mask_lungs = nib.load(mask_lungs_file_paths[index_volume])
-            self.mask_lungs = mask_lungs.get_fdata()
+            mask_lungs = cast(
+                "nib.Nifti1Image",
+                nib.load(mask_lungs_file_paths[index_volume]),
+            )
+            self.mask_lungs = cast("npt.NDArray[np.float64]", mask_lungs.get_fdata())
         self.use_transforms = use_transforms
 
     def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
@@ -194,10 +229,13 @@ def _save_figure_3d(
     step_size: int,
     volume: npt.NDArray[np.float64],
 ) -> None:
-    volume = volume > 0.5  # noqa: PLR2004
-    volume[0, 0, 0:10] = 0
-    volume[0, 0, 10:20] = 1
-    verts, faces, *_ = marching_cubes(volume, 0.5, step_size=step_size)
+    binary_volume = volume > 0.5  # noqa: PLR2004
+    binary_volume[0, 0, 0:10] = 0
+    binary_volume[0, 0, 10:20] = 1
+    verts, faces, *_ = cast(
+        "Callable[..., _MarchingCubesResult]",
+        marching_cubes,
+    )(binary_volume, 0.5, step_size=step_size)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.plot_trisurf(
@@ -240,7 +278,7 @@ def _save_figure_architecture_box(
         labels=architecture_names,
         fontsize=15,
     )
-    plt.ylim([70, 100])
+    plt.ylim((70, 100))
     plt.savefig(_OUT_PATH / f"{experiment_name}-boxplot-dice.png")
     plt.close()
 
@@ -274,7 +312,7 @@ def _save_figure_histogram(
     )
     plt.xlabel("Normalized values", fontsize=15)
     plt.xlim(hist_range)
-    plt.ylim([10 ** (-7), 1])
+    plt.ylim((10 ** (-7), 1))
     plt.grid(visible=True, which="both")
     ax.set_yscale("log")
     ax.legend()
@@ -332,7 +370,7 @@ def _save_figure_initialization_box(
         labels=[str(encoder_weights) for encoder_weights in encoders_weights],
         fontsize=15,
     )
-    plt.ylim([70, 100])
+    plt.ylim((70, 100))
     plt.savefig(_OUT_PATH / "initialization-boxplot-dice.png")
     plt.close()
 
@@ -372,7 +410,7 @@ def _save_figure_loss(
     )
     plt.grid(visible=True)
     plt.autoscale(enable=True, axis="x", tight=True)
-    plt.ylim(ylim)
+    plt.ylim(ylim[0], ylim[1])
     if train_or_validation not in ["Train", "Validation"]:
         plt.xlabel("Epochs", fontsize=15)
     ax.tick_params(axis="both", which="major", labelsize="large")
@@ -423,15 +461,15 @@ def _save_figure_scatter(
         ax.imshow(
             np.rot90(z_grid),
             cmap="Greens",
-            extent=[xmin, xmax, ymin, ymax],
+            extent=(xmin, xmax, ymin, ymax),
             alpha=0.5,
         )
     plt.grid(visible=True)
     plt.xlabel("Number of parameters ($10^6$)", fontsize=15)
     ax.tick_params(axis="both", which="major", labelsize="large")
     ax.tick_params(axis="both", which="minor", labelsize="large")
-    plt.xlim([xmin, xmax])
-    plt.ylim(ylim)
+    plt.xlim((xmin, xmax))
+    plt.ylim(ylim[0], ylim[1])
     ax.legend(loc="lower right")
     ax.set_aspect(aspect="auto")
     plt.savefig(
@@ -567,7 +605,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901,PLR0912,PLR0915
     dataloader_validation = DataLoader(dataset_validation, batch_size=batch_size)
     dice_loss = DiceLoss()
     metric_names = ["Sens", "Spec", "Dice"]
-    metrics_array = np.zeros(
+    metrics_array: npt.NDArray[np.float64] = np.zeros(
         (
             len(experiments),
             len(architectures),
@@ -959,13 +997,13 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901,PLR0912,PLR0915
     metrics_array = metrics_array.transpose([1, 2, 3, 0, 4])
     metrics_array_global_mean = metrics_array.reshape(
         -1,
-        np.prod(metrics_array.shape[2:]),
+        math.prod(metrics_array.shape[2:]),
     ).mean(0)
     metrics_array = np.concatenate(
         (metrics_array, metrics_array.mean(1, keepdims=True)),
         1,
     )
-    metrics_array = metrics_array.reshape(-1, np.prod(metrics_array.shape[2:]))
+    metrics_array = metrics_array.reshape(-1, math.prod(metrics_array.shape[2:]))
     num_parameters_array_global_mean = num_parameters_array.mean()
     num_parameters_array = np.concatenate(
         (num_parameters_array, num_parameters_array.mean(1, keepdims=True)),
