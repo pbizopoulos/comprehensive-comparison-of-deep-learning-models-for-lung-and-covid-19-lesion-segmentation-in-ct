@@ -21,5 +21,4 @@ in
     python.pkgs.scikit-image
   ];
   src = ./.;
-  version = "0.0.0";
 }

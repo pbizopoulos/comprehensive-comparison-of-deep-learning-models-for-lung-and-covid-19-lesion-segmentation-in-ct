@@ -17,11 +17,20 @@ def test_smoke_run_generates_readable_results_and_a_complete_manuscript(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The pytest workflow produces CSV results and a compiled PDF offline."""
+    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     from packages.default import main as subject  # noqa: PLC0415
 
+    output = tmp_path / (
+        "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
+        "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
+        "packages/default/tmp"
+    )
+    if output != subject.RUNTIME_DIR:
+        message = "Runtime output must use the canonical package directory"
+        raise AssertionError(message)
     subject.main([])
-    with (tmp_path / "tmp/keys-values.csv").open(newline="") as stream:
+    with (output / "keys-values.csv").open(newline="") as stream:
         rows = list(csv.DictReader(stream))
     if not rows or any(not row.get("key") or not row.get("value") for row in rows):
         msg = "the results must contain named, populated measurements"
@@ -29,7 +38,7 @@ def test_smoke_run_generates_readable_results_and_a_complete_manuscript(
     if len({row["key"] for row in rows}) != len(rows):
         msg = "result names must be unique"
         raise AssertionError(msg)
-    manuscript = (tmp_path / "tmp/ms.pdf").read_bytes()
+    manuscript = (output / "ms.pdf").read_bytes()
     if not manuscript.startswith(b"%PDF-") or not manuscript.rstrip().endswith(
         b"%%EOF",
     ):

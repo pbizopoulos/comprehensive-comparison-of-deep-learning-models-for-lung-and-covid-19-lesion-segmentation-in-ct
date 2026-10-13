@@ -43,7 +43,12 @@ if TYPE_CHECKING:
         npt.NDArray[np.float32],
     ]
 _RUNTIME = SimpleNamespace(smoke=False)
-_OUT_PATH = Path.cwd() / "tmp"
+RUNTIME_DIR = Path.home() / (
+    "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
+    "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
+    "packages/default/tmp"
+)
+_OUT_PATH = RUNTIME_DIR
 _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
 
