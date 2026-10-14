@@ -5,7 +5,10 @@ in
 (inputs.afairesi or inputs.self).lib.mkPythonPackage {
   inherit pkgs;
   executable = true;
-  meta.description = "A Python package.";
+  meta = {
+    description = "Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT";
+    homepage = "https://arxiv.org/abs/2009.06412";
+  };
   nativeBuildInputs = [ pkgs.texliveFull ];
   propagatedBuildInputs = [
     (python.pkgs.nibabel.overridePythonAttrs (_oldAttrs: {
