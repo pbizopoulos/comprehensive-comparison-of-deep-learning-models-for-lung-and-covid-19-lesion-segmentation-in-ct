@@ -53,7 +53,7 @@ _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
-class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
+class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     def __init__(
         self: _MedicalSegmentation1,
         index_range: range,
@@ -117,7 +117,7 @@ class _MedicalSegmentation1(Dataset):  # type: ignore[misc]
         return output
 
 
-class _MedicalSegmentation2(Dataset):  # type: ignore[misc]
+class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     def __init__(
         self: _MedicalSegmentation2,
         index_volume: int,
@@ -326,10 +326,10 @@ def _save_figure_histogram(
 
 
 def _save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
-    image = image.cpu().numpy()
+    image_array = image.cpu().numpy()
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(image, cmap="gray", vmin=-0.5, vmax=0.5)
+    plt.imshow(image_array, cmap="gray", vmin=-0.5, vmax=0.5)
     plt.savefig(_OUT_PATH / f"{experiment_name}-image.png")
     plt.close()
 
@@ -343,16 +343,16 @@ def _save_figure_image_masked(  # noqa: PLR0913
     mask: torch.Tensor,
     prediction: torch.Tensor,
 ) -> None:
-    image = image.cpu().numpy()
-    mask = mask.cpu().numpy()
-    prediction = prediction.cpu().detach().numpy()
+    image_array = image.cpu().numpy()
+    mask_array = mask.cpu().numpy()
+    prediction_array = prediction.cpu().detach().numpy()
     prediction_threshold = 0.5
-    prediction = prediction > prediction_threshold
-    correct = mask * prediction
-    false = np.logical_xor(mask, prediction) > 0.5  # noqa: PLR2004
+    prediction_array = prediction_array > prediction_threshold
+    correct = mask_array * prediction_array
+    false = np.logical_xor(mask_array, prediction_array) > 0.5  # noqa: PLR2004
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(image, cmap="gray", vmin=-0.5, vmax=0.5)
+    plt.imshow(image_array, cmap="gray", vmin=-0.5, vmax=0.5)
     plt.imshow(correct, cmap="Greens", alpha=0.3)
     plt.imshow(false, cmap="Reds", alpha=0.3)
     plt.savefig(
@@ -495,7 +495,7 @@ def _save_figure_weights(
     gs = gridspec.GridSpec(rows, columns, wspace=0.0, hspace=0.0, left=0)
     for rows_index in range(rows):
         for columns_index in range(columns):
-            weight = next(model.children()).conv1.weight[
+            weight = cast("nn.Conv2d", next(model.children()).conv1).weight[
                 rows_index * rows + columns_index
             ]
             ax = plt.subplot(gs[rows_index, columns_index])
@@ -883,17 +883,16 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901,PLR0912,PLR0915
                                 volume_prediction_array = np.zeros(
                                     (*image_shape, len(dataset_test)),
                                 )
-                                for slice_volume_index, (
-                                    images,
-                                    mask_lungs,
-                                    mask_lesions,
-                                ) in enumerate(dataset_test):
+                                for slice_volume_index in range(len(dataset_test)):
+                                    images, mask_lungs, mask_lesions = dataset_test[
+                                        slice_volume_index
+                                    ]
                                     if experiment_name == experiment_names[0]:
                                         masks = mask_lungs
                                     elif experiment_name == experiment_names[1]:
                                         masks = mask_lesions
                                     elif experiment_name == experiment_names[2]:
-                                        images *= mask_lungs  # noqa: PLW2901
+                                        images *= mask_lungs
                                         masks = mask_lesions
                                     volume_mask_array[:, :, slice_volume_index] = masks[
                                         0
