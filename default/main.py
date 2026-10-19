@@ -26,12 +26,13 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from scipy.stats import gaussian_kde
-from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics
 from segmentation_models_pytorch.utils.losses import DiceLoss
 from skimage.measure import marching_cubes
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import functional as tf
+
+from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -46,7 +47,7 @@ _RUNTIME = SimpleNamespace(smoke=False)
 RUNTIME_DIR = Path.home() / (
     "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
     "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
-    "packages/default/tmp"
+    "default/tmp"
 )
 _OUT_PATH = RUNTIME_DIR
 _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
