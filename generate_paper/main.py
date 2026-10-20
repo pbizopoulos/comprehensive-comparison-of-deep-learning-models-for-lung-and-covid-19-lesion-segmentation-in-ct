@@ -47,7 +47,7 @@ _RUNTIME = SimpleNamespace(smoke=False)
 RUNTIME_DIR = Path.home() / (
     "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
     "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
-    "default/tmp"
+    "generate_paper/tmp"
 )
 _OUT_PATH = RUNTIME_DIR
 _RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
@@ -62,9 +62,9 @@ class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
         if _RUNTIME.smoke:
-            self.images = np.random.randn(512, 512, 1)  # noqa: NPY002
-            self.mask_lesions = np.random.randn(512, 512, 1)  # noqa: NPY002
-            self.mask_lungs = np.random.randn(512, 512, 1)  # noqa: NPY002
+            self.images = self.rng.standard_normal((512, 512, 1))
+            self.mask_lesions = self.rng.standard_normal((512, 512, 1))
+            self.mask_lungs = self.rng.standard_normal((512, 512, 1))
         else:
             urls = [
                 "https://drive.google.com/uc?id=1SJoMelgRqb0EuqlTuq6dxBWf2j9Kno8S",
@@ -126,9 +126,9 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
         if _RUNTIME.smoke:
-            self.images = np.random.randn(64, 64, 13)  # noqa: NPY002
-            self.mask_lesions = np.random.randn(64, 64, 13)  # noqa: NPY002
-            self.mask_lungs = np.random.randn(64, 64, 13)  # noqa: NPY002
+            self.images = self.rng.standard_normal((64, 64, 13))
+            self.mask_lesions = self.rng.standard_normal((64, 64, 13))
+            self.mask_lungs = self.rng.standard_normal((64, 64, 13))
         else:
             urls = [
                 "https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m",

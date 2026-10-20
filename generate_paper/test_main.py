@@ -19,12 +19,12 @@ def test_smoke_run_generates_readable_results_and_a_complete_manuscript(
     """The pytest workflow produces CSV results and a compiled PDF offline."""
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    from default import main as subject  # noqa: PLC0415
+    from generate_paper import main as subject  # noqa: PLC0415
 
     output = tmp_path / (
         "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
         "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
-        "default/tmp"
+        "generate_paper/tmp"
     )
     if output != subject.RUNTIME_DIR:
         message = "Runtime output must use the canonical package directory"
