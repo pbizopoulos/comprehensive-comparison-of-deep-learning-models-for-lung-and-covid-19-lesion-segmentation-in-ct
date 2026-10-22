@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import argparse
 import itertools
 import math
 import shutil
@@ -530,19 +529,8 @@ def _compile_manuscript() -> None:
     )
 
 
-def parser() -> argparse.ArgumentParser:
-    """Declare the command-line interface for this fixed workflow."""
-    return argparse.ArgumentParser(
-        description=(
-            "Comprehensive Comparison of Deep Learning Models for Lung and "
-            "COVID-19 Lesion Segmentation in CT."
-        ),
-    )
-
-
-def main(argv: list[str] | None = None) -> None:  # noqa: C901,PLR0912,PLR0915
+def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
-    parser().parse_args(argv)
     _RUNTIME.smoke = "pytest" in sys.modules
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
