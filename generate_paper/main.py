@@ -49,7 +49,7 @@ RUNTIME_DIR = Path.home() / (
     "generate_paper/tmp"
 )
 _OUT_PATH = RUNTIME_DIR
-_RESOURCE_PATH = Path(__file__).resolve().parent / "prm"
+_RESOURCE_PATH = Path(__file__).resolve().parent
 _OUT_PATH.mkdir(exist_ok=True, parents=True)
 
 
