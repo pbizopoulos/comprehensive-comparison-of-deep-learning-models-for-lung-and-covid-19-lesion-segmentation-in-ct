@@ -1,6 +1,4 @@
-{
-  pkgs ? import <nixpkgs> { },
-}:
+{ pkgs }:
 let
   efficientnet-pytorch = python.pkgs.buildPythonPackage rec {
     format = "pyproject";
