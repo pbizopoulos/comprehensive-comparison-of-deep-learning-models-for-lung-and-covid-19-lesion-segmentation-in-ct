@@ -17,7 +17,7 @@ _EXPECTED_MS_PDF_SHA256 = (
 )
 
 
-def test_generated_manuscript_hash(
+def test_generated_manuscript_matches_the_reviewed_baseline(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

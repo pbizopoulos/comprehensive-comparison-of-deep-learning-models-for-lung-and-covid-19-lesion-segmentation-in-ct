@@ -35,6 +35,7 @@ let
 in
 python.pkgs.buildPythonPackage rec {
   format = "wheel";
+  meta.description = "Image segmentation models with pretrained encoders for PyTorch";
   pname = builtins.baseNameOf ./.;
   propagatedBuildInputs = [
     efficientnet-pytorch

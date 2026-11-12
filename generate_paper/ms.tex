@@ -182,7 +182,7 @@ architectures and encoders that are used in this study are presented.
 \subsection{Formalization}
 Let $\mathcal{D}$ be a dataset containing images $\bm{X} \in
 \mathbb{R}^{n_r, n_c}$ and $\bm{Y} \in \{0, 1\}^{n_r, n_c}$ the
-corresponding target mask (in our case $n_r=512$, $n_c=512$). % chktex 3
+corresponding target mask (in our case $n_r=512$, $n_c=512$).
 Let $m_{ex, ar, en, ew}$ be a DL model for segmentation where $ex$
 denotes the specific experiment, $ar$ the architecture, $en$ the
 encoder and $ew$ the encoder weights.
@@ -191,18 +191,18 @@ feature extraction.
 The model $m_{ex, ar, en, ew}$ is trained on a dataset
 $\mathcal{D}_{train}\subset\mathcal{D}$ consisting of $\bm{X}_{train}
 \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{train} \in \{0, 1\}^{n_r,
-n_c}$. % chktex 3
+n_c}$.
 Moreover a validation dataset is defined as
 $\mathcal{D}_{val}\subset\mathcal{D}$ where
 $\mathcal{D}_{val}\cap\mathcal{D}_{train}=\emptyset$ consisting of
 $\bm{X}_{val} \in \mathbb{R}^{n_r, n_c}$ and $\bm{Y}_{val} \in \{0,
-1\}^{n_r, n_c}$. % chktex 3
+1\}^{n_r, n_c}$.
 Therefore, the objective of the experiments conducted in this study
 can be designed as, finding an optimal point in the parameter space
 of $m_{ex, ar, en, ew}$ during training such that when presented with
 an input from $\mathcal{D}$ such as $\bm{X}_{val}$, its prediction
 $\hat{\bm{Y}}_{val} \in [0, 1]^{n_r, n_c}$ is as near as possible
-with the target $\bm{Y}_{val}$. % chktex 3
+with the target $\bm{Y}_{val}$.
 This is implemented by selecting the model that performs the minimum
 validation error out of all epochs.
 Subsequently, the selected models are tested on the generalization
@@ -341,7 +341,7 @@ dataset\footnote{\url{https://radiopaedia.org/articles/covid-19-3}}
 consists of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$
 images from $9$ CT\@ scan volumes (a set of CT scan images acquired
 from the same patient at the same moment) with corresponding target
-masks. % chktex 8
+masks.
 373 out of $\DTLfetch{keys-values}{key}{test-slices-num}{value}$ were
 annotated as positive and segmented by a radiologist by the same
 group as the first dataset.
@@ -492,7 +492,7 @@ Pytorch~\cite{paszke2019pytorch} and the `Segmentation Models
 Pytorch' library~\cite{yakubovskiy2019segmentation} were used for
 implementing the experiments, a GeForce RTX 2080 Ti Graphics Card
 with 11Gb RAM from NVIDIA and an Intel Core i9-9900K CPU @3.60GHz, on
-a Linux-based operating system for training the models for two weeks. % chktex 8
+a Linux-based operating system for training the models for two weeks.
 A pseudo-code implementation of the experimental setup is shown in
 Algorithm~\ref{alg:experimentalsetup}.
 
@@ -569,7 +569,7 @@ for lung segmentation,
 for lesion segmentation A and
 \DTLfetch{keys-values}{key}{lesion-segmentation-b-architecture-imagenet-index-max}{value}-\DTLfetch{keys-values}{key}{lesion-segmentation-b-encoder-imagenet-index-max}{value}
 ($\DTLfetch{keys-values}{key}{lesion-segmentation-b-imagenet-max}{value}\%$)
-for lesion segmentation B. % chktex 35
+for lesion segmentation B.
 In Fig.~\ref{fig:predictedmasks} the predicted masks for $24$ out of
 the $600$ models are depicted, demonstrating the difference in
 segmentation quality between the best
@@ -764,7 +764,6 @@ good match with the original masks.
 \begin{figure*}[!t]
   \rotatebox[origin=l]{90}{\hspace{1em}\scriptsize Lung
   segmentation}\subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lung-segmentation-mask--volume.png}}
-  % chktex 8
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lung-segmentation-Unet-None-volume.png}}
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lung-segmentation-Linknet-None-volume.png}}
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lung-segmentation-FPN-None-volume.png}}
@@ -773,7 +772,6 @@ good match with the original masks.
   \rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion
     segmentation
   A}\subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-a-mask--volume.png}}
-  % chktex 8
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-a-Unet-None-volume.png}}
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-a-Linknet-None-volume.png}}
   \subfloat{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-a-FPN-None-volume.png}}
@@ -783,7 +781,6 @@ good match with the original masks.
   \rotatebox[origin=l]{90}{\hspace{0.8em}\scriptsize Lesion
     segmentation
   B}\subfloat[Mask]{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-b-mask--volume.png}}
-  % chktex 8
   \subfloat[Unet]{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-b-Unet-None-volume.png}}
   \subfloat[Linknet]{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-b-Linknet-None-volume.png}}
   \subfloat[FPN]{\includegraphics[width=0.20\textwidth]{\FILEPATH/lesion-segmentation-b-FPN-None-volume.png}}
