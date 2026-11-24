@@ -34,8 +34,15 @@ let
   python = pkgs.python3;
 in
 python.pkgs.buildPythonPackage rec {
+  doInstallCheck = true;
   format = "wheel";
+  installCheckPhase = ''
+    runHook preInstallCheck
+    PYTHONPATH="$out/${python.sitePackages}:$PYTHONPATH" ${python.interpreter} -m pytest -q -p no:cacheprovider --import-mode=importlib ${./test_main.py}
+    runHook postInstallCheck
+  '';
   meta.description = "Image segmentation models with pretrained encoders for PyTorch";
+  nativeInstallCheckInputs = [ python.pkgs.pytest ];
   pname = builtins.baseNameOf ./.;
   propagatedBuildInputs = [
     efficientnet-pytorch
