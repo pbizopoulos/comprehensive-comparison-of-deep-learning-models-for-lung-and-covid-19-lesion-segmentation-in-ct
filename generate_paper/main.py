@@ -48,9 +48,8 @@ RUNTIME_DIR = Path.home() / (
     "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
     "generate_paper/tmp"
 )
-_OUT_PATH = RUNTIME_DIR
 _RESOURCE_PATH = Path(__file__).resolve().parent
-_OUT_PATH.mkdir(exist_ok=True, parents=True)
+RUNTIME_DIR.mkdir(exist_ok=True, parents=True)
 
 
 class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
@@ -76,17 +75,17 @@ class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
                 "tr_lungmasks_updated.nii.gz",
             ]
             for url, file_name in zip(urls, file_names, strict=True):
-                nifti_file_path = _OUT_PATH / file_name
+                nifti_file_path = RUNTIME_DIR / file_name
                 if not nifti_file_path.is_file():
                     gdown.download(url, nifti_file_path.as_posix(), quiet=False)
-            images = cast("nib.Nifti1Image", nib.load(_OUT_PATH / "tr_im.nii.gz"))
+            images = cast("nib.Nifti1Image", nib.load(RUNTIME_DIR / "tr_im.nii.gz"))
             self.images = cast("npt.NDArray[np.float64]", images.get_fdata())[
                 ...,
                 index_range,
             ]
             mask_lesions = cast(
                 "nib.Nifti1Image",
-                nib.load(_OUT_PATH / "tr_mask.nii.gz"),
+                nib.load(RUNTIME_DIR / "tr_mask.nii.gz"),
             )
             self.mask_lesions = cast(
                 "npt.NDArray[np.float64]",
@@ -94,7 +93,7 @@ class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
             )[..., index_range]
             mask_lungs = cast(
                 "nib.Nifti1Image",
-                nib.load(_OUT_PATH / "tr_lungmasks_updated.nii.gz"),
+                nib.load(RUNTIME_DIR / "tr_lungmasks_updated.nii.gz"),
             )
             self.mask_lungs = cast("npt.NDArray[np.float64]", mask_lungs.get_fdata())[
                 ...,
@@ -136,16 +135,16 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
             ]
             file_names = ["rp_im.zip", "rp_msk.zip", "rp_lung_msk.zip"]
             for url, file_name in zip(urls, file_names, strict=True):
-                zip_file_name_path = _OUT_PATH / file_name
+                zip_file_name_path = RUNTIME_DIR / file_name
                 if not zip_file_name_path.is_file():
                     gdown.download(url, zip_file_name_path.as_posix(), quiet=False)
                     with ZipFile(zip_file_name_path, "r") as zip_file:
-                        zip_file.extractall(_OUT_PATH)
-            image_file_paths = sorted((_OUT_PATH / "rp_im/").glob("*.nii.gz"))
+                        zip_file.extractall(RUNTIME_DIR)
+            image_file_paths = sorted((RUNTIME_DIR / "rp_im/").glob("*.nii.gz"))
             images = cast("nib.Nifti1Image", nib.load(image_file_paths[index_volume]))
             self.images = cast("npt.NDArray[np.float64]", images.get_fdata())
             mask_lesions_file_paths = sorted(
-                (_OUT_PATH / "rp_msk/").glob("*.nii.gz"),
+                (RUNTIME_DIR / "rp_msk/").glob("*.nii.gz"),
             )
             mask_lesions = cast(
                 "nib.Nifti1Image",
@@ -156,7 +155,7 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
                 mask_lesions.get_fdata(),
             )
             mask_lungs_file_paths = sorted(
-                (_OUT_PATH / "rp_lung_msk/").glob("*.nii.gz"),
+                (RUNTIME_DIR / "rp_lung_msk/").glob("*.nii.gz"),
             )
             mask_lungs = cast(
                 "nib.Nifti1Image",
@@ -264,7 +263,7 @@ def _save_figure_3d(
     for line in ax.zaxis.get_ticklines():
         line.set_visible(False)
     plt.savefig(
-        _OUT_PATH / f"{experiment_name}-{architecture}-{encoder_weights}-volume.png",
+        RUNTIME_DIR / f"{experiment_name}-{architecture}-{encoder_weights}-volume.png",
     )
     plt.close()
 
@@ -284,7 +283,7 @@ def _save_figure_architecture_box(
         fontsize=15,
     )
     plt.ylim((70, 100))
-    plt.savefig(_OUT_PATH / f"{experiment_name}-boxplot-dice.png")
+    plt.savefig(RUNTIME_DIR / f"{experiment_name}-boxplot-dice.png")
     plt.close()
 
 
@@ -321,7 +320,7 @@ def _save_figure_histogram(
     plt.grid(visible=True, which="both")
     ax.set_yscale("log")
     ax.legend()
-    plt.savefig(_OUT_PATH / f"{experiment_name}-hist.png")
+    plt.savefig(RUNTIME_DIR / f"{experiment_name}-hist.png")
     plt.close()
 
 
@@ -330,7 +329,7 @@ def _save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image_array, cmap="gray", vmin=-0.5, vmax=0.5)
-    plt.savefig(_OUT_PATH / f"{experiment_name}-image.png")
+    plt.savefig(RUNTIME_DIR / f"{experiment_name}-image.png")
     plt.close()
 
 
@@ -356,7 +355,7 @@ def _save_figure_image_masked(  # noqa: PLR0913
     plt.imshow(correct, cmap="Greens", alpha=0.3)
     plt.imshow(false, cmap="Reds", alpha=0.3)
     plt.savefig(
-        _OUT_PATH
+        RUNTIME_DIR
         / f"{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image.png",  # noqa: E501
     )
     plt.close()
@@ -376,7 +375,7 @@ def _save_figure_initialization_box(
         fontsize=15,
     )
     plt.ylim((70, 100))
-    plt.savefig(_OUT_PATH / "initialization-boxplot-dice.png")
+    plt.savefig(RUNTIME_DIR / "initialization-boxplot-dice.png")
     plt.close()
 
 
@@ -422,7 +421,7 @@ def _save_figure_loss(
     ax.tick_params(axis="both", which="minor", labelsize="large")
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.savefig(
-        _OUT_PATH
+        RUNTIME_DIR
         / f"{experiment_name}-{train_or_validation.lower().replace(' ', '-')}-loss.png",
     )
     plt.close()
@@ -478,7 +477,7 @@ def _save_figure_scatter(
     ax.legend(loc="lower right")
     ax.set_aspect(aspect="auto")
     plt.savefig(
-        _OUT_PATH / f"{experiment_name}-scatter-dice-vs-num-parameters.png",
+        RUNTIME_DIR / f"{experiment_name}-scatter-dice-vs-num-parameters.png",
     )
     plt.close()
 
@@ -508,7 +507,7 @@ def _save_figure_weights(
             ax.set_xticklabels([])
             ax.set_yticklabels([])
     plt.savefig(
-        _OUT_PATH
+        RUNTIME_DIR
         / f"{experiment_name}-{architecture_name}-{encoder_weights}-weights.png",
     )
     plt.close()
@@ -517,14 +516,14 @@ def _save_figure_weights(
 def _compile_manuscript() -> None:
     """Copy and compile the manuscript after generating its artifacts."""
     for filename in ("ms.tex", "ms.bib"):
-        shutil.copy2(_RESOURCE_PATH / filename, _OUT_PATH / filename)
+        shutil.copy2(_RESOURCE_PATH / filename, RUNTIME_DIR / filename)
     latexmk = shutil.which("latexmk")
     if latexmk is None:
         message = "latexmk is required to compile the manuscript"
         raise RuntimeError(message)
     subprocess.run(  # noqa: S603
         [latexmk, "-pdf", "ms.tex"],
-        cwd=_OUT_PATH,
+        cwd=RUNTIME_DIR,
         check=True,
     )
 
@@ -661,7 +660,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float("inf")
                     model_file_path = (
-                        _OUT_PATH
+                        RUNTIME_DIR
                         / "{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt"  # noqa: E501
                     )
                     flops = FlopCountAnalysis(
@@ -1035,7 +1034,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     styler.format(precision=1)
     styler.highlight_max(props="bfseries: ;")
     styler.highlight_min(props="bfseries: ;")
-    styler.to_latex(_OUT_PATH / "metrics.tex", hrules=True, multicol_align="c")
+    styler.to_latex(RUNTIME_DIR / "metrics.tex", hrules=True, multicol_align="c")
     keys = (
         ["epochs-num", "batch-size", "test-slices-num", "encoder-best", "encoder-worst"]
         + [
@@ -1128,7 +1127,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         ]
     )
     keys_values_df = pd.DataFrame({"key": keys, "value": values})
-    keys_values_df.to_csv(_OUT_PATH / "keys-values.csv")
+    keys_values_df.to_csv(RUNTIME_DIR / "keys-values.csv")
     _compile_manuscript()
 
 
