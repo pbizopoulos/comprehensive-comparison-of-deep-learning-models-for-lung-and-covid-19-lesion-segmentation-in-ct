@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2024 Paschalis Bizopoulos
-"""Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT."""  # noqa: E501
+"""Compare deep learning models for lung and COVID-19 lesion segmentation in CT."""
 
 from __future__ import annotations
 
@@ -49,14 +49,14 @@ RUNTIME_DIR = Path.home() / (
     "generate_paper/tmp"
 )
 _RESOURCE_PATH = Path(__file__).resolve().parent
-RUNTIME_DIR.mkdir(exist_ok=True, parents=True)
 
 
 class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     def __init__(
         self: _MedicalSegmentation1,
         index_range: range,
-        use_transforms: bool,  # noqa: FBT001
+        *,
+        use_transforms: bool,
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
         if _RUNTIME.smoke:
@@ -106,8 +106,8 @@ class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
             self.images[..., index],
             self.mask_lesions[..., index],
             self.mask_lungs[..., index],
-            self.use_transforms,
             self.rng,
+            use_transforms=self.use_transforms,
         )
         return (image, mask_lung, mask_lesion)
 
@@ -120,7 +120,8 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
     def __init__(
         self: _MedicalSegmentation2,
         index_volume: int,
-        use_transforms: bool,  # noqa: FBT001
+        *,
+        use_transforms: bool,
     ) -> None:
         self.rng = np.random.default_rng(seed=0)
         if _RUNTIME.smoke:
@@ -169,8 +170,8 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
             self.images[..., index],
             self.mask_lesions[..., index],
             self.mask_lungs[..., index],
-            self.use_transforms,
             self.rng,
+            use_transforms=self.use_transforms,
         )
         return (image, mask_lung, mask_lesion)
 
@@ -194,8 +195,9 @@ def _preprocess_image(
     image: npt.NDArray[np.float64],
     mask_lesion: npt.NDArray[np.float64],
     mask_lung: npt.NDArray[np.float64],
-    use_transforms: bool,  # noqa: FBT001
     rng: np.random.Generator,
+    *,
+    use_transforms: bool,
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     image -= image.min()
     image /= image.max()
@@ -207,11 +209,12 @@ def _preprocess_image(
     mask_lesion = tf.resize(mask_lesion, [image_size, image_size])
     mask_lung = tf.resize(mask_lung, [image_size, image_size])
     if use_transforms:
-        if rng.random() > 0.5:  # noqa: PLR2004
+        flip_threshold = 0.5
+        if rng.random() > flip_threshold:
             image = tf.hflip(image)
             mask_lesion = tf.hflip(mask_lesion)
             mask_lung = tf.hflip(mask_lung)
-        if rng.random() > 0.5:  # noqa: PLR2004
+        if rng.random() > flip_threshold:
             image = tf.vflip(image)
             mask_lesion = tf.vflip(mask_lesion)
             mask_lung = tf.vflip(mask_lung)
@@ -233,13 +236,14 @@ def _save_figure_3d(
     step_size: int,
     volume: npt.NDArray[np.float64],
 ) -> None:
-    binary_volume = volume > 0.5  # noqa: PLR2004
+    isosurface_level = 0.5
+    binary_volume = volume > isosurface_level
     binary_volume[0, 0, 0:10] = 0
     binary_volume[0, 0, 10:20] = 1
     verts, faces, *_ = cast(
         "Callable[..., _MarchingCubesResult]",
         marching_cubes,
-    )(binary_volume, 0.5, step_size=step_size)
+    )(binary_volume, isosurface_level, step_size=step_size)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.plot_trisurf(
@@ -333,11 +337,9 @@ def _save_figure_image(experiment_name: str, image: torch.Tensor) -> None:
     plt.close()
 
 
-def _save_figure_image_masked(  # noqa: PLR0913
+def _save_figure_image_masked(
+    figure_prefix: str,
     *,
-    architecture: str,
-    encoder_name: str,
-    experiment_name: str,
     image: torch.Tensor,
     mask: torch.Tensor,
     prediction: torch.Tensor,
@@ -348,16 +350,13 @@ def _save_figure_image_masked(  # noqa: PLR0913
     prediction_threshold = 0.5
     prediction_array = prediction_array > prediction_threshold
     correct = mask_array * prediction_array
-    false = np.logical_xor(mask_array, prediction_array) > 0.5  # noqa: PLR2004
+    false = np.logical_xor(mask_array, prediction_array)
     _, ax = plt.subplots()
     ax.tick_params(labelbottom=False, labelleft=False)
     plt.imshow(image_array, cmap="gray", vmin=-0.5, vmax=0.5)
     plt.imshow(correct, cmap="Greens", alpha=0.3)
     plt.imshow(false, cmap="Reds", alpha=0.3)
-    plt.savefig(
-        RUNTIME_DIR
-        / f"{experiment_name}-{architecture}-{encoder_name.replace('_', '')}-masked-image.png",  # noqa: E501
-    )
+    plt.savefig(RUNTIME_DIR / f"{figure_prefix}-masked-image.png")
     plt.close()
 
 
@@ -530,6 +529,7 @@ def _compile_manuscript() -> None:
 
 def main() -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
+    RUNTIME_DIR.mkdir(exist_ok=True, parents=True)
     _RUNTIME.smoke = "pytest" in sys.modules
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
@@ -659,9 +659,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                     )
                     optimizer = optim.Adam(model.parameters())
                     loss_validation_best = float("inf")
-                    model_file_path = (
-                        RUNTIME_DIR
-                        / "{experiment_name}-{architecture_name}-{encoder_name}-{encoder_weights}.pt"  # noqa: E501
+                    model_file_path = RUNTIME_DIR / (
+                        "{experiment_name}-{architecture_name}-"
+                        "{encoder_name}-{encoder_weights}.pt"
                     )
                     flops = FlopCountAnalysis(
                         model,
@@ -676,15 +676,15 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                     for epoch_index in range(num_epochs):
                         loss_train_sum = 0
                         model.train()
-                        for images, mask_lungs, mask_lesions in dataloader_train:
+                        for batch_images, mask_lungs, mask_lesions in dataloader_train:
                             if experiment_name == experiment_names[0]:
                                 masks = mask_lungs
                             elif experiment_name == experiment_names[1]:
                                 masks = mask_lesions
                             elif experiment_name == experiment_names[2]:
-                                images *= mask_lungs  # noqa: PLW2901
+                                batch_images.mul_(mask_lungs)
                                 masks = mask_lesions
-                            images = images.to(device)  # noqa: PLW2901
+                            images = batch_images.to(device)
                             masks = masks.to(device)
                             predictions = model(images)
                             if (
@@ -695,17 +695,13 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             ):
                                 _save_figure_image(experiment_name, images[0, 0])
                                 _save_figure_image_masked(
-                                    architecture="mask",
-                                    encoder_name="train",
-                                    experiment_name=experiment_name,
+                                    f"{experiment_name}-mask-train",
                                     image=images[0, 0],
                                     mask=masks[0, 0],
                                     prediction=masks[0, 0],
                                 )
                                 _save_figure_image_masked(
-                                    architecture="prediction",
-                                    encoder_name="train",
-                                    experiment_name=experiment_name,
+                                    f"{experiment_name}-prediction-train",
                                     image=images[0, 0],
                                     mask=masks[0, 0],
                                     prediction=predictions[0, 0],
@@ -745,7 +741,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         model.eval()
                         with torch.no_grad():
                             for (
-                                images,
+                                batch_images,
                                 mask_lungs,
                                 mask_lesions,
                             ) in dataloader_validation:
@@ -754,9 +750,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                 elif experiment_name == experiment_names[1]:
                                     masks = mask_lesions
                                 elif experiment_name == experiment_names[2]:
-                                    images *= mask_lungs  # noqa: PLW2901
+                                    batch_images.mul_(mask_lungs)
                                     masks = mask_lesions
-                                images = images.to(device)  # noqa: PLW2901
+                                images = batch_images.to(device)
                                 masks = masks.to(device)
                                 predictions = model(images)
                                 loss = dice_loss(predictions, masks)
@@ -801,15 +797,19 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         num_slices_test += len(dataloader_test)
                         model.eval()
                         with torch.no_grad():
-                            for images, mask_lungs, mask_lesions in dataloader_test:
+                            for (
+                                batch_images,
+                                mask_lungs,
+                                mask_lesions,
+                            ) in dataloader_test:
                                 if experiment_name == experiment_names[0]:
                                     masks = mask_lungs
                                 elif experiment_name == experiment_names[1]:
                                     masks = mask_lesions
                                 elif experiment_name == experiment_names[2]:
-                                    images *= mask_lungs  # noqa: PLW2901
+                                    batch_images.mul_(mask_lungs)
                                     masks = mask_lesions
-                                images = images.to(device)  # noqa: PLW2901
+                                images = batch_images.to(device)
                                 masks = masks.to(device)
                                 predictions = model(images)
                                 if (
@@ -851,10 +851,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     images *= mask_lungs
                                     masks = mask_lesions
                                 predictions = model(images.unsqueeze(0).to(device))
+                                encoder_label = encoder_name.replace("_", "")
                                 _save_figure_image_masked(
-                                    architecture=architecture_name,
-                                    encoder_name=encoder_name,
-                                    experiment_name=experiment_name,
+                                    f"{experiment_name}-{architecture_name}-{encoder_label}",
                                     image=images[0],
                                     mask=masks[0],
                                     prediction=predictions[0, 0],
@@ -1070,8 +1069,8 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             )
         ]
         + [
-            f"{experiment_name}-{architecture_name}-{encoder_weights}-mean"
-            for experiment_name, architecture_name, encoder_weights in itertools.product(  # noqa: E501
+            f"{experiment}-{architecture}-{weights}-mean"
+            for experiment, architecture, weights in itertools.product(
                 experiment_names,
                 architecture_names,
                 encoders_weights,
