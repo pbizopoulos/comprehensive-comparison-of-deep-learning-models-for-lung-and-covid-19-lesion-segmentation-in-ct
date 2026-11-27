@@ -5,18 +5,24 @@ in
 inputs.afairesi.lib.mkPythonPackage {
   inherit pkgs;
   executable = true;
+  makeWrapperArgs = [
+    "--prefix"
+    "PATH"
+    ":"
+    (pkgs.lib.makeBinPath [ pkgs.texliveFull ])
+  ];
   meta = {
     description = "Comprehensive Comparison of Deep Learning Models for Lung and COVID-19 Lesion Segmentation in CT";
     homepage = "https://arxiv.org/abs/2009.06412";
   };
-  nativeBuildInputs = [ pkgs.texliveFull ];
+  nativeCheckInputs = [
+    pkgs.texliveFull
+    python.pkgs.pandas-stubs
+    python.pkgs.scipy-stubs
+  ];
   propagatedBuildInputs = [
-    (python.pkgs.nibabel.overridePythonAttrs (_oldAttrs: {
-      doCheck = false;
-      doInstallCheck = false;
-      pytestCheckPhase = "";
-    }))
-    inputs.self.packages.${pkgs.stdenv.system}.segmentation_models_pytorch
+    (python.pkgs.nibabel.overridePythonAttrs { doCheck = false; })
+    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.segmentation_models_pytorch
     python.pkgs.fvcore
     python.pkgs.gdown
     python.pkgs.matplotlib

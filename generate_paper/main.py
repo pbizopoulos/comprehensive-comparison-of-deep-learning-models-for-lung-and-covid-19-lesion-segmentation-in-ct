@@ -8,9 +8,7 @@ import itertools
 import math
 import shutil
 import subprocess
-import sys
 from pathlib import Path
-from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
@@ -20,18 +18,17 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import torch
-from fvcore.nn import FlopCountAnalysis
+from fvcore.nn import FlopCountAnalysis  # type: ignore[import-untyped]
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from scipy.stats import gaussian_kde
-from segmentation_models_pytorch.utils.losses import DiceLoss
 from skimage.measure import marching_cubes
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
-from torchvision.transforms import functional as tf
+from torchvision.transforms import functional as tf  # type: ignore[import-untyped]
 
-from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics
+from segmentation_models_pytorch import FPN, Linknet, PSPNet, Unet, metrics  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -42,7 +39,6 @@ if TYPE_CHECKING:
         npt.NDArray[np.float32],
         npt.NDArray[np.float32],
     ]
-_RUNTIME = SimpleNamespace(smoke=False)
 RUNTIME_DIR = Path.home() / (
     "github.com/pbizopoulos/comprehensive-comparison-of-deep-lear"
     "ning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/"
@@ -51,15 +47,65 @@ RUNTIME_DIR = Path.home() / (
 _RESOURCE_PATH = Path(__file__).resolve().parent
 
 
-class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
+class _SegmentationSlices(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
+    images: npt.NDArray[np.float64]
+    mask_lesions: npt.NDArray[np.float64]
+    mask_lungs: npt.NDArray[np.float64]
+
+    def __init__(self, *, use_transforms: bool, smoke: bool) -> None:
+        self.rng = np.random.default_rng(seed=0)
+        self.use_transforms = use_transforms
+        self.image_size = 64 if smoke else 512
+
+    def __len__(self) -> int:
+        return int(self.images.shape[-1])
+
+    def __getitem__(
+        self, index: int
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        image = self.images[..., index]
+        mask_lesion = self.mask_lesions[..., index]
+        mask_lung = self.mask_lungs[..., index]
+        image -= image.min()
+        image /= image.max()
+        image_pil = tf.to_pil_image(image.astype("float32"))
+        mask_lesion_pil = tf.to_pil_image(mask_lesion.astype("uint8"))
+        mask_lung_pil = tf.to_pil_image(mask_lung.astype("uint8"))
+        image_pil = tf.resize(image_pil, [self.image_size, self.image_size])
+        mask_lesion_pil = tf.resize(mask_lesion_pil, [self.image_size, self.image_size])
+        mask_lung_pil = tf.resize(mask_lung_pil, [self.image_size, self.image_size])
+        if self.use_transforms:
+            flip_threshold = 0.5
+            if self.rng.random() > flip_threshold:
+                image_pil = tf.hflip(image_pil)
+                mask_lesion_pil = tf.hflip(mask_lesion_pil)
+                mask_lung_pil = tf.hflip(mask_lung_pil)
+            if self.rng.random() > flip_threshold:
+                image_pil = tf.vflip(image_pil)
+                mask_lesion_pil = tf.vflip(mask_lesion_pil)
+                mask_lung_pil = tf.vflip(mask_lung_pil)
+            scale = self.rng.random() + 0.5
+            rotation = 360 * self.rng.random() - 180
+            image_pil = tf.affine(image_pil, rotation, [0, 0], scale, 0)
+            mask_lesion_pil = tf.affine(mask_lesion_pil, rotation, [0, 0], scale, 0)
+            mask_lung_pil = tf.affine(mask_lung_pil, rotation, [0, 0], scale, 0)
+        return (
+            tf.to_tensor(image_pil),
+            tf.to_tensor(mask_lung_pil).bool(),
+            tf.to_tensor(mask_lesion_pil).bool(),
+        )
+
+
+class _TrainingSlices(_SegmentationSlices):
     def __init__(
-        self: _MedicalSegmentation1,
+        self,
         index_range: range,
         *,
         use_transforms: bool,
+        smoke: bool,
     ) -> None:
-        self.rng = np.random.default_rng(seed=0)
-        if _RUNTIME.smoke:
+        super().__init__(use_transforms=use_transforms, smoke=smoke)
+        if smoke:
             self.images = self.rng.standard_normal((512, 512, 1))
             self.mask_lesions = self.rng.standard_normal((512, 512, 1))
             self.mask_lungs = self.rng.standard_normal((512, 512, 1))
@@ -99,32 +145,18 @@ class _MedicalSegmentation1(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
                 ...,
                 index_range,
             ]
-        self.use_transforms = use_transforms
-
-    def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = _preprocess_image(
-            self.images[..., index],
-            self.mask_lesions[..., index],
-            self.mask_lungs[..., index],
-            self.rng,
-            use_transforms=self.use_transforms,
-        )
-        return (image, mask_lung, mask_lesion)
-
-    def __len__(self) -> int:
-        output: int = self.images.shape[-1]
-        return output
 
 
-class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
+class _TestVolumeSlices(_SegmentationSlices):
     def __init__(
-        self: _MedicalSegmentation2,
+        self,
         index_volume: int,
         *,
         use_transforms: bool,
+        smoke: bool,
     ) -> None:
-        self.rng = np.random.default_rng(seed=0)
-        if _RUNTIME.smoke:
+        super().__init__(use_transforms=use_transforms, smoke=smoke)
+        if smoke:
             self.images = self.rng.standard_normal((64, 64, 13))
             self.mask_lesions = self.rng.standard_normal((64, 64, 13))
             self.mask_lungs = self.rng.standard_normal((64, 64, 13))
@@ -163,21 +195,17 @@ class _MedicalSegmentation2(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tens
                 nib.load(mask_lungs_file_paths[index_volume]),
             )
             self.mask_lungs = cast("npt.NDArray[np.float64]", mask_lungs.get_fdata())
-        self.use_transforms = use_transforms
 
-    def __getitem__(self, index: int) -> tuple:  # type: ignore[type-arg]
-        image, mask_lung, mask_lesion = _preprocess_image(
-            self.images[..., index],
-            self.mask_lesions[..., index],
-            self.mask_lungs[..., index],
-            self.rng,
-            use_transforms=self.use_transforms,
-        )
-        return (image, mask_lung, mask_lesion)
 
-    def __len__(self) -> int:
-        output: int = self.images.shape[-1]
-        return output
+def soft_dice_loss(prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """Compute the batch-wide Dice loss with unit smoothing on probabilities."""
+    intersection = (target * prediction).sum()
+    false_positive = prediction.sum() - intersection
+    false_negative = target.sum() - intersection
+    twice_intersection = 2 * intersection
+    return 1 - (twice_intersection + 1) / (
+        twice_intersection + false_negative + false_positive + 1
+    )
 
 
 def _calculate_metrics(
@@ -189,44 +217,6 @@ def _calculate_metrics(
     sensitivity = metrics.sensitivity(tp, fp, fn, tn)
     specificity = metrics.specificity(tp, fp, fn, tn)
     return (sensitivity.item(), specificity.item(), f1_score.item())
-
-
-def _preprocess_image(
-    image: npt.NDArray[np.float64],
-    mask_lesion: npt.NDArray[np.float64],
-    mask_lung: npt.NDArray[np.float64],
-    rng: np.random.Generator,
-    *,
-    use_transforms: bool,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-    image -= image.min()
-    image /= image.max()
-    image = tf.to_pil_image(image.astype("float32"))
-    mask_lesion = tf.to_pil_image(mask_lesion.astype("uint8"))
-    mask_lung = tf.to_pil_image(mask_lung.astype("uint8"))
-    image_size = 64 if _RUNTIME.smoke else 512
-    image = tf.resize(image, [image_size, image_size])
-    mask_lesion = tf.resize(mask_lesion, [image_size, image_size])
-    mask_lung = tf.resize(mask_lung, [image_size, image_size])
-    if use_transforms:
-        flip_threshold = 0.5
-        if rng.random() > flip_threshold:
-            image = tf.hflip(image)
-            mask_lesion = tf.hflip(mask_lesion)
-            mask_lung = tf.hflip(mask_lung)
-        if rng.random() > flip_threshold:
-            image = tf.vflip(image)
-            mask_lesion = tf.vflip(mask_lesion)
-            mask_lung = tf.vflip(mask_lung)
-        scale = rng.random() + 0.5
-        rotation = 360 * rng.random() - 180
-        image = tf.affine(image, rotation, [0, 0], scale, 0)
-        mask_lesion = tf.affine(mask_lesion, rotation, [0, 0], scale, 0)
-        mask_lung = tf.affine(mask_lung, rotation, [0, 0], scale, 0)
-    image = tf.to_tensor(image)
-    mask_lesion = tf.to_tensor(mask_lesion).bool()
-    mask_lung = tf.to_tensor(mask_lung).bool()
-    return (image, mask_lung, mask_lesion)
 
 
 def _save_figure_3d(
@@ -527,13 +517,12 @@ def _compile_manuscript() -> None:
     )
 
 
-def main() -> None:  # noqa: C901,PLR0912,PLR0915
+def main(*, smoke: bool = False) -> None:  # noqa: C901,PLR0912,PLR0915
     """Train lung and COVID models and generate corresponding images and tables."""
     RUNTIME_DIR.mkdir(exist_ok=True, parents=True)
-    _RUNTIME.smoke = "pytest" in sys.modules
     plt.rcParams["image.interpolation"] = "none"
     plt.rcParams["savefig.bbox"] = "tight"
-    if _RUNTIME.smoke:
+    if smoke:
         torch.set_num_threads(1)
         encoder_names = ["resnet18"]
         num_epochs = 1
@@ -578,7 +567,6 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         architectures = [Unet, Linknet, FPN, PSPNet]
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-    torch.cuda.manual_seed_all(0)
     torch.manual_seed(0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     batch_size = 2
@@ -592,11 +580,12 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
         experiment.lower().replace(" ", "-") for experiment in experiments
     ]
     encoders_weights = [None, "imagenet"]
-    dataset_train = _MedicalSegmentation1(range_train, use_transforms=True)
+    dataset_train = _TrainingSlices(range_train, use_transforms=True, smoke=smoke)
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
-    dataset_validation = _MedicalSegmentation1(range_validation, use_transforms=False)
+    dataset_validation = _TrainingSlices(
+        range_validation, use_transforms=False, smoke=smoke
+    )
     dataloader_validation = DataLoader(dataset_validation, batch_size=batch_size)
-    dice_loss = DiceLoss()
     metric_names = ["Sens", "Spec", "Dice"]
     metrics_array: npt.NDArray[np.float64] = np.zeros(
         (
@@ -638,7 +627,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                 for encoder_weights_index, encoder_weights in enumerate(
                     encoders_weights,
                 ):
-                    if _RUNTIME.smoke and encoder_weights == "imagenet":
+                    if smoke and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -674,7 +663,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                         encoder_weights_index,
                     ] = flops.total()
                     for epoch_index in range(num_epochs):
-                        loss_train_sum = 0
+                        loss_train_sum = 0.0
                         model.train()
                         for batch_images, mask_lungs, mask_lesions in dataloader_train:
                             if experiment_name == experiment_names[0]:
@@ -724,10 +713,10 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                         experiment_name,
                                         model,
                                     )
-                            loss = dice_loss(predictions, masks)
+                            loss = soft_dice_loss(predictions, masks)
                             loss_train_sum += loss.item()
                             optimizer.zero_grad()
-                            loss.backward()
+                            torch.autograd.backward(loss)
                             optimizer.step()
                         loss_train = loss_train_sum / len(dataloader_train)
                         loss_train_array[
@@ -737,7 +726,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             encoder_weights_index,
                             epoch_index,
                         ] = loss_train
-                        loss_validation_sum = 0
+                        loss_validation_sum = 0.0
                         model.eval()
                         with torch.no_grad():
                             for (
@@ -755,7 +744,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                 images = batch_images.to(device)
                                 masks = masks.to(device)
                                 predictions = model(images)
-                                loss = dice_loss(predictions, masks)
+                                loss = soft_dice_loss(predictions, masks)
                                 loss_validation_sum += loss.item()
                             loss_validation = loss_validation_sum / len(
                                 dataloader_validation,
@@ -770,7 +759,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                             if loss_validation < loss_validation_best:
                                 loss_validation_best = loss_validation
                                 torch.save(model.state_dict(), model_file_path)
-                    if _RUNTIME.smoke and encoder_weights == "imagenet":
+                    if smoke and encoder_weights == "imagenet":
                         model = architecture(
                             encoder_name,
                             encoder_weights=None,
@@ -789,9 +778,10 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                     )
                     num_slices_test = 0
                     for index_test_volume in range_test_volume:
-                        dataset_test = _MedicalSegmentation2(
+                        dataset_test = _TestVolumeSlices(
                             index_test_volume,
                             use_transforms=False,
+                            smoke=smoke,
                         )
                         dataloader_test = DataLoader(dataset_test)
                         num_slices_test += len(dataloader_test)
@@ -911,7 +901,7 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
                                     step_size,
                                     volume_prediction_array,
                                 )
-                    if _RUNTIME.smoke:
+                    if smoke:
                         model_file_path.unlink()
     for hist_images, hist_masks, experiment_name in zip(
         hist_images_array,
@@ -1027,8 +1017,8 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
     )
     metrics_df.index.names = ["Architecture", "Encoder"]
     metrics_df = metrics_df.round(1)
-    maxs_per_column = metrics_df.max(0)
-    maxs_per_column_index = metrics_df.idxmax(0)
+    maxs_per_column = metrics_df.max(axis=0)
+    maxs_per_column_index = metrics_df.idxmax(axis=0).to_numpy()
     styler = metrics_df.style
     styler.format(precision=1)
     styler.highlight_max(props="bfseries: ;")
@@ -1086,7 +1076,9 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             encoder_names[encoder_mean.argmin()].replace("_", ""),
         ]
         + [
-            metrics_df.loc["Global", "Mean"][str(encoder_weights), experiment]["Dice"]
+            metrics_df.loc[
+                ("Global", "Mean"), (str(encoder_weights), experiment, "Dice")
+            ]
             for experiment, encoder_weights in itertools.product(
                 experiments,
                 encoders_weights,
@@ -1101,22 +1093,22 @@ def main() -> None:  # noqa: C901,PLR0912,PLR0915
             maxs_per_column.iloc[17],
             encoder_weights_mean[0],
             encoder_weights_mean[1],
-            maxs_per_column_index.iloc[2][0],
-            maxs_per_column_index.iloc[2][1],
-            maxs_per_column_index.iloc[11][0],
-            maxs_per_column_index.iloc[11][1],
-            maxs_per_column_index.iloc[5][0],
-            maxs_per_column_index.iloc[5][1],
-            maxs_per_column_index.iloc[14][0],
-            maxs_per_column_index.iloc[14][1],
-            maxs_per_column_index.iloc[8][0],
-            maxs_per_column_index.iloc[8][1],
-            maxs_per_column_index.iloc[17][0],
-            maxs_per_column_index.iloc[17][1],
+            maxs_per_column_index[2][0],
+            maxs_per_column_index[2][1],
+            maxs_per_column_index[11][0],
+            maxs_per_column_index[11][1],
+            maxs_per_column_index[5][0],
+            maxs_per_column_index[5][1],
+            maxs_per_column_index[14][0],
+            maxs_per_column_index[14][1],
+            maxs_per_column_index[8][0],
+            maxs_per_column_index[8][1],
+            maxs_per_column_index[17][0],
+            maxs_per_column_index[17][1],
         ]
         + [
-            metrics_df.loc[architecture_name, "Mean"][str(encoder_weights), experiment][
-                "Dice"
+            metrics_df.loc[
+                (architecture_name, "Mean"), (str(encoder_weights), experiment, "Dice")
             ]
             for experiment, architecture_name, encoder_weights in itertools.product(
                 experiments,

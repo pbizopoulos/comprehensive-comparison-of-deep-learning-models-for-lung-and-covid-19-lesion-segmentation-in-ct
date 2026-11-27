@@ -1,53 +1,24 @@
 { pkgs }:
-let
-  efficientnet-pytorch = python.pkgs.buildPythonPackage rec {
-    format = "pyproject";
-    pname = "efficientnet_pytorch";
-    propagatedBuildInputs = [
-      python.pkgs.setuptools
-      python.pkgs.torch
-    ];
-    pythonImportsCheck = [ pname ];
-    src = fetchTarball rec {
-      sha256 = "181lhizahwvpv14hqsw9nm6hij45k18h0yxbipvqxibjx0v02azm";
-      url = "https://api.github.com/repos/lukemelas/EfficientNet-PyTorch/tarball/master";
-    };
-    version = "0.7.1";
-  };
-  pretrainedmodels = python.pkgs.buildPythonPackage rec {
-    format = "pyproject";
-    pname = "pretrainedmodels";
-    propagatedBuildInputs = [
-      python.pkgs.munch
-      python.pkgs.setuptools
-      python.pkgs.six
-      python.pkgs.torchvision
-      python.pkgs.tqdm
-    ];
-    pythonImportsCheck = [ pname ];
-    src = fetchTarball rec {
-      sha256 = "1lgaj4fw7vdcq65qkrbx7si25n9df3nis1micl9bnia5a3jkmbrq";
-      url = "https://api.github.com/repos/cadene/pretrained-models.pytorch/tarball/master";
-    };
-    version = "0.7.4";
-  };
-  python = pkgs.python3;
-in
-python.pkgs.buildPythonPackage rec {
+pkgs.python3.pkgs.buildPythonPackage rec {
+  dependencies = with pkgs.python3.pkgs; [
+    huggingface-hub
+    numpy
+    pillow
+    safetensors
+    timm
+    torch
+    torchvision
+    tqdm
+  ];
   format = "wheel";
   meta.description = "Image segmentation models with pretrained encoders for PyTorch";
   pname = builtins.baseNameOf ./.;
-  propagatedBuildInputs = [
-    efficientnet-pytorch
-    pretrainedmodels
-    python.pkgs.timm
-  ];
   pythonImportsCheck = [ pname ];
-  src = python.pkgs.fetchPypi rec {
+  src = pkgs.fetchPypi {
     inherit pname version format;
-    dist = python;
+    dist = "py3";
+    hash = "sha256-xGFiIhtavjvClrIi++qKqA0LVucTD33e9lT3B4BFNOI=";
     python = "py3";
-    sha256 = "w04JBHdxqk3Yh4tPiZ6BJXAM0fj32xbljDcgQVQVGgU=";
   };
-  version = "0.5.0";
+  version = "0.6.0";
 }
